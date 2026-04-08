@@ -10,7 +10,7 @@ describe('fetchCopilotUserActivity', () => {
   it('iterates over a date range', async () => {
     const octokit = {
       request: vi.fn(async () => ({
-        data: [{ login: 'user1' }, { login: 'user2' }],
+        data: [{ login: 'user1', user_initiated_interaction_count: 5 }, { login: 'user2', user_initiated_interaction_count: 3 }],
       })),
     } as any;
 
