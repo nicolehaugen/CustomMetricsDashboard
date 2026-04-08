@@ -1,0 +1,2817 @@
+{
+  "uid": "dora-metrics-dashboard",
+  "title": "DORA Metrics Dashboard",
+  "tags": [
+    "dora",
+    "metrics",
+    "copilot"
+  ],
+  "timezone": "browser",
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "DORA_PostgreSQL"
+        },
+        "query": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "text": "production",
+          "value": "production"
+        },
+        "sort": 1,
+        "label": "Environment"
+      },
+      {
+        "name": "copilot_cohort",
+        "type": "custom",
+        "query": "All, Copilot Active, Copilot Inactive, Agent Users, Non-Agent Users",
+        "current": {
+          "text": "All",
+          "value": "All"
+        },
+        "includeAll": false,
+        "multi": false,
+        "label": "Copilot Cohort"
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "DORA_PostgreSQL"
+        },
+        "enable": true,
+        "iconColor": "green",
+        "rawQuery": "SELECT d.created_at AS time, 'Deploy: ' || d.sha AS text, 'Deployments' AS tags\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()"
+      },
+      {
+        "name": "Incidents",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "DORA_PostgreSQL"
+        },
+        "enable": true,
+        "iconColor": "red",
+        "rawQuery": "SELECT i.created_at AS time, 'Incident: ' || i.title AS text, 'Incidents' AS tags\nFROM issues i\nWHERE i.labels @> '[{\"name\":\"incident\"}]'\n  AND i.created_at BETWEEN $__timeFrom() AND $__timeTo()"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "📊 Throughput — How quickly changes reach production (DORA: Speed)",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "⏱ Change Lead Time",
+      "description": "DORA: Throughput · Median time from PR merge to successful deployment\n\n🟢 Elite: <1 hr  ·  🟡 High: <1 day  ·  🟠 Medium: <1 week  ·  🔴 Low: >1 week",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600\n  ) AS median_lead_time_hours\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\nJOIN pull_requests pr ON pr.id = dpr.pull_request_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND (\n    '$copilot_cohort' = 'All'\n    OR ('$copilot_cohort' = 'Copilot Active' AND pr.author_user_id IN (\n      SELECT user_id FROM copilot_user_activity\n      WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n    ))\n    OR ('$copilot_cohort' = 'Copilot Inactive' AND pr.author_user_id NOT IN (\n      SELECT user_id FROM copilot_user_activity\n      WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n    ))\n  )",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 1
+              },
+              {
+                "color": "#F2495C",
+                "value": 24
+              },
+              {
+                "color": "#C4162A",
+                "value": 168
+              }
+            ]
+          },
+          "displayName": "Lead Time"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "median_lead_time_hours"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lead Time"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "🚀 Deployment Frequency",
+      "description": "DORA: Throughput · Average successful deployments per week\n\n🟢 Elite: >7/wk (daily)  ·  🟡 High: 1-7/wk  ·  🟠 Medium: <1/wk  ·  🔴 Low: <0.25/wk",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  COUNT(*)::float / GREATEST(EXTRACT(EPOCH FROM ($__timeTo()::timestamp - $__timeFrom()::timestamp)) / 604800, 1) AS deploys_per_week\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND ds.created_at = (SELECT MAX(created_at) FROM deployment_statuses WHERE deployment_id = d.id)",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#C4162A",
+                "value": null
+              },
+              {
+                "color": "#F2495C",
+                "value": 0.25
+              },
+              {
+                "color": "#FF9830",
+                "value": 1
+              },
+              {
+                "color": "#73BF69",
+                "value": 7
+              }
+            ]
+          },
+          "decimals": 1,
+          "displayName": "Deploys/Week"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "deploys_per_week"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deploys/Week"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "🔧 Recovery Time (MTTR)",
+      "description": "DORA: Stability · Median time to recover from a failed deployment\n\n🟢 Elite: <1 hr  ·  🟡 High: <1 day  ·  🟠 Medium: <1 week  ·  🔴 Low: >1 week",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "WITH failed_deployments AS (\n  SELECT d.id AS deployment_id, d.environment, ds.created_at AS failure_time\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.id\n  WHERE ds.state IN ('failure', 'error')\n    AND d.environment = '$environment'\n    AND ds.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nrecovery AS (\n  SELECT fd.deployment_id, fd.failure_time,\n    MIN(ds2.created_at) AS recovery_time\n  FROM failed_deployments fd\n  JOIN deployments d2 ON d2.environment = fd.environment AND d2.created_at > fd.failure_time\n  JOIN deployment_statuses ds2 ON ds2.deployment_id = d2.id AND ds2.state = 'success'\n  WHERE ds2.created_at > fd.failure_time\n  GROUP BY fd.deployment_id, fd.failure_time\n)\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovery_time - failure_time)) / 3600\n) AS median_recovery_hours\nFROM recovery",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 1
+              },
+              {
+                "color": "#F2495C",
+                "value": 24
+              },
+              {
+                "color": "#C4162A",
+                "value": 168
+              }
+            ]
+          },
+          "displayName": "Recovery Time"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "median_recovery_hours"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Recovery Time"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "⚠️ Stability — How often changes cause failures (DORA: Reliability)",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "💥 Change Failure Rate",
+      "description": "DORA: Stability · Percentage of deployments resulting in failure\n\n🟢 Elite: 0-5%  ·  🟡 High: 5-10%  ·  🟠 Medium: 10-15%  ·  🔴 Low: >15%",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "WITH deployment_outcomes AS (\n  SELECT d.id, d.created_at,\n    (SELECT state FROM deployment_statuses WHERE deployment_id = d.id ORDER BY created_at DESC LIMIT 1) AS latest_state\n  FROM deployments d\n  WHERE d.environment = '$environment'\n    AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT COUNT(*) FILTER (WHERE latest_state IN ('failure', 'error')) * 100.0 / NULLIF(COUNT(*), 0) AS change_fail_rate_percent\nFROM deployment_outcomes",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 5
+              },
+              {
+                "color": "#F2495C",
+                "value": 10
+              },
+              {
+                "color": "#C4162A",
+                "value": 15
+              }
+            ]
+          },
+          "decimals": 1,
+          "displayName": "Fail Rate"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "change_fail_rate_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fail Rate"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "🔄 Deployment Rework Rate",
+      "description": "DORA: Stability · Percentage of deployments that are rework (hotfix/bugfix/rollback)\n\n🟢 Good: <5%  ·  🟡 Fair: 5-10%  ·  🟠 Needs Attention: 10-25%  ·  🔴 Critical: >25%",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "WITH classified_deployments AS (\n  SELECT d.id, d.created_at,\n    CASE\n      WHEN EXISTS (\n        SELECT 1 FROM deployment_pull_requests dpr\n        JOIN pull_requests pr ON pr.id = dpr.pull_request_id\n        WHERE dpr.deployment_id = d.id\n        AND pr.labels @> ANY(ARRAY['[{\"name\":\"hotfix\"}]','[{\"name\":\"bugfix\"}]','[{\"name\":\"rollback\"}]']::jsonb[])\n      ) THEN true\n      WHEN EXISTS (\n        SELECT 1 FROM deployment_statuses ds_prev\n        JOIN deployments d_prev ON ds_prev.deployment_id = d_prev.id\n        WHERE d_prev.environment = d.environment\n        AND ds_prev.state IN ('failure', 'error')\n        AND d.created_at - d_prev.created_at < INTERVAL '24 hours'\n        AND d_prev.created_at < d.created_at\n      ) THEN true\n      ELSE false\n    END AS is_rework\n  FROM deployments d\n  WHERE d.environment = '$environment'\n    AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT COUNT(*) FILTER (WHERE is_rework) * 100.0 / NULLIF(COUNT(*), 0) AS rework_rate_percent\nFROM classified_deployments",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 5
+              },
+              {
+                "color": "#F2495C",
+                "value": 10
+              },
+              {
+                "color": "#C4162A",
+                "value": 25
+              }
+            ]
+          },
+          "decimals": 1,
+          "displayName": "Rework Rate"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rework_rate_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rework Rate"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "📈 Throughput Trends — Weekly velocity over time",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "📈 Change Lead Time Trend",
+      "description": "DORA: Throughput · Weekly median change lead time in hours\nLower is better — Elite teams deliver in under 1 hour",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600\n  ) AS median_lead_time_hours\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\nJOIN pull_requests pr ON pr.id = dpr.pull_request_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND (\n    '$copilot_cohort' = 'All'\n    OR ('$copilot_cohort' = 'Copilot Active' AND pr.author_user_id IN (\n      SELECT user_id FROM copilot_user_activity\n      WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n    ))\n    OR ('$copilot_cohort' = 'Copilot Inactive' AND pr.author_user_id NOT IN (\n      SELECT user_id FROM copilot_user_activity\n      WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n    ))\n  )\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "rgba(115, 191, 105, 0.1)",
+                "value": 0
+              },
+              {
+                "color": "rgba(255, 152, 48, 0.1)",
+                "value": 1
+              },
+              {
+                "color": "rgba(242, 73, 92, 0.1)",
+                "value": 24
+              },
+              {
+                "color": "rgba(196, 22, 42, 0.1)",
+                "value": 168
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "median_lead_time_hours"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lead Time (hours)"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "📈 Deployment Frequency Trend",
+      "description": "DORA: Throughput · Weekly deployment count\nHigher is better — Elite teams deploy multiple times per day",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(*) AS deployment_count\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND ds.created_at = (SELECT MAX(created_at) FROM deployment_statuses WHERE deployment_id = d.id)\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 30,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "gradientMode": "opacity",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "rgba(196, 22, 42, 0.1)",
+                "value": 0
+              },
+              {
+                "color": "rgba(242, 73, 92, 0.1)",
+                "value": 1
+              },
+              {
+                "color": "rgba(255, 152, 48, 0.1)",
+                "value": 4
+              },
+              {
+                "color": "rgba(115, 191, 105, 0.1)",
+                "value": 7
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "deployment_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deployments"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "📉 Recovery Time Trend",
+      "description": "DORA: Stability · Weekly median time to recover from failed deployments\nLower is better — Elite teams recover in under 1 hour",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "WITH failed_deployments AS (\n  SELECT d.id AS deployment_id, d.environment, ds.created_at AS failure_time\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.id\n  WHERE ds.state IN ('failure', 'error')\n    AND d.environment = '$environment'\n    AND ds.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nrecovery AS (\n  SELECT fd.deployment_id, fd.failure_time,\n    MIN(ds2.created_at) AS recovery_time\n  FROM failed_deployments fd\n  JOIN deployments d2 ON d2.environment = fd.environment AND d2.created_at > fd.failure_time\n  JOIN deployment_statuses ds2 ON ds2.deployment_id = d2.id AND ds2.state = 'success'\n  WHERE ds2.created_at > fd.failure_time\n  GROUP BY fd.deployment_id, fd.failure_time\n)\nSELECT\n  date_trunc('week', failure_time) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovery_time - failure_time)) / 3600\n  ) AS median_recovery_hours\nFROM recovery\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FF9830"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "rgba(115, 191, 105, 0.1)",
+                "value": 0
+              },
+              {
+                "color": "rgba(255, 152, 48, 0.1)",
+                "value": 1
+              },
+              {
+                "color": "rgba(242, 73, 92, 0.1)",
+                "value": 24
+              },
+              {
+                "color": "rgba(196, 22, 42, 0.1)",
+                "value": 168
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "median_recovery_hours"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Recovery Time (hours)"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "📉 Stability Trends — Weekly failure rates over time",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 13,
+      "type": "barchart",
+      "title": "📊 Change Fail Rate Trend",
+      "description": "DORA: Stability · Weekly change failure rate percentage\nLower is better — Elite teams stay under 5%",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "WITH deployment_outcomes AS (\n  SELECT d.id, d.created_at,\n    (SELECT state FROM deployment_statuses WHERE deployment_id = d.id ORDER BY created_at DESC LIMIT 1) AS latest_state\n  FROM deployments d\n  WHERE d.environment = '$environment'\n    AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  date_trunc('week', created_at) AS time,\n  COUNT(*) FILTER (WHERE latest_state IN ('failure', 'error')) * 100.0 / NULLIF(COUNT(*), 0) AS change_fail_rate_percent\nFROM deployment_outcomes\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "fillOpacity": 80,
+            "gradientMode": "scheme"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 15
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#F2495C"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "change_fail_rate_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Change Fail Rate (%)"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "xTickLabelRotation": -45
+      }
+    },
+    {
+      "id": 14,
+      "type": "barchart",
+      "title": "📊 Rework Rate Trend",
+      "description": "DORA: Stability · Weekly deployment rework rate percentage\nLower is better — tracks hotfix/bugfix/rollback deployments",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "WITH classified_deployments AS (\n  SELECT d.id, d.created_at,\n    CASE\n      WHEN EXISTS (\n        SELECT 1 FROM deployment_pull_requests dpr\n        JOIN pull_requests pr ON pr.id = dpr.pull_request_id\n        WHERE dpr.deployment_id = d.id\n        AND pr.labels @> ANY(ARRAY['[{\"name\":\"hotfix\"}]','[{\"name\":\"bugfix\"}]','[{\"name\":\"rollback\"}]']::jsonb[])\n      ) THEN true\n      WHEN EXISTS (\n        SELECT 1 FROM deployment_statuses ds_prev\n        JOIN deployments d_prev ON ds_prev.deployment_id = d_prev.id\n        WHERE d_prev.environment = d.environment\n        AND ds_prev.state IN ('failure', 'error')\n        AND d.created_at - d_prev.created_at < INTERVAL '24 hours'\n        AND d_prev.created_at < d.created_at\n      ) THEN true\n      ELSE false\n    END AS is_rework\n  FROM deployments d\n  WHERE d.environment = '$environment'\n    AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  date_trunc('week', created_at) AS time,\n  COUNT(*) FILTER (WHERE is_rework) * 100.0 / NULLIF(COUNT(*), 0) AS rework_rate_percent\nFROM classified_deployments\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "fillOpacity": 80,
+            "gradientMode": "scheme"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#B877D9"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rework_rate_percent"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rework Rate (%)"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "xTickLabelRotation": -45
+      }
+    },
+    {
+      "id": 15,
+      "type": "row",
+      "title": "🤖 Copilot Impact — DORA metrics split by Copilot usage",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 16,
+      "type": "barchart",
+      "title": "📊 DORA Metrics by Copilot Cohort",
+      "description": "Side-by-side comparison of core DORA metrics: Copilot Active (blue) vs Inactive (orange) developers",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT metric,\n  MAX(value) FILTER (WHERE cohort = 'Copilot Active') AS \"Copilot Active\",\n  MAX(value) FILTER (WHERE cohort = 'Copilot Inactive') AS \"Copilot Inactive\"\nFROM (\nSELECT 'Change Lead Time (hrs)' AS metric,\n  COALESCE(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600), 0) AS value,\n  CASE WHEN cua.user_id IS NOT NULL THEN 'Copilot Active' ELSE 'Copilot Inactive' END AS cohort\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\nJOIN pull_requests pr ON pr.id = dpr.pull_request_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nLEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) cua ON cua.user_id = pr.author_user_id\nWHERE d.environment = '$environment' AND ds.state = 'success' AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY cohort\n\nUNION ALL\n\nSELECT 'Deploy Freq (/wk)' AS metric,\n  COUNT(*)::float / GREATEST(EXTRACT(EPOCH FROM ($__timeTo()::timestamp - $__timeFrom()::timestamp)) / 604800, 1) AS value,\n  CASE WHEN cua.user_id IS NOT NULL THEN 'Copilot Active' ELSE 'Copilot Inactive' END AS cohort\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\nJOIN pull_requests pr ON pr.id = dpr.pull_request_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nLEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) cua ON cua.user_id = pr.author_user_id\nWHERE d.environment = '$environment' AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND ds.created_at = (SELECT MAX(created_at) FROM deployment_statuses WHERE deployment_id = d.id)\nGROUP BY cohort\n\nUNION ALL\n\nSELECT 'Change Fail Rate (%)' AS metric,\n  COUNT(*) FILTER (WHERE (SELECT state FROM deployment_statuses WHERE deployment_id = d.id ORDER BY created_at DESC LIMIT 1) IN ('failure', 'error')) * 100.0 / NULLIF(COUNT(*), 0) AS value,\n  CASE WHEN cua.user_id IS NOT NULL THEN 'Copilot Active' ELSE 'Copilot Inactive' END AS cohort\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\nJOIN pull_requests pr ON pr.id = dpr.pull_request_id\nLEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) cua ON cua.user_id = pr.author_user_id\nWHERE d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY cohort\n\nUNION ALL\n\nSELECT 'PR Cycle Time (hrs)' AS metric,\n  COALESCE(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600), 0) AS value,\n  CASE WHEN cua.user_id IS NOT NULL THEN 'Copilot Active' ELSE 'Copilot Inactive' END AS cohort\nFROM pull_requests pr\nLEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) cua ON cua.user_id = pr.author_user_id\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY cohort\n\nUNION ALL\n\nSELECT 'Rework Rate (%)' AS metric,\n  COUNT(*) FILTER (WHERE EXISTS (\n    SELECT 1 FROM deployment_pull_requests dpr2\n    JOIN pull_requests pr2 ON pr2.id = dpr2.pull_request_id\n    WHERE dpr2.deployment_id = d.id\n    AND pr2.labels @> ANY(ARRAY['[{\"name\":\"hotfix\"}]','[{\"name\":\"bugfix\"}]','[{\"name\":\"rollback\"}]']::jsonb[])\n  )) * 100.0 / NULLIF(COUNT(*), 0) AS value,\n  CASE WHEN cua.user_id IS NOT NULL THEN 'Copilot Active' ELSE 'Copilot Inactive' END AS cohort\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\nJOIN pull_requests pr ON pr.id = dpr.pull_request_id\nLEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) cua ON cua.user_id = pr.author_user_id\nWHERE d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY cohort\n) sub\nGROUP BY metric\nORDER BY CASE metric\n  WHEN 'Change Lead Time (hrs)' THEN 1\n  WHEN 'Deploy Freq (/wk)' THEN 2\n  WHEN 'Change Fail Rate (%)' THEN 3\n  WHEN 'PR Cycle Time (hrs)' THEN 4\n  WHEN 'Rework Rate (%)' THEN 5\nEND",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Copilot Active"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#4C78A8"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Copilot Inactive"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#E45756"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "xTickLabelRotation": 0,
+        "groupWidth": 0.7,
+        "barWidth": 0.8
+      },
+      "transformations": []
+    },
+    {
+      "id": 17,
+      "type": "row",
+      "title": "💻 Copilot Productivity — Developer output by cohort",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 45
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 18,
+      "type": "barchart",
+      "title": "📦 Merged PRs by Cohort",
+      "description": "DORA: Throughput · Number of merged pull requests by Copilot usage cohort",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 46
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE WHEN cua.user_id IS NOT NULL THEN 'Copilot Active' ELSE 'Copilot Inactive' END AS cohort,\n  COUNT(*) AS pr_count\nFROM pull_requests pr\nLEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) cua ON cua.user_id = pr.author_user_id\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY cohort",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pr_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Merged PRs"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Merged PRs"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#4C78A8"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": "barchart",
+      "title": "📝 Lines by Cohort",
+      "description": "Code Volume · Lines added and deleted by Copilot usage cohort",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 46
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE WHEN cua.user_id IS NOT NULL THEN 'Copilot Active' ELSE 'Copilot Inactive' END AS cohort,\n  SUM(COALESCE(pr.additions, 0)) AS lines_added,\n  SUM(COALESCE(pr.deletions, 0)) AS lines_deleted\nFROM pull_requests pr\nLEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) cua ON cua.user_id = pr.author_user_id\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY cohort",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "lines_added"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lines Added"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "lines_deleted"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Lines Deleted"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Added"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#73BF69"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Deleted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#F2495C"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "stacking": {
+          "mode": "normal"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "barchart",
+      "title": "👤 PRs/Dev by Cohort",
+      "description": "Productivity · Average merged PRs per developer by Copilot usage cohort",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 46
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE WHEN cua.user_id IS NOT NULL THEN 'Copilot Active' ELSE 'Copilot Inactive' END AS cohort,\n  COUNT(*)::float / NULLIF(COUNT(DISTINCT pr.author_user_id), 0) AS prs_per_user\nFROM pull_requests pr\nLEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) cua ON cua.user_id = pr.author_user_id\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY cohort",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prs_per_user"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "PRs per Developer"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PRs per Developer"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#4C78A8"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "row",
+      "title": "📋 Supplementary Metrics — Additional cycle time indicators",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 22,
+      "type": "stat",
+      "title": "🔁 PR Cycle Time",
+      "description": "Supplementary · Median time from PR creation to merge\n\n🟢 Fast: <4 hrs  ·  🟡 Normal: <24 hrs  ·  🟠 Slow: <72 hrs  ·  🔴 Very Slow: >72 hrs",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 55
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600\n) AS median_cycle_time_hours\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND (\n    '$copilot_cohort' = 'All'\n    OR ('$copilot_cohort' = 'Copilot Active' AND pr.author_user_id IN (\n      SELECT user_id FROM copilot_user_activity\n      WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n    ))\n    OR ('$copilot_cohort' = 'Copilot Inactive' AND pr.author_user_id NOT IN (\n      SELECT user_id FROM copilot_user_activity\n      WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n    ))\n  )",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 4
+              },
+              {
+                "color": "#F2495C",
+                "value": 24
+              },
+              {
+                "color": "#C4162A",
+                "value": 72
+              }
+            ]
+          },
+          "displayName": "Cycle Time"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "median_cycle_time_hours"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Cycle Time"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 23,
+      "type": "stat",
+      "title": "🚨 Incident Resolution Time",
+      "description": "Supplementary · Median time to resolve incidents labeled \"incident\"\n\n🟢 Fast: <4 hrs  ·  🟡 Normal: <12 hrs  ·  🟠 Slow: <48 hrs  ·  🔴 Very Slow: >48 hrs",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 55
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (i.closed_at - i.created_at)) / 3600\n) AS median_resolution_hours\nFROM issues i\nWHERE i.labels @> '[{\"name\":\"incident\"}]'\n  AND i.closed_at IS NOT NULL\n  AND i.created_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 4
+              },
+              {
+                "color": "#F2495C",
+                "value": 12
+              },
+              {
+                "color": "#C4162A",
+                "value": 48
+              }
+            ]
+          },
+          "displayName": "Resolution Time"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "median_resolution_hours"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Resolution Time"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 24,
+      "type": "row",
+      "title": "🔍 Detail Tables — Recent activity drill-down",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 59
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 25,
+      "type": "table",
+      "title": "🚀 Recent Deployments",
+      "description": "Latest deployments with status",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 60
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT d.environment, LEFT(d.sha, 7) AS sha, d.created_at,\n  ds.state AS latest_status, u.login AS creator\nFROM deployments d\nLEFT JOIN LATERAL (SELECT state FROM deployment_statuses WHERE deployment_id = d.id ORDER BY created_at DESC LIMIT 1) ds ON true\nLEFT JOIN users u ON u.id = d.creator_user_id\nWHERE d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY d.created_at DESC\nLIMIT 20",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sha"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Commit SHA"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "latest_status"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Status"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "success": {
+                        "text": "✅ Success",
+                        "color": "#73BF69"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "failure": {
+                        "text": "❌ Failure",
+                        "color": "#F2495C"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "error": {
+                        "text": "⚠️ Error",
+                        "color": "#FF9830"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "pending": {
+                        "text": "⏳ Pending",
+                        "color": "#5794F2"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "inactive": {
+                        "text": "💤 Inactive",
+                        "color": "#8F8F8F"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "created_at"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deployed At"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "environment"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Environment"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "creator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deployed By"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      }
+    },
+    {
+      "id": 26,
+      "type": "table",
+      "title": "📄 Recent PRs",
+      "description": "Recently merged pull requests with cycle time",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 60
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT pr.number, pr.title, u.login AS author, pr.created_at, pr.merged_at,\n  EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600 AS cycle_time_hours,\n  pr.additions, pr.deletions\nFROM pull_requests pr\nLEFT JOIN users u ON u.id = pr.author_user_id\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY pr.merged_at DESC\nLIMIT 20",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "number"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "#"
+              },
+              {
+                "id": "custom.width",
+                "value": 60
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "title"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Title"
+              },
+              {
+                "id": "custom.width",
+                "value": 250
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "author"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Author"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "created_at"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Created"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "merged_at"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Merged"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cycle_time_hours"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Cycle Time"
+              },
+              {
+                "id": "unit",
+                "value": "h"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "additions"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "+Lines"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#73BF69"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "deletions"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "-Lines"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#F2495C"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      }
+    },
+    {
+      "id": 27,
+      "type": "table",
+      "title": "🚨 Open Incidents",
+      "description": "Currently open incidents with age",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 68
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT i.number, i.title, u.login AS assignee, i.created_at,\n  EXTRACT(EPOCH FROM (NOW() - i.created_at)) / 3600 AS hours_open\nFROM issues i\nLEFT JOIN users u ON u.id = i.assignee_user_id\nWHERE i.labels @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'\n  AND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY i.created_at DESC",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "number"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "#"
+              },
+              {
+                "id": "custom.width",
+                "value": 60
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "title"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Incident"
+              },
+              {
+                "id": "custom.width",
+                "value": 250
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "assignee"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Assignee"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "created_at"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Opened"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hours_open"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Age"
+              },
+              {
+                "id": "unit",
+                "value": "h"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#73BF69",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF9830",
+                      "value": 24
+                    },
+                    {
+                      "color": "#F2495C",
+                      "value": 72
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      }
+    },
+    {
+      "id": 28,
+      "type": "table",
+      "title": "🔄 Rework Deployments",
+      "description": "Deployments flagged as rework (hotfix/bugfix/rollback)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 68
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT d.environment, LEFT(d.sha, 7) AS sha, d.created_at,\n  u.login AS creator,\n  string_agg(DISTINCT l.label_name, ', ') AS rework_labels\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\nJOIN pull_requests pr ON pr.id = dpr.pull_request_id\nCROSS JOIN LATERAL jsonb_array_elements(pr.labels) AS label_elem\nCROSS JOIN LATERAL (SELECT label_elem->>'name' AS label_name) l\nLEFT JOIN users u ON u.id = d.creator_user_id\nWHERE d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND l.label_name IN ('hotfix', 'bugfix', 'rollback')\nGROUP BY d.id, d.environment, d.sha, d.created_at, u.login\nORDER BY d.created_at DESC\nLIMIT 20",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sha"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "displayName",
+                "value": "Commit SHA"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "created_at"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deployed At"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "environment"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Environment"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "creator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deployed By"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rework_labels"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Rework Labels"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      }
+    },
+    {
+      "id": 29,
+      "type": "row",
+      "title": "🔬 Copilot Activity Breakdown — Usage patterns across surfaces and features",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 76
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 30,
+      "type": "piechart",
+      "title": "🖥️ Primary Surface",
+      "description": "Distribution of Copilot users by their primary development surface\nBased on last_surface_used from GitHub Copilot Metrics API (most recent surface per user-day)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 77
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE last_surface\n    WHEN 'vscode' THEN 'VS Code'\n    WHEN 'intellij' THEN 'IntelliJ'\n    WHEN 'neovim' THEN 'Neovim'\n    WHEN 'cli' THEN 'CLI'\n    WHEN 'dotcom' THEN 'GitHub.com'\n    ELSE COALESCE(last_surface, 'Unknown')\n  END AS surface,\n  COUNT(DISTINCT user_id) AS active_users\nFROM copilot_user_activity\nWHERE is_active = true\n  AND last_surface IS NOT NULL\n  AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\nGROUP BY last_surface\nORDER BY active_users DESC",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "VS Code"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "IntelliJ"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Neovim"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#73BF69"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CLI"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#B877D9"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GitHub.com"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#F2495C"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^active_users$/",
+          "values": true
+        },
+        "pieType": "donut",
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "displayLabels": [
+          "name",
+          "percent"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "type": "barchart",
+      "title": "🧩 Feature Adoption",
+      "description": "Number of unique users using each Copilot feature\nBased on used_copilot_coding_agent and used_copilot_code_review from GitHub API",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 77
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT feature, users AS \"Unique Users\"\nFROM (\n  SELECT 'Code Completions' AS feature,\n    COUNT(DISTINCT user_id) AS users\n  FROM copilot_user_activity\n  WHERE is_active = true AND completions_count > 0\n    AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n\n  UNION ALL\n\n  SELECT 'Chat' AS feature,\n    COUNT(DISTINCT user_id) AS users\n  FROM copilot_user_activity\n  WHERE is_active = true AND chat_interactions > 0\n    AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n\n  UNION ALL\n\n  SELECT 'Coding Agent' AS feature,\n    COUNT(DISTINCT user_id) AS users\n  FROM copilot_user_activity\n  WHERE used_coding_agent = true\n    AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n\n  UNION ALL\n\n  SELECT 'Code Review' AS feature,\n    COUNT(DISTINCT user_id) AS users\n  FROM copilot_user_activity\n  WHERE used_code_review = true\n    AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\n) sub\nORDER BY CASE feature\n  WHEN 'Code Completions' THEN 1\n  WHEN 'Chat' THEN 2\n  WHEN 'Coding Agent' THEN 3\n  WHEN 'Code Review' THEN 4\nEND",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 80,
+            "gradientMode": "hue"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unique Users"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#4C78A8"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "xTickLabelRotation": 0
+      }
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "📈 Acceptance Rate Trend",
+      "description": "Weekly average Copilot suggestion acceptance rate\nHigher acceptance = more relevant suggestions",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 77
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  date_trunc('week', activity_date::timestamp) AS time,\n  ROUND(\n    SUM(completions_count * acceptance_rate)::numeric\n    / NULLIF(SUM(completions_count), 0) * 100, 1\n  ) AS \"Acceptance Rate (%)\"\nFROM copilot_user_activity\nWHERE is_active = true\n  AND acceptance_rate IS NOT NULL\n  AND completions_count > 0\n  AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 15,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "gradientMode": "opacity"
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#F2495C",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 20
+              },
+              {
+                "color": "#73BF69",
+                "value": 30
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 33,
+      "type": "barchart",
+      "title": "🤖 DORA: Agent vs Non-Agent Users",
+      "description": "Compare DORA metrics for developers who use Copilot Coding Agent vs those who don't\nBased on used_copilot_coding_agent field from GitHub API",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 85
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT metric,\n  MAX(value) FILTER (WHERE cohort = 'Agent Users') AS \"Agent Users\",\n  MAX(value) FILTER (WHERE cohort = 'Non-Agent') AS \"Non-Agent\"\nFROM (\n  SELECT 'Lead Time (hrs)' AS metric,\n    COALESCE(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600), 0) AS value,\n    CASE WHEN agent.user_id IS NOT NULL THEN 'Agent Users' ELSE 'Non-Agent' END AS cohort\n  FROM deployments d\n  JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\n  JOIN pull_requests pr ON pr.id = dpr.pull_request_id\n  JOIN deployment_statuses ds ON ds.deployment_id = d.id\n  LEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE used_coding_agent = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) agent ON agent.user_id = pr.author_user_id\n  WHERE d.environment = '$environment' AND ds.state = 'success' AND pr.merged_at IS NOT NULL\n    AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n    AND pr.author_user_id IN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date)\n  GROUP BY cohort\n\n  UNION ALL\n\n  SELECT 'PR Cycle Time (hrs)' AS metric,\n    COALESCE(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600), 0) AS value,\n    CASE WHEN agent.user_id IS NOT NULL THEN 'Agent Users' ELSE 'Non-Agent' END AS cohort\n  FROM pull_requests pr\n  LEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE used_coding_agent = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) agent ON agent.user_id = pr.author_user_id\n  WHERE pr.merged_at IS NOT NULL AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n    AND pr.author_user_id IN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date)\n  GROUP BY cohort\n\n  UNION ALL\n\n  SELECT 'Fail Rate (%)' AS metric,\n    COUNT(*) FILTER (WHERE (SELECT state FROM deployment_statuses WHERE deployment_id = d.id ORDER BY created_at DESC LIMIT 1) IN ('failure', 'error')) * 100.0 / NULLIF(COUNT(*), 0) AS value,\n    CASE WHEN agent.user_id IS NOT NULL THEN 'Agent Users' ELSE 'Non-Agent' END AS cohort\n  FROM deployments d\n  JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.id\n  JOIN pull_requests pr ON pr.id = dpr.pull_request_id\n  LEFT JOIN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE used_coding_agent = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date) agent ON agent.user_id = pr.author_user_id\n  WHERE d.environment = '$environment' AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n    AND pr.author_user_id IN (SELECT DISTINCT user_id FROM copilot_user_activity WHERE is_active = true AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date)\n  GROUP BY cohort\n) sub\nGROUP BY metric\nORDER BY CASE metric WHEN 'Lead Time (hrs)' THEN 1 WHEN 'PR Cycle Time (hrs)' THEN 2 WHEN 'Fail Rate (%)' THEN 3 END",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Agent Users"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#B877D9"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Non-Agent"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8F8F8F"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "xTickLabelRotation": 0,
+        "groupWidth": 0.7,
+        "barWidth": 0.8
+      },
+      "transformations": []
+    },
+    {
+      "id": 34,
+      "type": "stat",
+      "title": "",
+      "description": "Average code completions per active user per day\nFrom completions_count in GitHub Copilot Metrics API",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 10,
+        "y": 85
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT ROUND(AVG(completions_count)::numeric, 1) AS \"Completions/Day\"\nFROM copilot_user_activity\nWHERE is_active = true AND completions_count > 0\n  AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FF9830",
+                "value": null
+              },
+              {
+                "color": "#73BF69",
+                "value": 20
+              },
+              {
+                "color": "#5794F2",
+                "value": 50
+              }
+            ]
+          },
+          "displayName": "Completions/Day"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 35,
+      "type": "stat",
+      "title": "",
+      "description": "Average chat interactions per active user per day\nFrom chat_interactions in GitHub Copilot Metrics API",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 15,
+        "y": 85
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT ROUND(AVG(chat_interactions)::numeric, 1) AS \"Chat/Day\"\nFROM copilot_user_activity\nWHERE is_active = true AND chat_interactions > 0\n  AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FF9830",
+                "value": null
+              },
+              {
+                "color": "#73BF69",
+                "value": 5
+              },
+              {
+                "color": "#5794F2",
+                "value": 15
+              }
+            ]
+          },
+          "displayName": "Chat/Day"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 36,
+      "type": "stat",
+      "title": "",
+      "description": "Average suggestion acceptance rate across all users\nHigher = more relevant Copilot suggestions",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 85
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT ROUND(\n  SUM(completions_count * acceptance_rate)::numeric\n  / NULLIF(SUM(completions_count), 0) * 100, 1\n) AS \"Accept Rate\"\nFROM copilot_user_activity\nWHERE is_active = true AND acceptance_rate IS NOT NULL AND completions_count > 0\n  AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#F2495C",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 20
+              },
+              {
+                "color": "#73BF69",
+                "value": 30
+              }
+            ]
+          },
+          "displayName": "Accept Rate",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 37,
+      "type": "stat",
+      "title": "Agent Adoption",
+      "description": "Percentage of Copilot users who have used the Coding Agent feature\nFrom used_copilot_coding_agent in GitHub API",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 89
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT ROUND(\n  COUNT(DISTINCT user_id) FILTER (WHERE used_coding_agent = true) * 100.0\n  / NULLIF(COUNT(DISTINCT user_id), 0), 1\n) AS \"Agent Adoption %\"\nFROM copilot_user_activity\nWHERE is_active = true\n  AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#8F8F8F",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 10
+              },
+              {
+                "color": "#B877D9",
+                "value": 25
+              }
+            ]
+          },
+          "displayName": "Agent Adoption"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 38,
+      "type": "stat",
+      "title": "Review Adoption",
+      "description": "Percentage of Copilot users who have used the Code Review feature\nFrom used_copilot_code_review in GitHub API",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 89
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT ROUND(\n  COUNT(DISTINCT user_id) FILTER (WHERE used_code_review = true) * 100.0\n  / NULLIF(COUNT(DISTINCT user_id), 0), 1\n) AS \"Review Adoption %\"\nFROM copilot_user_activity\nWHERE is_active = true\n  AND activity_date BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#8F8F8F",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 15
+              },
+              {
+                "color": "#73BF69",
+                "value": 30
+              }
+            ]
+          },
+          "displayName": "Review Adoption"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    }
+  ],
+  "description": "Engineering performance dashboard based on the DORA (DevOps Research & Assessment) framework. Tracks the four key DORA metrics — Deployment Frequency, Change Lead Time, Change Failure Rate, and Mean Time to Recovery — with Copilot impact analysis."
+}

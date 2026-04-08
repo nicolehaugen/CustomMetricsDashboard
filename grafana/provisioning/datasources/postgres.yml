@@ -1,0 +1,13 @@
+apiVersion: 1
+datasources:
+  - name: DORA PostgreSQL
+    type: postgres
+    uid: DORA_PostgreSQL
+    url: localhost:5432
+    database: dora_metrics
+    user: $PG_USER
+    secureJsonData:
+      password: $PG_PASSWORD
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1500
