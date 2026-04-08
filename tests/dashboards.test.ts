@@ -55,6 +55,7 @@ describe('DORA pillar dashboards', () => {
       expect(firstPanel.options.mode).toBe('markdown');
       const content = firstPanel.options.content;
       expect(content.length).toBeGreaterThan(100);
+      expect(firstPanel.gridPos.h).toBeGreaterThanOrEqual(10);
     });
 
     it('has templating variables', () => {
@@ -95,6 +96,7 @@ describe('DORA pillar dashboards', () => {
       const firstPanel = dashboard.panels[0];
       expect(firstPanel.type).toBe('text');
       expect(firstPanel.options.mode).toBe('markdown');
+      expect(firstPanel.gridPos.h).toBeGreaterThanOrEqual(10);
     });
 
     it('contains copilot-related panels', () => {
