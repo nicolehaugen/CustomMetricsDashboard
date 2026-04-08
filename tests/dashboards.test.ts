@@ -16,12 +16,12 @@ const pillarDashboards = [
   'mean-time-to-recovery.json',
 ];
 
-const miscDashboard = 'copilot-impact-overview.json';
+const copilotImpactDashboard = 'copilot-impact-overview.json';
 
 describe('DORA pillar dashboards', () => {
   it('all expected dashboard files exist', () => {
     const files = readdirSync(dashboardDir);
-    for (const f of [...pillarDashboards, miscDashboard]) {
+    for (const f of [...pillarDashboards, copilotImpactDashboard]) {
       expect(files).toContain(f);
     }
   });
@@ -75,7 +75,7 @@ describe('DORA pillar dashboards', () => {
   });
 
   describe('copilot-impact-overview.json (Miscellaneous)', () => {
-    const dashboard = loadDashboard(miscDashboard);
+    const dashboard = loadDashboard(copilotImpactDashboard);
 
     it('has a unique uid', () => {
       expect(dashboard.uid).toBe('copilot-impact-overview');
@@ -113,7 +113,7 @@ describe('DORA pillar dashboards', () => {
 
   describe('all dashboards have unique uids', () => {
     it('no uid collisions across dashboards', () => {
-      const allFiles = [...pillarDashboards, miscDashboard, 'dora-metrics.json'];
+      const allFiles = [...pillarDashboards, copilotImpactDashboard, 'dora-metrics.json'];
       const uids = allFiles.map((f) => loadDashboard(f).uid);
       expect(new Set(uids).size).toBe(uids.length);
     });
