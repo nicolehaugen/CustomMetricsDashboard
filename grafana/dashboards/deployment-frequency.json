@@ -1,0 +1,456 @@
+{
+  "uid": "deployment-frequency",
+  "title": "DORA: Deployment Frequency",
+  "tags": [
+    "dora",
+    "deployment-frequency",
+    "throughput"
+  ],
+  "description": "DORA Pillar: Deployment Frequency — Measures how often code is successfully deployed to production. Higher frequency indicates smaller batch sizes, better automation, and faster value delivery. Elite teams deploy multiple times per day.",
+  "timezone": "browser",
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "DORA_PostgreSQL"
+        },
+        "query": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "text": "production",
+          "value": "production"
+        },
+        "sort": 1,
+        "label": "Environment"
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "DORA_PostgreSQL"
+        },
+        "enable": true,
+        "iconColor": "green",
+        "rawQuery": "SELECT d.created_at AS time, 'Deploy: ' || d.sha AS text, 'Deployments' AS tags\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "# 🚀 Deployment Frequency\n\n**DORA Pillar: Throughput**\n\n## What it Measures\nDeployment Frequency measures how often your organization successfully deploys code to production. It is one of the two DORA *throughput* metrics and reflects the pace at which your team delivers value to users.\n\n## Why it Matters\nHigher deployment frequency indicates a mature, well-automated CI/CD pipeline and a team that delivers small, incremental changes. Elite-performing teams deploy on demand (multiple times per day), while low performers deploy less than once per month.\n\n## How to Interpret\n| Performance Level | Frequency | What it Means |\n|---|---|---|\n| 🟢 Elite | Multiple deploys/day (>7/wk) | On-demand delivery, small batch sizes |\n| 🟡 High | 1–7 deploys/week | Regular cadence, good automation |\n| 🟠 Medium | 1–4 deploys/month (<1/wk) | Larger batches, some manual steps |\n| 🔴 Low | <1 deploy/month (<0.25/wk) | Infrequent releases, high risk per deploy |\n\n## How to Take Action\n- **If low**: Break work into smaller PRs, automate deployment pipelines, reduce manual approval gates\n- **If declining**: Investigate CI/CD bottlenecks, review branch protection policies, check for flaky tests blocking deployments\n- **If improving**: Document what's working, share practices across teams"
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "row",
+      "title": "📊 Key Metrics — Current deployment performance",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "🚀 Deployment Frequency",
+      "description": "DORA: Throughput · Average successful deployments per week\n\n🟢 Elite: >7/wk (daily)  ·  🟡 High: 1-7/wk  ·  🟠 Medium: <1/wk  ·  🔴 Low: <0.25/wk",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  COUNT(*)::float / GREATEST(EXTRACT(EPOCH FROM ($__timeTo()::timestamp - $__timeFrom()::timestamp)) / 604800, 1) AS deploys_per_week\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND ds.created_at = (SELECT MAX(created_at) FROM deployment_statuses WHERE deployment_id = d.id)",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#C4162A",
+                "value": null
+              },
+              {
+                "color": "#F2495C",
+                "value": 0.25
+              },
+              {
+                "color": "#FF9830",
+                "value": 1
+              },
+              {
+                "color": "#73BF69",
+                "value": 7
+              }
+            ]
+          },
+          "decimals": 1,
+          "displayName": "Deploys/Week"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "deploys_per_week"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deploys/Week"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "type": "row",
+      "title": "📈 Trends — Deployment frequency over time",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "📈 Deployment Frequency Trend",
+      "description": "DORA: Throughput · Weekly deployment count\nHigher is better — Elite teams deploy multiple times per day",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(*) AS deployment_count\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n  AND ds.created_at = (SELECT MAX(created_at) FROM deployment_statuses WHERE deployment_id = d.id)\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 30,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "gradientMode": "opacity",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#73BF69"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "rgba(196, 22, 42, 0.1)",
+                "value": 0
+              },
+              {
+                "color": "rgba(242, 73, 92, 0.1)",
+                "value": 1
+              },
+              {
+                "color": "rgba(255, 152, 48, 0.1)",
+                "value": 4
+              },
+              {
+                "color": "rgba(115, 191, 105, 0.1)",
+                "value": 7
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "deployment_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deployments"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "row",
+      "title": "🔍 Details — Recent deployment activity",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "🚀 Recent Deployments",
+      "description": "Latest deployments with status",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT d.environment, LEFT(d.sha, 7) AS sha, d.created_at,\n  ds.state AS latest_status, u.login AS creator\nFROM deployments d\nLEFT JOIN LATERAL (SELECT state FROM deployment_statuses WHERE deployment_id = d.id ORDER BY created_at DESC LIMIT 1) ds ON true\nLEFT JOIN users u ON u.id = d.creator_user_id\nWHERE d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY d.created_at DESC\nLIMIT 20",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sha"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Commit SHA"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "latest_status"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Status"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "success": {
+                        "text": "✅ Success",
+                        "color": "#73BF69"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "failure": {
+                        "text": "❌ Failure",
+                        "color": "#F2495C"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "error": {
+                        "text": "⚠️ Error",
+                        "color": "#FF9830"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "pending": {
+                        "text": "⏳ Pending",
+                        "color": "#5794F2"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "inactive": {
+                        "text": "💤 Inactive",
+                        "color": "#8F8F8F"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "created_at"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deployed At"
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "environment"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Environment"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "creator"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deployed By"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      }
+    }
+  ]
+}
