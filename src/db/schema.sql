@@ -98,6 +98,15 @@ CREATE TABLE IF NOT EXISTS deployment_pull_requests (
   PRIMARY KEY (deployment_id, pull_request_id)
 );
 
+-- ═══ Metadata Tables ════════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS data_source_metadata (
+  id              SERIAL PRIMARY KEY,
+  source_type     TEXT NOT NULL,  -- 'seeded' or 'github'
+  repository      TEXT,           -- e.g. 'octodemo/copilot_nodejs_basic-special-trout'
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ═══ Operational Tables ═════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS sync_state (

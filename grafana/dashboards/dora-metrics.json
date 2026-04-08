@@ -77,14 +77,70 @@
   },
   "panels": [
     {
+      "id": 100,
+      "type": "table",
+      "title": "\ud83d\udccb Data Source",
+      "description": "Indicates whether the dashboard is displaying seeded (synthetic) data or live data from a GitHub repository.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "DORA_PostgreSQL"
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "DORA_PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE\n    WHEN source_type = 'seeded' THEN '\u26a0\ufe0f Seeded Data \u2014 This dashboard is displaying synthetic demo data (not from a live repository)'\n    WHEN source_type = 'github' THEN '\u2705 Live Data \u2014 Repository: ' || COALESCE(repository, 'unknown')\n    ELSE '\u2753 Unknown \u2014 Data source has not been configured'\n  END AS \"Data Source\",\n  updated_at AS \"Last Updated\"\nFROM data_source_metadata\nORDER BY updated_at DESC\nLIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Data Source"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 800
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false
+        }
+      },
+      "transparent": false
+    },
+    {
       "id": 1,
       "type": "row",
-      "title": "📊 Throughput — How quickly changes reach production (DORA: Speed)",
+      "title": "\ud83d\udcca Throughput \u2014 How quickly changes reach production (DORA: Speed)",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 3
       },
       "collapsed": false,
       "panels": []
@@ -92,8 +148,8 @@
     {
       "id": 2,
       "type": "stat",
-      "title": "⏱ Change Lead Time",
-      "description": "DORA: Throughput · Median time from PR merge to successful deployment\n\n🟢 Elite: <1 hr  ·  🟡 High: <1 day  ·  🟠 Medium: <1 week  ·  🔴 Low: >1 week",
+      "title": "\u23f1 Change Lead Time",
+      "description": "DORA: Throughput \u00b7 Median time from PR merge to successful deployment\n\n\ud83d\udfe2 Elite: <1 hr  \u00b7  \ud83d\udfe1 High: <1 day  \u00b7  \ud83d\udfe0 Medium: <1 week  \u00b7  \ud83d\udd34 Low: >1 week",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -102,7 +158,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 1
+        "y": 4
       },
       "targets": [
         {
@@ -174,8 +230,8 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "🚀 Deployment Frequency",
-      "description": "DORA: Throughput · Average successful deployments per week\n\n🟢 Elite: >7/wk (daily)  ·  🟡 High: 1-7/wk  ·  🟠 Medium: <1/wk  ·  🔴 Low: <0.25/wk",
+      "title": "\ud83d\ude80 Deployment Frequency",
+      "description": "DORA: Throughput \u00b7 Average successful deployments per week\n\n\ud83d\udfe2 Elite: >7/wk (daily)  \u00b7  \ud83d\udfe1 High: 1-7/wk  \u00b7  \ud83d\udfe0 Medium: <1/wk  \u00b7  \ud83d\udd34 Low: <0.25/wk",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -184,7 +240,7 @@
         "h": 4,
         "w": 8,
         "x": 8,
-        "y": 1
+        "y": 4
       },
       "targets": [
         {
@@ -257,8 +313,8 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "🔧 Recovery Time (MTTR)",
-      "description": "DORA: Stability · Median time to recover from a failed deployment\n\n🟢 Elite: <1 hr  ·  🟡 High: <1 day  ·  🟠 Medium: <1 week  ·  🔴 Low: >1 week",
+      "title": "\ud83d\udd27 Recovery Time (MTTR)",
+      "description": "DORA: Stability \u00b7 Median time to recover from a failed deployment\n\n\ud83d\udfe2 Elite: <1 hr  \u00b7  \ud83d\udfe1 High: <1 day  \u00b7  \ud83d\udfe0 Medium: <1 week  \u00b7  \ud83d\udd34 Low: >1 week",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -267,7 +323,7 @@
         "h": 4,
         "w": 8,
         "x": 16,
-        "y": 1
+        "y": 4
       },
       "targets": [
         {
@@ -339,12 +395,12 @@
     {
       "id": 5,
       "type": "row",
-      "title": "⚠️ Stability — How often changes cause failures (DORA: Reliability)",
+      "title": "\u26a0\ufe0f Stability \u2014 How often changes cause failures (DORA: Reliability)",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 8
       },
       "collapsed": false,
       "panels": []
@@ -352,8 +408,8 @@
     {
       "id": 6,
       "type": "stat",
-      "title": "💥 Change Failure Rate",
-      "description": "DORA: Stability · Percentage of deployments resulting in failure\n\n🟢 Elite: 0-5%  ·  🟡 High: 5-10%  ·  🟠 Medium: 10-15%  ·  🔴 Low: >15%",
+      "title": "\ud83d\udca5 Change Failure Rate",
+      "description": "DORA: Stability \u00b7 Percentage of deployments resulting in failure\n\n\ud83d\udfe2 Elite: 0-5%  \u00b7  \ud83d\udfe1 High: 5-10%  \u00b7  \ud83d\udfe0 Medium: 10-15%  \u00b7  \ud83d\udd34 Low: >15%",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -362,7 +418,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 6
+        "y": 9
       },
       "targets": [
         {
@@ -435,8 +491,8 @@
     {
       "id": 7,
       "type": "stat",
-      "title": "🔄 Deployment Rework Rate",
-      "description": "DORA: Stability · Percentage of deployments that are rework (hotfix/bugfix/rollback)\n\n🟢 Good: <5%  ·  🟡 Fair: 5-10%  ·  🟠 Needs Attention: 10-25%  ·  🔴 Critical: >25%",
+      "title": "\ud83d\udd04 Deployment Rework Rate",
+      "description": "DORA: Stability \u00b7 Percentage of deployments that are rework (hotfix/bugfix/rollback)\n\n\ud83d\udfe2 Good: <5%  \u00b7  \ud83d\udfe1 Fair: 5-10%  \u00b7  \ud83d\udfe0 Needs Attention: 10-25%  \u00b7  \ud83d\udd34 Critical: >25%",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -445,7 +501,7 @@
         "h": 4,
         "w": 12,
         "x": 12,
-        "y": 6
+        "y": 9
       },
       "targets": [
         {
@@ -518,12 +574,12 @@
     {
       "id": 8,
       "type": "row",
-      "title": "📈 Throughput Trends — Weekly velocity over time",
+      "title": "\ud83d\udcc8 Throughput Trends \u2014 Weekly velocity over time",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 13
       },
       "collapsed": false,
       "panels": []
@@ -531,8 +587,8 @@
     {
       "id": 9,
       "type": "timeseries",
-      "title": "📈 Change Lead Time Trend",
-      "description": "DORA: Throughput · Weekly median change lead time in hours\nLower is better — Elite teams deliver in under 1 hour",
+      "title": "\ud83d\udcc8 Change Lead Time Trend",
+      "description": "DORA: Throughput \u00b7 Weekly median change lead time in hours\nLower is better \u2014 Elite teams deliver in under 1 hour",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -541,7 +597,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 14
       },
       "targets": [
         {
@@ -625,8 +681,8 @@
     {
       "id": 10,
       "type": "timeseries",
-      "title": "📈 Deployment Frequency Trend",
-      "description": "DORA: Throughput · Weekly deployment count\nHigher is better — Elite teams deploy multiple times per day",
+      "title": "\ud83d\udcc8 Deployment Frequency Trend",
+      "description": "DORA: Throughput \u00b7 Weekly deployment count\nHigher is better \u2014 Elite teams deploy multiple times per day",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -635,7 +691,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 14
       },
       "targets": [
         {
@@ -720,8 +776,8 @@
     {
       "id": 11,
       "type": "timeseries",
-      "title": "📉 Recovery Time Trend",
-      "description": "DORA: Stability · Weekly median time to recover from failed deployments\nLower is better — Elite teams recover in under 1 hour",
+      "title": "\ud83d\udcc9 Recovery Time Trend",
+      "description": "DORA: Stability \u00b7 Weekly median time to recover from failed deployments\nLower is better \u2014 Elite teams recover in under 1 hour",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -730,7 +786,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 22
       },
       "targets": [
         {
@@ -814,12 +870,12 @@
     {
       "id": 12,
       "type": "row",
-      "title": "📉 Stability Trends — Weekly failure rates over time",
+      "title": "\ud83d\udcc9 Stability Trends \u2014 Weekly failure rates over time",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 30
       },
       "collapsed": false,
       "panels": []
@@ -827,8 +883,8 @@
     {
       "id": 13,
       "type": "barchart",
-      "title": "📊 Change Fail Rate Trend",
-      "description": "DORA: Stability · Weekly change failure rate percentage\nLower is better — Elite teams stay under 5%",
+      "title": "\ud83d\udcca Change Fail Rate Trend",
+      "description": "DORA: Stability \u00b7 Weekly change failure rate percentage\nLower is better \u2014 Elite teams stay under 5%",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -837,7 +893,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 28
+        "y": 31
       },
       "targets": [
         {
@@ -908,8 +964,8 @@
     {
       "id": 14,
       "type": "barchart",
-      "title": "📊 Rework Rate Trend",
-      "description": "DORA: Stability · Weekly deployment rework rate percentage\nLower is better — tracks hotfix/bugfix/rollback deployments",
+      "title": "\ud83d\udcca Rework Rate Trend",
+      "description": "DORA: Stability \u00b7 Weekly deployment rework rate percentage\nLower is better \u2014 tracks hotfix/bugfix/rollback deployments",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -918,7 +974,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 28
+        "y": 31
       },
       "targets": [
         {
@@ -989,12 +1045,12 @@
     {
       "id": 15,
       "type": "row",
-      "title": "🤖 Copilot Impact — DORA metrics split by Copilot usage",
+      "title": "\ud83e\udd16 Copilot Impact \u2014 DORA metrics split by Copilot usage",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 39
       },
       "collapsed": false,
       "panels": []
@@ -1002,7 +1058,7 @@
     {
       "id": 16,
       "type": "barchart",
-      "title": "📊 DORA Metrics by Copilot Cohort",
+      "title": "\ud83d\udcca DORA Metrics by Copilot Cohort",
       "description": "Side-by-side comparison of core DORA metrics: Copilot Active (blue) vs Inactive (orange) developers",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1012,7 +1068,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 40
       },
       "targets": [
         {
@@ -1081,12 +1137,12 @@
     {
       "id": 17,
       "type": "row",
-      "title": "💻 Copilot Productivity — Developer output by cohort",
+      "title": "\ud83d\udcbb Copilot Productivity \u2014 Developer output by cohort",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 48
       },
       "collapsed": false,
       "panels": []
@@ -1094,8 +1150,8 @@
     {
       "id": 18,
       "type": "barchart",
-      "title": "📦 Merged PRs by Cohort",
-      "description": "DORA: Throughput · Number of merged pull requests by Copilot usage cohort",
+      "title": "\ud83d\udce6 Merged PRs by Cohort",
+      "description": "DORA: Throughput \u00b7 Number of merged pull requests by Copilot usage cohort",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -1104,7 +1160,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 46
+        "y": 49
       },
       "targets": [
         {
@@ -1167,8 +1223,8 @@
     {
       "id": 19,
       "type": "barchart",
-      "title": "📝 Lines by Cohort",
-      "description": "Code Volume · Lines added and deleted by Copilot usage cohort",
+      "title": "\ud83d\udcdd Lines by Cohort",
+      "description": "Code Volume \u00b7 Lines added and deleted by Copilot usage cohort",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -1177,7 +1233,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 46
+        "y": 49
       },
       "targets": [
         {
@@ -1270,8 +1326,8 @@
     {
       "id": 20,
       "type": "barchart",
-      "title": "👤 PRs/Dev by Cohort",
-      "description": "Productivity · Average merged PRs per developer by Copilot usage cohort",
+      "title": "\ud83d\udc64 PRs/Dev by Cohort",
+      "description": "Productivity \u00b7 Average merged PRs per developer by Copilot usage cohort",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -1280,7 +1336,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 46
+        "y": 49
       },
       "targets": [
         {
@@ -1344,12 +1400,12 @@
     {
       "id": 21,
       "type": "row",
-      "title": "📋 Supplementary Metrics — Additional cycle time indicators",
+      "title": "\ud83d\udccb Supplementary Metrics \u2014 Additional cycle time indicators",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 57
       },
       "collapsed": false,
       "panels": []
@@ -1357,8 +1413,8 @@
     {
       "id": 22,
       "type": "stat",
-      "title": "🔁 PR Cycle Time",
-      "description": "Supplementary · Median time from PR creation to merge\n\n🟢 Fast: <4 hrs  ·  🟡 Normal: <24 hrs  ·  🟠 Slow: <72 hrs  ·  🔴 Very Slow: >72 hrs",
+      "title": "\ud83d\udd01 PR Cycle Time",
+      "description": "Supplementary \u00b7 Median time from PR creation to merge\n\n\ud83d\udfe2 Fast: <4 hrs  \u00b7  \ud83d\udfe1 Normal: <24 hrs  \u00b7  \ud83d\udfe0 Slow: <72 hrs  \u00b7  \ud83d\udd34 Very Slow: >72 hrs",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -1367,7 +1423,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 55
+        "y": 58
       },
       "targets": [
         {
@@ -1439,8 +1495,8 @@
     {
       "id": 23,
       "type": "stat",
-      "title": "🚨 Incident Resolution Time",
-      "description": "Supplementary · Median time to resolve incidents labeled \"incident\"\n\n🟢 Fast: <4 hrs  ·  🟡 Normal: <12 hrs  ·  🟠 Slow: <48 hrs  ·  🔴 Very Slow: >48 hrs",
+      "title": "\ud83d\udea8 Incident Resolution Time",
+      "description": "Supplementary \u00b7 Median time to resolve incidents labeled \"incident\"\n\n\ud83d\udfe2 Fast: <4 hrs  \u00b7  \ud83d\udfe1 Normal: <12 hrs  \u00b7  \ud83d\udfe0 Slow: <48 hrs  \u00b7  \ud83d\udd34 Very Slow: >48 hrs",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "DORA_PostgreSQL"
@@ -1449,7 +1505,7 @@
         "h": 4,
         "w": 12,
         "x": 12,
-        "y": 55
+        "y": 58
       },
       "targets": [
         {
@@ -1521,12 +1577,12 @@
     {
       "id": 24,
       "type": "row",
-      "title": "🔍 Detail Tables — Recent activity drill-down",
+      "title": "\ud83d\udd0d Detail Tables \u2014 Recent activity drill-down",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 59
+        "y": 62
       },
       "collapsed": false,
       "panels": []
@@ -1534,7 +1590,7 @@
     {
       "id": 25,
       "type": "table",
-      "title": "🚀 Recent Deployments",
+      "title": "\ud83d\ude80 Recent Deployments",
       "description": "Latest deployments with status",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1544,7 +1600,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 60
+        "y": 63
       },
       "targets": [
         {
@@ -1599,7 +1655,7 @@
                     "type": "value",
                     "options": {
                       "success": {
-                        "text": "✅ Success",
+                        "text": "\u2705 Success",
                         "color": "#73BF69"
                       }
                     }
@@ -1608,7 +1664,7 @@
                     "type": "value",
                     "options": {
                       "failure": {
-                        "text": "❌ Failure",
+                        "text": "\u274c Failure",
                         "color": "#F2495C"
                       }
                     }
@@ -1617,7 +1673,7 @@
                     "type": "value",
                     "options": {
                       "error": {
-                        "text": "⚠️ Error",
+                        "text": "\u26a0\ufe0f Error",
                         "color": "#FF9830"
                       }
                     }
@@ -1626,7 +1682,7 @@
                     "type": "value",
                     "options": {
                       "pending": {
-                        "text": "⏳ Pending",
+                        "text": "\u23f3 Pending",
                         "color": "#5794F2"
                       }
                     }
@@ -1635,7 +1691,7 @@
                     "type": "value",
                     "options": {
                       "inactive": {
-                        "text": "💤 Inactive",
+                        "text": "\ud83d\udca4 Inactive",
                         "color": "#8F8F8F"
                       }
                     }
@@ -1698,7 +1754,7 @@
     {
       "id": 26,
       "type": "table",
-      "title": "📄 Recent PRs",
+      "title": "\ud83d\udcc4 Recent PRs",
       "description": "Recently merged pull requests with cycle time",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1708,7 +1764,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 60
+        "y": 63
       },
       "targets": [
         {
@@ -1880,7 +1936,7 @@
     {
       "id": 27,
       "type": "table",
-      "title": "🚨 Open Incidents",
+      "title": "\ud83d\udea8 Open Incidents",
       "description": "Currently open incidents with age",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1890,7 +1946,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 68
+        "y": 71
       },
       "targets": [
         {
@@ -2022,7 +2078,7 @@
     {
       "id": 28,
       "type": "table",
-      "title": "🔄 Rework Deployments",
+      "title": "\ud83d\udd04 Rework Deployments",
       "description": "Deployments flagged as rework (hotfix/bugfix/rollback)",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -2032,7 +2088,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 68
+        "y": 71
       },
       "targets": [
         {
@@ -2126,12 +2182,12 @@
     {
       "id": 29,
       "type": "row",
-      "title": "🔬 Copilot Activity Breakdown — Usage patterns across surfaces and features",
+      "title": "\ud83d\udd2c Copilot Activity Breakdown \u2014 Usage patterns across surfaces and features",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 76
+        "y": 79
       },
       "collapsed": false,
       "panels": []
@@ -2139,7 +2195,7 @@
     {
       "id": 30,
       "type": "piechart",
-      "title": "🖥️ Primary Surface",
+      "title": "\ud83d\udda5\ufe0f Primary Surface",
       "description": "Distribution of Copilot users by their primary development surface\nBased on last_surface_used from GitHub Copilot Metrics API (most recent surface per user-day)",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -2149,7 +2205,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 77
+        "y": 80
       },
       "targets": [
         {
@@ -2271,7 +2327,7 @@
     {
       "id": 31,
       "type": "barchart",
-      "title": "🧩 Feature Adoption",
+      "title": "\ud83e\udde9 Feature Adoption",
       "description": "Number of unique users using each Copilot feature\nBased on used_copilot_coding_agent and used_copilot_code_review from GitHub API",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -2281,7 +2337,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 77
+        "y": 80
       },
       "targets": [
         {
@@ -2337,7 +2393,7 @@
     {
       "id": 32,
       "type": "timeseries",
-      "title": "📈 Acceptance Rate Trend",
+      "title": "\ud83d\udcc8 Acceptance Rate Trend",
       "description": "Weekly average Copilot suggestion acceptance rate\nHigher acceptance = more relevant suggestions",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -2347,7 +2403,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 77
+        "y": 80
       },
       "targets": [
         {
@@ -2410,7 +2466,7 @@
     {
       "id": 33,
       "type": "barchart",
-      "title": "🤖 DORA: Agent vs Non-Agent Users",
+      "title": "\ud83e\udd16 DORA: Agent vs Non-Agent Users",
       "description": "Compare DORA metrics for developers who use Copilot Coding Agent vs those who don't\nBased on used_copilot_coding_agent field from GitHub API",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -2420,7 +2476,7 @@
         "h": 8,
         "w": 10,
         "x": 0,
-        "y": 85
+        "y": 88
       },
       "targets": [
         {
@@ -2499,7 +2555,7 @@
         "h": 4,
         "w": 5,
         "x": 10,
-        "y": 85
+        "y": 88
       },
       "targets": [
         {
@@ -2564,7 +2620,7 @@
         "h": 4,
         "w": 5,
         "x": 15,
-        "y": 85
+        "y": 88
       },
       "targets": [
         {
@@ -2629,7 +2685,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 85
+        "y": 88
       },
       "targets": [
         {
@@ -2695,7 +2751,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 89
+        "y": 92
       },
       "targets": [
         {
@@ -2760,7 +2816,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 89
+        "y": 92
       },
       "targets": [
         {
@@ -2813,5 +2869,5 @@
       }
     }
   ],
-  "description": "Engineering performance dashboard based on the DORA (DevOps Research & Assessment) framework. Tracks the four key DORA metrics — Deployment Frequency, Change Lead Time, Change Failure Rate, and Mean Time to Recovery — with Copilot impact analysis."
+  "description": "Engineering performance dashboard based on the DORA (DevOps Research & Assessment) framework. Tracks the four key DORA metrics \u2014 Deployment Frequency, Change Lead Time, Change Failure Rate, and Mean Time to Recovery \u2014 with Copilot impact analysis."
 }

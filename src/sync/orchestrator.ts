@@ -240,6 +240,20 @@ export async function runSync(jobId?: number): Promise<number> {
       errors.push(`copilot_user_activity: ${msg}`);
     }
 
+    // --- Record Data Source Metadata ---
+    try {
+      await pool.query(`DELETE FROM data_source_metadata`);
+      await pool.query(
+        `INSERT INTO data_source_metadata (source_type, repository, updated_at)
+         VALUES ('github', $1, NOW())`,
+        [`${org}/${repo}`]
+      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`Error recording data source metadata: ${msg}`);
+      errors.push(`data_source_metadata: ${msg}`);
+    }
+
     // --- Resolve Bridge Links ---
     try {
       console.log('Resolving deployment-PR bridge links...');
