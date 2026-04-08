@@ -12,7 +12,7 @@
     "sync": "tsx -e \"fetch('http://localhost:3001/api/sync',{method:'POST'}).then(r=>r.json()).then(console.log)\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "npx playwright test"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@octokit/rest": "^20.0.2",
