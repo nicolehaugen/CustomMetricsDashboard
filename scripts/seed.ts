@@ -33,6 +33,16 @@ async function truncateAll(client: PoolClient): Promise<void> {
   `);
 }
 
+// ── Data Source Metadata ───────────────────────────────────────────────────────
+
+async function recordDataSourceMetadata(client: PoolClient): Promise<void> {
+  await client.query(`DELETE FROM data_source_metadata`);
+  await client.query(
+    `INSERT INTO data_source_metadata (source_type, repository, updated_at)
+     VALUES ('seeded', NULL, NOW())`,
+  );
+}
+
 // ── Insert ────────────────────────────────────────────────────────────────────
 
 async function insertData(
@@ -326,6 +336,7 @@ async function main(): Promise<void> {
         await truncateAll(client);
         await insertData(client, data);
         await resetSequences(client);
+        await recordDataSourceMetadata(client);
         await client.query('COMMIT');
         console.log('\n✅ Seed data inserted successfully');
       } catch (err) {

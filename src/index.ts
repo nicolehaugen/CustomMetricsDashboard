@@ -1,6 +1,7 @@
 import express from 'express';
 import syncRoutes from './routes/sync';
 import statusRoutes from './routes/status';
+import dataSourceRoutes from './routes/data-source';
 
 const app = express();
 app.use(express.json());
@@ -12,6 +13,7 @@ app.get('/health', (_req, res) => {
 // API Routes
 app.use('/api/sync', syncRoutes);
 app.use('/api/sync/status', statusRoutes);
+app.use('/api/data-source', dataSourceRoutes);
 
 const port = parseInt(process.env.PORT || '3001', 10);
 
