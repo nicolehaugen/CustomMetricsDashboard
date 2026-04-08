@@ -2,33 +2,6 @@ import { test, expect } from '@playwright/test';
 
 const DASHBOARD_URL = '/d/dora-metrics-dashboard/dora-metrics-dashboard?orgId=1&from=now-90d&to=now';
 
-// Panel titles that must render data (not show "No data")
-const EXPECTED_PANELS = [
-  '⏱ Change Lead Time',
-  '🚀 Deployment Frequency',
-  '🔧 Recovery Time (MTTR)',
-  '💥 Change Failure Rate',
-  '🔄 Deployment Rework Rate',
-  '📈 Change Lead Time Trend',
-  '📈 Deployment Frequency Trend',
-  '📉 Recovery Time Trend',
-  '📊 Change Fail Rate Trend',
-  '📊 Rework Rate Trend',
-  '📊 DORA Metrics by Copilot Cohort',
-  '📦 Merged PRs by Cohort',
-  '📝 Lines by Cohort',
-  '👤 PRs/Dev by Cohort',
-  '🔁 PR Cycle Time',
-  '🚨 Incident Resolution Time',
-  '🚀 Recent Deployments',
-  '📄 Recent PRs',
-  '🔄 Rework Deployments',
-  '🖥️ Primary Surface',
-  '🧩 Feature Adoption',
-  '📈 Acceptance Rate Trend',
-  '🤖 DORA: Agent vs Non-Agent Users',
-];
-
 test.describe('DORA Metrics Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to dashboard and wait for panels to load
