@@ -54,12 +54,11 @@ test.describe('DORA Metrics Dashboard', () => {
     for (const panelTitle of statPanels) {
       const panel = page.locator(`[data-panelid], [class*="panel"]`).filter({ hasText: panelTitle }).first();
 
-      if (await panel.isVisible()) {
-        // Stat panels should contain a numeric value (digits, decimal point, or %)
-        const panelText = await panel.innerText();
-        const hasValue = /\d/.test(panelText);
-        expect(hasValue, `Panel "${panelTitle}" should display a numeric value, got: ${panelText}`).toBe(true);
-      }
+      await expect(panel, `Panel "${panelTitle}" should be visible`).toBeVisible({ timeout: 10_000 });
+      // Stat panels should contain a numeric value (digits, decimal point, or %)
+      const panelText = await panel.innerText();
+      const hasValue = /\d/.test(panelText);
+      expect(hasValue, `Panel "${panelTitle}" should display a numeric value, got: ${panelText}`).toBe(true);
     }
   });
 
@@ -76,12 +75,11 @@ test.describe('DORA Metrics Dashboard', () => {
     for (const panelTitle of tablePanels) {
       const panel = page.locator(`[data-panelid], [class*="panel"]`).filter({ hasText: panelTitle }).first();
 
-      if (await panel.isVisible()) {
-        // Table panels should have at least one data row
-        const rows = panel.locator('table tbody tr, [role="row"]');
-        const rowCount = await rows.count();
-        expect(rowCount, `Table "${panelTitle}" should have data rows`).toBeGreaterThan(0);
-      }
+      await expect(panel, `Table panel "${panelTitle}" should be visible`).toBeVisible({ timeout: 10_000 });
+      // Table panels should have at least one data row
+      const rows = panel.locator('table tbody tr, [role="rowgroup"] [role="row"]');
+      const rowCount = await rows.count();
+      expect(rowCount, `Table "${panelTitle}" should have data rows`).toBeGreaterThan(0);
     }
   });
 
@@ -94,12 +92,11 @@ test.describe('DORA Metrics Dashboard', () => {
     for (const panelTitle of trendPanels) {
       const panel = page.locator(`[data-panelid], [class*="panel"]`).filter({ hasText: panelTitle }).first();
 
-      if (await panel.isVisible()) {
-        // Chart panels should contain canvas or SVG elements for rendering
-        const chartElement = panel.locator('canvas, svg, [class*="graph"], [class*="chart"]');
-        const chartCount = await chartElement.count();
-        expect(chartCount, `Panel "${panelTitle}" should contain chart elements`).toBeGreaterThan(0);
-      }
+      await expect(panel, `Panel "${panelTitle}" should be visible`).toBeVisible({ timeout: 10_000 });
+      // Chart panels should contain canvas or SVG elements for rendering
+      const chartElement = panel.locator('canvas, svg, [class*="graph"], [class*="chart"]');
+      const chartCount = await chartElement.count();
+      expect(chartCount, `Panel "${panelTitle}" should contain chart elements`).toBeGreaterThan(0);
     }
   });
 
@@ -120,11 +117,10 @@ test.describe('DORA Metrics Dashboard', () => {
     for (const panelTitle of copilotPanels) {
       const panel = page.locator(`[data-panelid], [class*="panel"]`).filter({ hasText: panelTitle }).first();
 
-      if (await panel.isVisible()) {
-        const panelText = await panel.innerText();
-        // Panel should not be completely empty (should have some rendered content beyond the title)
-        expect(panelText.length, `Panel "${panelTitle}" should have rendered content`).toBeGreaterThan(panelTitle.length);
-      }
+      await expect(panel, `Panel "${panelTitle}" should be visible`).toBeVisible({ timeout: 10_000 });
+      const panelText = await panel.innerText();
+      // Panel should not be completely empty (should have some rendered content beyond the title)
+      expect(panelText.length, `Panel "${panelTitle}" should have rendered content`).toBeGreaterThan(panelTitle.length);
     }
   });
 });
