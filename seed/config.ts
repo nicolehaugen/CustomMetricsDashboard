@@ -1,5 +1,5 @@
 export const SEED_CONFIG = {
-  referenceRepo: 'octodemo/bootstrap',
+  referenceRepo: process.env.SEED_REFERENCE_REPO || 'octodemo/bootstrap',
   timeRange: {
     startDays: 90,
     endDate: 'now' as const,
