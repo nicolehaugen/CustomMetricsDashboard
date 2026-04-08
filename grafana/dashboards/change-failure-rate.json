@@ -37,18 +37,6 @@
         },
         "sort": 1,
         "label": "Environment"
-      },
-      {
-        "name": "copilot_cohort",
-        "type": "custom",
-        "query": "All, Copilot Active, Copilot Inactive, Agent Users, Non-Agent Users",
-        "current": {
-          "text": "All",
-          "value": "All"
-        },
-        "includeAll": false,
-        "multi": false,
-        "label": "Copilot Cohort"
       }
     ]
   },

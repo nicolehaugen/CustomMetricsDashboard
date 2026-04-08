@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
-const dashboardDir = join(__dirname, '..', 'grafana', 'dashboards');
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const dashboardDir = join(currentDir, '..', 'grafana', 'dashboards');
 
 function loadDashboard(filename: string) {
   const content = readFileSync(join(dashboardDir, filename), 'utf-8');
