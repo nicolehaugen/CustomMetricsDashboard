@@ -54,9 +54,24 @@ describe.each(ALL_DASHBOARDS)('%s — common structure', (filename) => {
     expect(dashboard.panels.length).toBeGreaterThan(0);
   });
 
-  it('first panel is a text/markdown panel (data source banner)', () => {
+  it('first panel is a stat panel querying data_mode (data source banner)', () => {
     dashboard = loadDashboard(filename);
-    expect(dashboard.panels[0].type).toBe('text');
+    const banner = dashboard.panels[0];
+    expect(banner.type).toBe('stat');
+    const sql: string = banner.targets?.[0]?.rawSql ?? '';
+    expect(sql).toContain('data_mode');
+  });
+
+  it('data source banner has color thresholds for mode', () => {
+    dashboard = loadDashboard(filename);
+    const banner = dashboard.panels[0];
+    const steps = banner.fieldConfig?.defaults?.thresholds?.steps ?? [];
+    expect(steps.length).toBeGreaterThan(0);
+  });
+
+  it('second panel is a text/markdown panel (dashboard description)', () => {
+    dashboard = loadDashboard(filename);
+    expect(dashboard.panels[1].type).toBe('text');
   });
 
   it('all panels have non-empty descriptions', () => {
