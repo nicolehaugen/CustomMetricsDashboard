@@ -56,7 +56,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "suffix: deploys/wk"
         },
         "overrides": []
       },
