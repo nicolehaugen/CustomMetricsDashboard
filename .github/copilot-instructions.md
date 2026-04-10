@@ -99,6 +99,8 @@ Key points to remember without the agent:
 ### Dashboard validation (Playwright)
 **Playwright MCP is configured** — use it directly for any dashboard validation. Do NOT write Node.js scripts or install `@playwright/cli` separately. Grafana runs at **http://localhost:3004** (admin/admin).
 
+After any change to dashboard JSON, Grafana SQL, or seed data, **always take a Playwright screenshot** of the affected Grafana panels to visually confirm the change rendered correctly. Navigate to the dashboard URL, wait for panels to load, and capture the screenshot. This applies only to GitHub cloud agent sessions.
+
 **Grafana 11 table selectors:** Table cells render as `role="cell"` (not `role="gridcell"`). Use `[role="row"]:has([role="cell"])` for data row selectors. Do not use `waitForLoadState('networkidle')` — the WebSocket connection keeps it from resolving. Use `waitForLoadState('load')` + `waitForTimeout(3000)` instead.
 
 ### Dashboard "No data" triage
