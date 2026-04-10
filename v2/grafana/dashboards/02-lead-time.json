@@ -2,11 +2,16 @@
   "uid": "lead-time",
   "title": "⏱️ Lead Time for Changes [v2]",
   "description": "DORA Pillar: Lead Time for Changes — Measures time from code merge to successful deployment. Elite teams achieve under 1 hour.",
-  "tags": ["dora"],
+  "tags": [
+    "dora"
+  ],
   "schemaVersion": 36,
   "version": 1,
   "refresh": "5m",
-  "time": { "from": "now-28d", "to": "now" },
+  "time": {
+    "from": "now-28d",
+    "to": "now"
+  },
   "timepicker": {},
   "templating": {
     "list": [
@@ -14,12 +19,18 @@
         "name": "environment",
         "type": "query",
         "label": "Environment",
-        "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+        "datasource": {
+          "type": "postgres",
+          "uid": "PostgreSQL"
+        },
         "definition": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
         "query": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
         "refresh": 2,
         "sort": 1,
-        "current": { "text": "production", "value": "production" },
+        "current": {
+          "text": "production",
+          "value": "production"
+        },
         "options": [],
         "hide": 0,
         "multi": false,
@@ -27,30 +38,49 @@
       }
     ]
   },
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "panels": [
     {
       "id": 1,
       "type": "text",
-      "title": "Data Source",
-      "description": "Shows the current data source mode (live, seed, or demo) and last sync status.",
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "title": "",
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "options": {
         "mode": "markdown",
-        "content": "## 📊 Custom Metrics Dashboard v2\nData mode and sync status shown below."
-      }
+        "content": "# ⏱ Lead Time for Changes\n\n**DORA Pillar: Throughput**\n\n## What it Measures\nLead Time for Changes measures the time it takes for a code commit to reach production. This includes the time for code review (PR cycle time) and the deployment pipeline. It is the second DORA *throughput* metric and reflects how quickly your team can deliver value once code is written.\n\n## Why it Matters\nShorter lead times mean faster feedback loops, reduced risk per change, and quicker delivery of features and fixes to users. Long lead times often indicate bottlenecks in code review, testing, or deployment processes.\n\n## How to Interpret\n| Performance Level | Lead Time | What it Means |\n|---|---|---|\n| 🟢 Elite | Less than 1 hour | Automated pipelines, fast reviews, small changes |\n| 🟡 High | 1 hour to 1 day | Good automation with some review delays |\n| 🟠 Medium | 1 day to 1 week | Manual steps or batch processing slowing delivery |\n| 🔴 Low | More than 1 week | Significant bottlenecks in review or deployment |\n\n**PR Cycle Time** (created → merged) is the largest measurable component of lead time.\n\n## How to Take Action\n- **If high lead time**: Look for bottlenecks in code review (long PR wait times), reduce PR size, automate testing\n- **If PR cycle time is high**: Add more reviewers, set review SLAs, use Copilot Code Review for faster initial feedback\n- **If trending up**: Check for team capacity issues, increasing PR complexity, or CI pipeline slowdowns"
+      },
+      "transparent": true,
+      "description": "Lead Time for Changes — DORA throughput pillar. Performance tiers and action guidance."
     },
     {
       "id": 2,
       "type": "stat",
       "title": "Change Lead Time (median hours)",
       "description": "### What it measures\nMedian time in hours from PR merge to successful deployment in the selected environment.\n\n### What insight it offers\nElite: <1h, High: <1d, Medium: <1w, Low: >1w. Shorter lead times enable faster feedback and lower risk per change.\n\n### ⚠️ Caveats\n- Only considers PRs linked to deployments via deployment_pull_requests\n- PRs without merged_at are excluded",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
@@ -62,16 +92,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 24 },
-              { "color": "red", "value": 168 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 24
+              },
+              {
+                "color": "red",
+                "value": 168
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -83,12 +126,23 @@
       "type": "stat",
       "title": "PR Cycle Time (median hours)",
       "description": "### What it measures\nMedian time in hours from PR creation to merge in the selected time range.\n\n### What insight it offers\nLong cycle times may indicate review bottlenecks or overly large PRs. Shorter times correlate with better team velocity.\n\n### ⚠️ Caveats\n- Only counts PRs that have been merged\n- Does not filter by environment",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
@@ -100,16 +154,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 24 },
-              { "color": "red", "value": 72 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 24
+              },
+              {
+                "color": "red",
+                "value": 72
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -121,12 +188,23 @@
       "type": "stat",
       "title": "P90 Lead Time (hours)",
       "description": "### What it measures\n90th percentile lead time — the time within which 90% of changes are deployed.\n\n### What insight it offers\nP90 reveals worst-case experiences and outliers that the median hides. Large P50/P90 gaps indicate high variance in your pipeline.\n\n### ⚠️ Caveats\n- Sensitive to outlier PRs that sat undeployed for long periods\n- Environment and time filter applied",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"P90 Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
@@ -138,16 +216,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 48 },
-              { "color": "red", "value": 336 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 48
+              },
+              {
+                "color": "red",
+                "value": 336
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -159,12 +250,23 @@
       "type": "timeseries",
       "title": "Change Lead Time over Time",
       "description": "### What it measures\nWeekly median and P90 lead time trend for the selected environment.\n\n### What insight it offers\nTrending down is positive. Sudden spikes may indicate deployment pipeline issues or batching of large releases.\n\n### ⚠️ Caveats\n- Computed at weekly granularity; weeks with few deployments produce less reliable percentiles\n- Environment filter applied",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P50 (hours)\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P90 (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
           "format": "time_series"
         }
@@ -172,13 +274,20 @@
       "fieldConfig": {
         "defaults": {
           "unit": "h",
-          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list" }
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
       }
     },
     {
@@ -186,12 +295,23 @@
       "type": "timeseries",
       "title": "PR Cycle Time over Time",
       "description": "### What it measures\nWeekly median PR cycle time (creation to merge) trend.\n\n### What insight it offers\nRising cycle times may signal growing review backlogs, increasing PR complexity, or team capacity issues.\n\n### ⚠️ Caveats\n- All repositories included; does not filter by environment\n- Time range filter applied on PR creation date",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  date_trunc('week', pr.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  ) AS \"PR Cycle Time P50 (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
           "format": "time_series"
         }
@@ -199,13 +319,20 @@
       "fieldConfig": {
         "defaults": {
           "unit": "h",
-          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list" }
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
       }
     },
     {
@@ -213,12 +340,23 @@
       "type": "table",
       "title": "Slowest PRs by Lead Time",
       "description": "### What it measures\nTop 20 PRs with the longest lead time from merge to deployment.\n\n### What insight it offers\nIdentify specific PRs or authors that consistently contribute to high lead times, enabling targeted process improvements.\n\n### ⚠️ Caveats\n- Capped at 20 rows\n- Only includes PRs linked to successful deployments in the selected environment",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  ROUND(EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time (hours)\" DESC\nLIMIT 20",
           "format": "table"
         }
@@ -227,32 +365,54 @@
         "defaults": {},
         "overrides": []
       },
-      "options": { "sortBy": [{ "displayName": "Lead Time (hours)", "desc": true }] }
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Lead Time (hours)",
+            "desc": true
+          }
+        ]
+      }
     },
     {
       "id": 8,
       "type": "barchart",
       "title": "Lead Time: Copilot vs Non-Copilot",
       "description": "### What it measures\nMedian lead time comparison between PRs authored by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users have lower lead times, it suggests AI assistance reduces time-to-deploy by helping produce cleaner, faster-reviewed code.\n\n### ⚠️ Caveats\n- Copilot user definition: active seat in the last 28 days\n- Small cohort sizes reduce statistical reliability",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Median Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1",
           "format": "table"
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "h" },
+        "defaults": {
+          "unit": "h"
+        },
         "overrides": []
       },
       "options": {
         "barWidth": 0.5,
         "groupWidth": 0.7,
         "stacking": "none",
-        "legend": { "displayMode": "list" }
+        "legend": {
+          "displayMode": "list"
+        }
       }
     }
   ]
