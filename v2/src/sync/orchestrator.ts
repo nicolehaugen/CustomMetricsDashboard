@@ -7,8 +7,8 @@ import { fetchPullRequests } from '../github/pull-requests';
 import { fetchDeployments } from '../github/deployments';
 import { fetchIssues } from '../github/issues';
 import { fetchWorkflowRuns } from '../github/workflow-runs';
-import { fetchCopilotOrgMetrics } from '../github/copilot-org-metrics';
-import { fetchCopilotUserMetrics } from '../github/copilot-user-metrics';
+import { fetchCopilotOrgMetrics, fetchEnterpriseCopilotOrgMetrics } from '../github/copilot-org-metrics';
+import { fetchCopilotUserMetrics, fetchEnterpriseCopilotUserMetrics } from '../github/copilot-user-metrics';
 import { fetchCopilotSeats } from '../github/copilot-seats';
 import { config } from '../config';
 
@@ -36,7 +36,7 @@ export async function runSync(pool: Pool, octokit: Octokit): Promise<number> {
 }
 
 async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void> {
-  const { org, repo } = config.github;
+  const { org, repo, enterprise } = config.github;
   const recordCounts: Record<string, number> = {};
 
   // ── 1. Set data_mode banner ──────────────────────────────────────────────
@@ -102,22 +102,37 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
       throw err;
     }
   }
-  if (orgMetrics.length > 0) {
+
+  // ── 3b. Enterprise Copilot Org Metrics ────────────────────────────────────
+  let entOrgMetrics: Awaited<ReturnType<typeof fetchEnterpriseCopilotOrgMetrics>> = [];
+  if (enterprise) {
+    console.log('[sync] Fetching enterprise copilot org metrics...');
+    try {
+      entOrgMetrics = await fetchEnterpriseCopilotOrgMetrics(octokit, enterprise);
+    } catch (err: unknown) {
+      const e = err as { status?: number };
+      if (e?.status === 403 || e?.status === 404) {
+        console.warn(`[sync] Enterprise copilot org metrics skipped: HTTP ${e.status}`);
+        recordCounts.copilot_enterprise_org_metrics_skipped = e.status as number;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  if (orgMetrics.length > 0 || entOrgMetrics.length > 0) {
     await pool.query('TRUNCATE TABLE copilot_org_metrics');
-    for (const m of orgMetrics) {
+    const allOrgMetrics = [...orgMetrics, ...entOrgMetrics];
+    for (const m of allOrgMetrics) {
       await pool.query(
-        `INSERT INTO copilot_org_metrics (day, organization_id, daily_active_users, weekly_active_users,
+        `INSERT INTO copilot_org_metrics (day, enterprise_id, organization_id, daily_active_users, weekly_active_users,
           monthly_active_users, monthly_active_agent_users, monthly_active_chat_users, daily_active_cli_users,
           code_acceptance_activity_count, code_generation_activity_count, user_initiated_interaction_count,
           loc_suggested_to_add_sum, loc_suggested_to_delete_sum, loc_added_sum, loc_deleted_sum,
           pull_requests, totals_by_feature, totals_by_ide, totals_by_language_feature,
           totals_by_language_model, totals_by_model_feature, totals_by_cli)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
-         ON CONFLICT (day) DO UPDATE SET
-           daily_active_users = EXCLUDED.daily_active_users,
-           loc_added_sum = EXCLUDED.loc_added_sum,
-           fetched_at = NOW()`,
-        [m.day, m.organization_id, m.daily_active_users, m.weekly_active_users,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
+        [m.day, m.enterprise_id, m.organization_id, m.daily_active_users, m.weekly_active_users,
          m.monthly_active_users, m.monthly_active_agent_users, m.monthly_active_chat_users,
          m.daily_active_cli_users, m.code_acceptance_activity_count, m.code_generation_activity_count,
          m.user_initiated_interaction_count, m.loc_suggested_to_add_sum, m.loc_suggested_to_delete_sum,
@@ -129,6 +144,9 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
       );
     }
     recordCounts.copilot_org_metrics = orgMetrics.length;
+    if (entOrgMetrics.length > 0) {
+      recordCounts.copilot_enterprise_org_metrics = entOrgMetrics.length;
+    }
     await updateSyncState('copilot_org_metrics', pool);
   }
 
@@ -146,9 +164,28 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
       throw err;
     }
   }
-  if (userMetrics.length > 0) {
+
+  // ── 4b. Enterprise Copilot User Metrics ───────────────────────────────────
+  let entUserMetrics: Awaited<ReturnType<typeof fetchEnterpriseCopilotUserMetrics>> = [];
+  if (enterprise) {
+    console.log('[sync] Fetching enterprise copilot user metrics...');
+    try {
+      entUserMetrics = await fetchEnterpriseCopilotUserMetrics(octokit, enterprise);
+    } catch (err: unknown) {
+      const e = err as { status?: number };
+      if (e?.status === 403 || e?.status === 404) {
+        console.warn(`[sync] Enterprise copilot user metrics skipped: HTTP ${e.status}`);
+        recordCounts.copilot_enterprise_user_metrics_skipped = e.status as number;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  if (userMetrics.length > 0 || entUserMetrics.length > 0) {
     await pool.query('TRUNCATE TABLE copilot_user_metrics');
-    for (const u of userMetrics) {
+    const allUserMetrics = [...userMetrics, ...entUserMetrics];
+    for (const u of allUserMetrics) {
       await pool.query(
         `INSERT INTO copilot_user_metrics (day, user_id, user_login, enterprise_id, organization_id,
           user_initiated_interaction_count, code_generation_activity_count, code_acceptance_activity_count,
@@ -156,10 +193,7 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
           used_agent, used_chat, used_cli, used_copilot_code_review_active, used_copilot_code_review_passive,
           totals_by_ide, totals_by_feature, totals_by_language_feature, totals_by_language_model,
           totals_by_model_feature, totals_by_cli)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
-         ON CONFLICT (day, user_login) DO UPDATE SET
-           loc_added_sum = EXCLUDED.loc_added_sum,
-           fetched_at = NOW()`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
         [u.day, u.user_id, u.user_login, u.enterprise_id, u.organization_id,
          u.user_initiated_interaction_count, u.code_generation_activity_count,
          u.code_acceptance_activity_count, u.loc_suggested_to_add_sum, u.loc_suggested_to_delete_sum,
@@ -171,6 +205,9 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
       );
     }
     recordCounts.copilot_user_metrics = userMetrics.length;
+    if (entUserMetrics.length > 0) {
+      recordCounts.copilot_enterprise_user_metrics = entUserMetrics.length;
+    }
     await updateSyncState('copilot_user_metrics', pool);
   }
 

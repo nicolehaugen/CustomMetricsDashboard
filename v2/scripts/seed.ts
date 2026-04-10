@@ -143,8 +143,7 @@ async function main() {
         loc_suggested_to_add_sum, loc_suggested_to_delete_sum, loc_added_sum, loc_deleted_sum,
         pull_requests, totals_by_feature, totals_by_ide, totals_by_language_feature,
         totals_by_language_model, totals_by_model_feature, totals_by_cli)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
-       ON CONFLICT (day) DO NOTHING`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
       [m.day, m.organization_id, m.daily_active_users, m.weekly_active_users,
        m.monthly_active_users, m.monthly_active_agent_users, m.monthly_active_chat_users,
        m.daily_active_cli_users, m.code_acceptance_activity_count, m.code_generation_activity_count,
@@ -168,8 +167,7 @@ async function main() {
         used_agent, used_chat, used_cli, used_copilot_code_review_active, used_copilot_code_review_passive,
         totals_by_ide, totals_by_feature, totals_by_language_feature, totals_by_language_model,
         totals_by_model_feature, totals_by_cli)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
-       ON CONFLICT (day, user_login) DO NOTHING`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
       [m.day, m.user_id, m.user_login, m.organization_id,
        m.user_initiated_interaction_count, m.code_generation_activity_count, m.code_acceptance_activity_count,
        m.loc_suggested_to_add_sum, m.loc_suggested_to_delete_sum, m.loc_added_sum, m.loc_deleted_sum,

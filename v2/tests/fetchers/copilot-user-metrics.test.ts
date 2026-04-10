@@ -6,7 +6,7 @@ vi.mock('fs/promises', () => ({
 }));
 
 import * as fs from 'fs/promises';
-import { fetchCopilotUserMetrics } from '../../src/github/copilot-user-metrics';
+import { fetchCopilotUserMetrics, fetchEnterpriseCopilotUserMetrics } from '../../src/github/copilot-user-metrics';
 
 const mockUserRecord = {
   day: '2024-01-15',
@@ -138,5 +138,67 @@ describe('fetchCopilotUserMetrics', () => {
     const result = await fetchCopilotUserMetrics(mockOctokit, 'my-org');
     expect(result[0].totals_by_ide).toEqual(mockUserRecord.totals_by_ide);
     expect(result[0].totals_by_feature).toEqual(mockUserRecord.totals_by_feature);
+  });
+});
+
+describe('fetchEnterpriseCopilotUserMetrics', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    global.fetch = vi.fn(async () => ({
+      text: async () => ndjsonLine,
+    })) as any;
+  });
+
+  it('fetches enterprise download_links and parses NDJSON', async () => {
+    const mockOctokit = {
+      request: vi.fn().mockResolvedValue({
+        data: { download_links: ['https://example.com/ent-report.ndjson'] },
+      }),
+    } as any;
+
+    const result = await fetchEnterpriseCopilotUserMetrics(mockOctokit, 'my-enterprise');
+    expect(result.length).toBe(1);
+    expect(result[0].day).toBe('2024-01-15');
+    expect(result[0].user_login).toBe('dev1');
+    expect(mockOctokit.request).toHaveBeenCalledWith(
+      'GET /enterprises/{enterprise}/copilot/metrics/reports/users-28-day/latest',
+      expect.objectContaining({ enterprise: 'my-enterprise' })
+    );
+  });
+
+  it('sets enterprise_id on returned records', async () => {
+    const mockOctokit = {
+      request: vi.fn().mockResolvedValue({
+        data: { download_links: ['https://example.com/ent-report.ndjson'] },
+      }),
+    } as any;
+
+    const result = await fetchEnterpriseCopilotUserMetrics(mockOctokit, 'my-enterprise');
+    expect(result[0].enterprise_id).toBeTruthy();
+  });
+
+  it('writes raw JSON file to data/raw/copilot-enterprise-user-metrics/', async () => {
+    const mockOctokit = {
+      request: vi.fn().mockResolvedValue({
+        data: { download_links: ['https://example.com/r.ndjson'] },
+      }),
+    } as any;
+
+    await fetchEnterpriseCopilotUserMetrics(mockOctokit, 'my-enterprise');
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining('copilot-enterprise-user-metrics'),
+      expect.any(String)
+    );
+  });
+
+  it('returns empty array when download_links is empty', async () => {
+    const mockOctokit = {
+      request: vi.fn().mockResolvedValue({
+        data: { download_links: [] },
+      }),
+    } as any;
+
+    const result = await fetchEnterpriseCopilotUserMetrics(mockOctokit, 'my-enterprise');
+    expect(result).toEqual([]);
   });
 });

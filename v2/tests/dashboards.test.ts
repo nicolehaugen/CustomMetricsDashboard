@@ -101,6 +101,16 @@ describe('Copilot dashboards', () => {
     const d = loadDashboard(filename);
     expect(d.tags).toContain('copilot');
   });
+
+  it.each(COPILOT_DASHBOARDS)('%s has scope template variable', (filename) => {
+    const d = loadDashboard(filename);
+    const vars = d.templating?.list ?? [];
+    const scopeVar = vars.find((v: any) => v.name === 'scope');
+    expect(scopeVar, `${filename} missing $scope template variable`).toBeTruthy();
+    expect(scopeVar.type).toBe('custom');
+    expect(scopeVar.query).toContain('Organization');
+    expect(scopeVar.query).toContain('Enterprise');
+  });
 });
 
 describe('cross-dashboard uniqueness', () => {

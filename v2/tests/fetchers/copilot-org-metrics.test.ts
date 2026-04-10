@@ -6,7 +6,7 @@ vi.mock('fs/promises', () => ({
 }));
 
 import * as fs from 'fs/promises';
-import { fetchCopilotOrgMetrics } from '../../src/github/copilot-org-metrics';
+import { fetchCopilotOrgMetrics, fetchEnterpriseCopilotOrgMetrics } from '../../src/github/copilot-org-metrics';
 
 const mockDayTotals = [
   {
@@ -92,5 +92,56 @@ describe('fetchCopilotOrgMetrics', () => {
     const result = await fetchCopilotOrgMetrics(mockOctokit, 'my-org');
     expect(result[0].pull_requests).toEqual(mockDayTotals[0].pull_requests);
     expect(result[0].totals_by_feature).toEqual(mockDayTotals[0].totals_by_feature);
+  });
+});
+
+describe('fetchEnterpriseCopilotOrgMetrics', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    global.fetch = vi.fn(async () => ({
+      text: async () => ndjsonLine,
+    })) as any;
+  });
+
+  it('fetches enterprise download_links and parses NDJSON', async () => {
+    const mockOctokit = {
+      request: vi.fn().mockResolvedValue({
+        data: { download_links: ['https://example.com/ent-report.ndjson'] },
+      }),
+    } as any;
+
+    const result = await fetchEnterpriseCopilotOrgMetrics(mockOctokit, 'my-enterprise');
+    expect(result.length).toBe(1);
+    expect(result[0].day).toBe('2024-01-15');
+    expect(result[0].daily_active_users).toBe(45);
+    expect(mockOctokit.request).toHaveBeenCalledWith(
+      'GET /enterprises/{enterprise}/copilot/metrics/reports/organization-28-day/latest',
+      expect.objectContaining({ enterprise: 'my-enterprise' })
+    );
+  });
+
+  it('sets enterprise_id on returned records', async () => {
+    const mockOctokit = {
+      request: vi.fn().mockResolvedValue({
+        data: { download_links: ['https://example.com/ent-report.ndjson'] },
+      }),
+    } as any;
+
+    const result = await fetchEnterpriseCopilotOrgMetrics(mockOctokit, 'my-enterprise');
+    expect(result[0].enterprise_id).toBeTruthy();
+  });
+
+  it('writes raw JSON file to data/raw/copilot-enterprise-org-metrics/', async () => {
+    const mockOctokit = {
+      request: vi.fn().mockResolvedValue({
+        data: { download_links: ['https://example.com/r.ndjson'] },
+      }),
+    } as any;
+
+    await fetchEnterpriseCopilotOrgMetrics(mockOctokit, 'my-enterprise');
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining('copilot-enterprise-org-metrics'),
+      expect.any(String)
+    );
   });
 });

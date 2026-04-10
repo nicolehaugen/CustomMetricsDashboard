@@ -159,7 +159,8 @@ CREATE INDEX IF NOT EXISTS idx_workflow_runs_head_sha    ON workflow_runs(head_s
 
 CREATE TABLE IF NOT EXISTS copilot_org_metrics (
   id                               SERIAL PRIMARY KEY,
-  day                              DATE NOT NULL UNIQUE,
+  day                              DATE NOT NULL,
+  enterprise_id                    TEXT,
   organization_id                  TEXT,
   daily_active_users               INTEGER,
   weekly_active_users              INTEGER,
@@ -185,6 +186,7 @@ CREATE TABLE IF NOT EXISTS copilot_org_metrics (
 );
 
 CREATE INDEX IF NOT EXISTS idx_copilot_org_metrics_day ON copilot_org_metrics(day);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_copilot_org_metrics_day_ent ON copilot_org_metrics(day, COALESCE(enterprise_id, ''));
 
 -- ─── Copilot: Per-User Seat Data ─────────────────────────
 
@@ -237,7 +239,7 @@ CREATE TABLE IF NOT EXISTS copilot_user_metrics (
 
 CREATE INDEX IF NOT EXISTS idx_copilot_user_metrics_day        ON copilot_user_metrics(day);
 CREATE INDEX IF NOT EXISTS idx_copilot_user_metrics_login       ON copilot_user_metrics(user_login);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_copilot_user_metrics_day_user ON copilot_user_metrics(day, user_login);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_copilot_user_metrics_day_user ON copilot_user_metrics(day, user_login, COALESCE(enterprise_id, ''));
 
 -- ─── Dashboard Config: Data Mode ─────────────────────────
 
