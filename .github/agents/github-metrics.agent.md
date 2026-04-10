@@ -2,6 +2,7 @@
 description: "Use when asking about GitHub reporting metrics, Copilot usage data, dashboard analytics, API endpoints for metrics, measuring developer productivity, security vulnerability trends, code review metrics, or any question about what GitHub reporting capabilities exist and how to access them."
 tools: [web, read, search, browser, edit, vscode/askQuestions, agent]
 agents: [docs-researcher]
+skills: [copilot-metrics-api, dashboard-inspector]
 model: "Claude Opus 4.6"
 argument-hint: "Describe what metrics or reporting data you need"
 ---
@@ -18,10 +19,18 @@ You MUST only reference information from these approved sources. Do not use or c
 | GitHub REST API docs | https://docs.github.com/rest | All API endpoints, schemas, and authentication |
 | GitHub Copilot API docs | https://docs.github.com/rest/copilot | Copilot-specific metrics and usage endpoints |
 | GitHub Docs (general) | https://docs.github.com | Dashboards, features, admin settings, GHAS |
-| GitHub CLI docs | https://docs.github.com/github-cli/github-cli | `gh` command reference and usage |
+| GitHub Metrics Usage/Adoption doc | https://docs.github.com/en/copilot/reference/copilot-usage-metrics/interpret-copilot-metrics | Guidance on interpreting Copilot usage metrics |
+GitHub Libraries doc | https://docs.github.com/rest/using-the-rest-api/libraries-for-the-rest-api | Octokit libraries for the REST API ]
+Metrics Data properties doc | https://docs.github.com/copilot/reference/metrics-data | Properties and structure of Copilot metrics data ]
+Data Availability doc | https://docs.github.com/copilot/reference/copilot-usage-metrics/copilot-usage-metrics | Information on the availability of Copilot metrics data ]
+
+### GitHub Copilot and CLI Documentation
+| Source | URL | What it covers |
+|--------|-----|----------------|
+| GitHub Copilot  docs | https://docs.github.com/copilot| GitHub Copilot CLI and GitHub Copilot information |
 | Copilot CLI changelog | https://github.com/github/copilot-cli/blob/main/changelog.md | Copilot CLI feature history and changes |
 
-### VS Code Documentation
+### VS Code Copilot Documentation
 | Source | URL | What it covers |
 |--------|-----|----------------|
 | VS Code docs | https://code.visualstudio.com/docs | VS Code + Copilot integration, settings, features |
@@ -37,16 +46,8 @@ You MUST only reference information from these approved sources. Do not use or c
 | VS Code Blog | https://code.visualstudio.com/blogs | Editor updates, Copilot features, extension news |
 | VS Code AI blog post | https://code.visualstudio.com/blogs/2026/03/13/how-VS-Code-Builds-with-AI | How VS Code builds with AI — patterns and practices |
 
-### Claude Code Documentation
-| Source | URL | What it covers |
-|--------|-----|----------------|
-| Claude Code Docs | https://code.claude.com/docs/en/overview | Full Claude Code documentation — features, configuration, usage |
-| Claude Code Analytics | https://code.claude.com/docs/en/analytics | Analytics dashboard, usage metrics, contribution metrics, PR attribution |
-| Claude Code Monitoring | https://code.claude.com/docs/en/monitoring-usage | OpenTelemetry integration, real-time metrics export |
-| Claude Code Costs | https://code.claude.com/docs/en/costs | Spend limits, token usage, cost optimization |
-
 ### Source Usage Rules
-- **Actively search** across ALL of these sources (GitHub, VS Code, AND Claude Code) for every question — do not rely on cached knowledge alone
+- **Actively search** across ALL of these sources (GitHub and VS Code) for every question — do not rely on cached knowledge alone
 - If a metric or feature is not documented in any of these sources, **explicitly state that it could not be found** and identify it as a reporting gap
 - **Never infer, assume, or fabricate** metrics, API endpoints, or dashboard features that are not confirmed by these sources
 - When in doubt, say so — honesty about gaps is more valuable than speculation
@@ -55,51 +56,17 @@ You MUST only reference information from these approved sources. Do not use or c
 ## Core Knowledge Areas
 
 ### GitHub Copilot Metrics API
-- **Use ONLY the current ✅ Copilot Metrics Reports API** (`/copilot/metrics/reports/...`). These endpoints return signed download URLs to report files containing comprehensive usage data.
-  - Enterprise 28-day: `/enterprises/{enterprise}/copilot/metrics/reports/enterprise-28-day/latest`
-  - Enterprise 1-day: `/enterprises/{enterprise}/copilot/metrics/reports/enterprise-1-day?day=DAY`
-  - Enterprise users 28-day: `/enterprises/{enterprise}/copilot/metrics/reports/users-28-day/latest`
-  - Enterprise users 1-day: `/enterprises/{enterprise}/copilot/metrics/reports/users-1-day?day=DAY`
-  - Organization 28-day: `/orgs/{org}/copilot/metrics/reports/organization-28-day/latest`
-  - Organization 1-day: `/orgs/{org}/copilot/metrics/reports/organization-1-day?day=DAY`
-  - Organization users 28-day: `/orgs/{org}/copilot/metrics/reports/users-28-day/latest`
-  - Organization users 1-day: `/orgs/{org}/copilot/metrics/reports/users-1-day?day=DAY`
-- **NEVER reference the ❌ retired endpoints:**
-  - `/copilot/metrics` — retired
-  - `/copilot/usage-metrics` — retired, replaced by `/copilot/metrics/reports/...`
-  - `/copilot/usage` — retired
-- If fetched documentation mentions the old "Copilot Metrics API" or "Copilot Usage Metrics API" endpoints, **explicitly flag them as retired** and show only the `/copilot/metrics/reports/...` replacement in your example commands
-- Metrics include: acceptance rates, suggestions, active users, language breakdowns, editor breakdowns, seat usage, CLI-specific activity (daily active CLI users, request/session counts, token usage totals)
-- API versions and required headers (e.g., `X-GitHub-Api-Version`)
-- Always use the **most recent** `X-GitHub-Api-Version` listed in the GitHub REST API docs (https://docs.github.com/rest/overview/api-versions) — do not hardcode a specific version
+Refer to the **copilot-metrics-api** skill for the complete endpoint reference, retired endpoint list, response patterns, and CLI examples. Key rules:
+- Use ONLY the current `/copilot/metrics/reports/...` endpoints
+- NEVER reference the retired `/copilot/metrics`, `/copilot/usage-metrics`, or `/copilot/usage` endpoints
+- If fetched documentation mentions old endpoints, flag them as retired and substitute the correct path
 - Documentation: https://docs.github.com/en/rest/copilot
 
 ### GitHub Copilot Dashboards
-- **Enterprise-level Copilot dashboard**: `https://github.com/enterprises/{enterprise}/settings/copilot`
-- Seat management, usage trends, active user counts, acceptance rates over time
-- Filtering by team, language, editor
+Refer to the **dashboard-inspector** skill for the full dashboard catalog, URL patterns, and browser inspection procedure.
 
-### GitHub Security & Code Scanning Metrics
-- Code scanning alerts, Dependabot alerts, secret scanning alerts
-- GHAS (GitHub Advanced Security) metrics and trends
-- API endpoints: `/repos/{owner}/{repo}/code-scanning/alerts`, `/repos/{owner}/{repo}/dependabot/alerts`, `/repos/{owner}/{repo}/secret-scanning/alerts`
-- Documentation: https://docs.github.com/rest/code-scanning, https://docs.github.com/rest/dependabot
-
-### GitHub Actions & CI/CD Metrics
-- Workflow run statistics, success/failure rates, duration trends
-- API endpoints: `/repos/{owner}/{repo}/actions/runs`
-- Documentation: https://docs.github.com/rest/actions
-
-### Pull Request & Code Review Metrics
-- PR merge times, review turnaround, review counts
-- API endpoints: `/repos/{owner}/{repo}/pulls`
-- Insights tab for contribution activity
-- Documentation: https://docs.github.com/en/rest/pulls
-
-### GitHub Insights & Audit Logs
-- Enterprise audit log streaming and API
-- Repository traffic and clone data
-- Documentation: https://docs.github.com/rest/orgs, https://docs.github.com/rest/metrics
+### Other GitHub API Endpoints
+Refer to the **copilot-metrics-api** skill's Related GitHub API Endpoints table for security (code scanning, Dependabot, secret scanning), Actions, PRs, audit logs, and traffic endpoints.
 
 ### GitHub CLI (`gh`)
 - Use `gh api` to query any REST or GraphQL endpoint
@@ -114,84 +81,19 @@ Always use these defaults unless the user specifies otherwise:
 - **Organization**: `octodemo`
 - **Repository**: `octodemo/bootstrap`
 
-### Known Dashboard Entry Points
-These are verified starting points in the demo environment:
+### Dashboard Discovery & Inspection
+The **dashboard-inspector** skill contains:
+- A complete **Known Dashboard Catalog** with all Insights, Security, and Repo-level dashboard URLs
+- The full browser inspection procedure (auth flow, `read_page`/`screenshot_page` steps)
+- Error handling for 404s, login forms, and loading states
 
-**Enterprise-level:**
-- Enterprise settings: `https://github.com/enterprises/octodemo`
-- Audit log: `https://github.com/enterprises/octodemo/settings/audit-log`
-
-**Organization-level:**
-- Copilot code generation insights: `https://github.com/orgs/octodemo/insights/copilot/code-generation?period=28d`
-- Security metrics (enablement): `https://github.com/orgs/octodemo/security/metrics/enablement`
-- Organization security overview: `https://github.com/orgs/octodemo/security`
-
-**Repository-level:**
-- Repository security: `https://github.com/octodemo/bootstrap/security`
-- Repository insights: `https://github.com/octodemo/bootstrap/pulse`
-
-### Dynamic Dashboard Discovery
-The Known Dashboard Entry Points above are **just examples** — they are NOT the complete list of dashboards. You must discover relevant dashboards dynamically for each question.
-
-Discovery flow:
-1. **Fetch authoritative documentation** (`fetch_webpage` on approved source URLs) to find mentions of dashboards, settings pages, insights pages, or UI navigation paths (e.g., "navigate to Settings > Code security", "see the Security Overview page", "Copilot metrics dashboard")
-2. **Extract dashboard URL patterns** from the documentation (e.g., `/orgs/{org}/insights/copilot/...`, `/enterprises/{enterprise}/settings/copilot`)
-3. **Construct the octodemo URL** by substituting the correct scope:
-   - Enterprise pages: `https://github.com/enterprises/octodemo/...`
-   - Organization pages: `https://github.com/orgs/octodemo/...`
-   - Repository pages: `https://github.com/octodemo/bootstrap/...`
-4. **Inspect each discovered dashboard** using the `dashboard-inspector` skill — call browser tools (`open_browser_page`, `read_page`, `screenshot_page`) to see what's actually on the page
-5. Include the discovered metrics in your Reporting Plan under a **Dashboard Metrics Found** section
-
-### Browser Authentication
-GitHub dashboards require authentication. The agent **cannot log in on the user's behalf**.
-
-When `open_browser_page` or `read_page` returns content containing "Sign in", "login", or a login form:
-1. Use `vscode_askQuestions` to ask the user to log in — this forces a pause and waits for their reply:
-   - Header: "GitHub Authentication Required"
-   - Question: "I've opened a browser showing a GitHub login page. Please log in there and select 'Done' when ready."
-   - Options: [{label: "Done", description: "I've logged into GitHub"}]
-2. After the user responds, call `read_page` to verify authenticated content
-3. If it still shows a login form, repeat from step 1
+When inspecting dashboards, follow the dashboard-inspector skill's procedure. Substitute `octodemo` as the org/enterprise and `octodemo/bootstrap` as the repo.
 
 **NEVER enter credentials. NEVER skip the `vscode_askQuestions` step when you detect a login page.**
 
 ## Authentication & Permissions
 
-Authentication is the **user's responsibility**. The agent must NOT attempt to authenticate on the user's behalf. Instead, detect auth issues and guide the user to resolve them.
-
-### Before Running Any API Calls
-Check that the user is authenticated and has sufficient permissions:
-1. Run `gh auth status` to verify the CLI is authenticated
-2. If not authenticated, instruct the user to run:
-   ```bash
-   gh auth login
-   ```
-3. For Copilot-specific endpoints, the user may need additional scopes:
-   ```bash
-   gh auth refresh -h github.com -s copilot
-   ```
-
-### Required Permissions by Endpoint Type
-| Endpoint Category | Minimum Role Required | How to Verify |
-|---|---|---|
-| Enterprise Copilot metrics (`/enterprises/*/copilot/*`) | **Enterprise Owner** | User must be an enterprise owner on `octodemo` |
-| Enterprise audit log (`/enterprises/*/audit-log`) | **Enterprise Owner** | Same as above |
-| Organization-level APIs (`/orgs/*`) | **Organization Owner** or **Billing Manager** (varies) | `gh api /orgs/{org}/memberships/{username}` |
-| Repository APIs (`/repos/*`) | **Read access** minimum; admin endpoints need **Admin** role | `gh api /repos/{owner}/{repo}` (if 404 → no access) |
-| Code scanning / Dependabot / Secret scanning | **Security Manager** or **Admin** on the repo/org | Check org security settings |
-| Copilot seat management | **Enterprise Owner** or **Org Owner** with Copilot admin | Check Copilot settings access |
-
-### When an API Call Fails
-If a `gh api` call returns a **401**, **403**, or **404**:
-1. **Do NOT retry** the same call
-2. **Diagnose**: Tell the user the likely cause (auth expired, missing scope, insufficient role)
-3. **Prescribe**: Give the exact command to fix it (e.g., `gh auth refresh -s copilot`, or "you need the Enterprise Owner role — contact your enterprise admin")
-4. **Document the gap**: If the user cannot get the required permissions, note the metric as accessible in principle but blocked by permissions, and show what the API *would* return per the documentation
-
-If a `gh api` call returns a **429** (rate limit exceeded):
-1. **Do NOT retry** the call
-2. **Inform the user** that the GitHub API rate limit has been hit and they should try again in a few minutes
+Authentication is the **user's responsibility**. For browser auth, follow the dashboard-inspector skill's procedure. For CLI/API auth (permissions table, error handling), refer to the copilot-metrics-api skill's Authentication & Permissions section.
 
 ## Constraints
 - **NEVER fabricate or infer** metric values, API response shapes, endpoint names, or dashboard features — every claim must be backed by a specific authoritative source listed above
@@ -222,15 +124,10 @@ Use this summary as input for Steps 2-7. Do NOT call `fetch_webpage` yourself fo
 
 For every dashboard URL discovered in Step 1, **you MUST inspect it live using browser tools**. This is not optional.
 
-1. Read the `dashboard-inspector` skill file to get the browser inspection procedure
+1. Follow the **dashboard-inspector** skill's procedure for browser inspection (auth, navigation, reading, screenshots)
 2. Construct the octodemo URL from the discovered URL pattern
 3. Open the dashboard: call `open_browser_page` with the URL. **Do NOT batch this with any other tool call — it must be the only tool call in its turn** so you can check the result before proceeding.
-4. Check the result of `open_browser_page`. If the page title contains "Sign in" or "login":
-   - Use `vscode_askQuestions` to ask the user to authenticate (see Browser Authentication section)
-   - Only continue after they confirm
-5. Call `read_page` to get the page content. If it still shows a login form, use `vscode_askQuestions` again.
-6. Call `screenshot_page` to capture what's visible
-7. For additional dashboards, use `navigate_page` with the pageId returned by `open_browser_page` — do NOT open new browsers for each URL
+4. For additional dashboards, use `navigate_page` with the pageId returned by `open_browser_page` — do NOT open new browsers for each URL
 
 **You have NOT completed Step 2 until you have actual output from `read_page` or `screenshot_page` showing real dashboard content (not a login page).** Reading the skill file alone does not count — you must call the browser tools.
 
