@@ -1,6 +1,6 @@
 {
   "uid": "copilot-impact",
-  "title": "\ud83d\udcbb Copilot Code Impact [v2]",
+  "title": "💻 Copilot Code Impact [v2]",
   "description": "Measures the volume and quality of Copilot-assisted code contributions including lines suggested, accepted, acceptance rate, and PR attribution.",
   "tags": [
     "copilot"
@@ -32,16 +32,16 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "# \ud83d\udcbb Copilot Code Impact\n\n**Supplementary Metrics \u2014 AI-Assisted Code Volume**\n\n## What it Measures\nThis dashboard quantifies the volume and acceptance rate of code suggestions made by GitHub Copilot. It tracks lines suggested versus lines accepted across the 28-day window, and counts pull requests attributed to Copilot-active developers.\n\n## Why it Matters\nAcceptance rate and lines accepted are the primary signals of whether Copilot's suggestions are relevant and high-quality. Declining acceptance rates may indicate suggestion quality issues, mismatched context, or developers who have not yet learned to prompt effectively.\n\n> \u26a0\ufe0f **Attribution caveat**: A PR is counted as \"Copilot-attributed\" when the author has an active Copilot seat (activity within 28 days). This is a *proxy* \u2014 GitHub provides no per-PR Copilot telemetry. All Copilot attribution panels show this caveat.\n\n## How to Interpret\n| Metric | Healthy Signal | What it Means |\n|---|---|---|\n| **Acceptance Rate** | \u226530% | Suggestions are relevant and trusted by developers |\n| **Lines Accepted** | Growing over time | Copilot is contributing meaningfully to code output |\n| **Copilot-Attributed PRs** | High % of total PRs | Active users are shipping regularly |\n\n## How to Take Action\n- **Low acceptance rate**: Review model context (open files, comments), ensure Copilot settings match language/framework in use\n- **Declining lines accepted**: Check for reduced seat activity \u2014 may indicate disengagement or workflow changes\n- **High suggestions, low acceptance**: Developers may be using Copilot for exploration but rejecting completions \u2014 investigate whether suggestions match coding standards"
+        "content": "# 💻 Copilot Code Impact\n\n**Supplementary Metrics — AI-Assisted Code Volume**\n\n## What it Measures\nThis dashboard quantifies the volume and acceptance rate of code suggestions made by GitHub Copilot. It tracks lines suggested versus lines accepted across the 28-day window, and counts pull requests attributed to Copilot-active developers.\n\n## Why it Matters\nAcceptance rate and lines accepted are the primary signals of whether Copilot's suggestions are relevant and high-quality. Declining acceptance rates may indicate suggestion quality issues, mismatched context, or developers who have not yet learned to prompt effectively.\n\n> ⚠️ **Attribution caveat**: A PR is counted as \"Copilot-attributed\" when the author has an active Copilot seat (activity within 28 days). This is a *proxy* — GitHub provides no per-PR Copilot telemetry. All Copilot attribution panels show this caveat.\n\n## How to Interpret\n| Metric | Healthy Signal | What it Means |\n|---|---|---|\n| **Acceptance Rate** | ≥30% | Suggestions are relevant and trusted by developers |\n| **Lines Accepted** | Growing over time | Copilot is contributing meaningfully to code output |\n| **Copilot-Attributed PRs** | High % of total PRs | Active users are shipping regularly |\n\n## How to Take Action\n- **Low acceptance rate**: Review model context (open files, comments), ensure Copilot settings match language/framework in use\n- **Declining lines accepted**: Check for reduced seat activity — may indicate disengagement or workflow changes\n- **High suggestions, low acceptance**: Developers may be using Copilot for exploration but rejecting completions — investigate whether suggestions match coding standards"
       },
       "transparent": true,
-      "description": "Copilot Code Impact \u2014 lines accepted, acceptance rate, and attributed PRs."
+      "description": "Copilot Code Impact — lines accepted, acceptance rate, and attributed PRs."
     },
     {
       "id": 2,
       "type": "stat",
       "title": "Lines Accepted (28d)",
-      "description": "### What it measures\nTotal lines of code accepted from Copilot suggestions over the last 28 days (or selected time range).\n\n### What insight it offers\nAbsolute measure of AI-assisted code production. Growing numbers indicate increasing Copilot utilization across the team.\n\n### \u26a0\ufe0f Caveats\n- Derived from loc_added_sum in copilot_org_metrics\n- Does not distinguish between languages or quality of accepted code",
+      "description": "### What it measures\nTotal lines of code accepted from Copilot suggestions over the last 28 days (or selected time range).\n\n### What insight it offers\nAbsolute measure of AI-assisted code production. Growing numbers indicate increasing Copilot utilization across the team.\n\n### ⚠️ Caveats\n- Derived from loc_added_sum in copilot_org_metrics\n- Does not distinguish between languages or quality of accepted code",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -94,7 +94,7 @@
       "id": 3,
       "type": "stat",
       "title": "Lines Suggested (28d)",
-      "description": "### What it measures\nTotal lines of code suggested by Copilot over the last 28 days (or selected time range).\n\n### What insight it offers\nHigh suggestion volume relative to accepted lines reveals developer trust levels. Compare with Lines Accepted to gauge effectiveness.\n\n### \u26a0\ufe0f Caveats\n- Derived from loc_suggested_to_add_sum in copilot_org_metrics\n- Includes all suggestions regardless of whether they were viewed",
+      "description": "### What it measures\nTotal lines of code suggested by Copilot over the last 28 days (or selected time range).\n\n### What insight it offers\nHigh suggestion volume relative to accepted lines reveals developer trust levels. Compare with Lines Accepted to gauge effectiveness.\n\n### ⚠️ Caveats\n- Derived from loc_suggested_to_add_sum in copilot_org_metrics\n- Includes all suggestions regardless of whether they were viewed",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -147,7 +147,7 @@
       "id": 4,
       "type": "stat",
       "title": "Acceptance Rate (%)",
-      "description": "### What it measures\nPercentage of Copilot-suggested lines that were accepted by developers in the selected time range.\n\n### What insight it offers\nHigher acceptance rates indicate more relevant and accurate suggestions. Industry benchmarks typically range from 25% to 45%.\n\n### \u26a0\ufe0f Caveats\n- Computed as loc_added_sum / loc_suggested_to_add_sum across all days in range\n- Language mix and developer experience level affect acceptance rates",
+      "description": "### What it measures\nPercentage of Copilot-suggested lines that were accepted by developers in the selected time range.\n\n### What insight it offers\nHigher acceptance rates indicate more relevant and accurate suggestions. Industry benchmarks typically range from 25% to 45%.\n\n### ⚠️ Caveats\n- Computed as loc_added_sum / loc_suggested_to_add_sum across all days in range\n- Language mix and developer experience level affect acceptance rates",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -209,7 +209,7 @@
       "id": 5,
       "type": "stat",
       "title": "Copilot-Attributed PRs",
-      "description": "### What it measures\nCount of merged PRs authored by developers with an active Copilot seat in the selected time range.\n\n### What insight it offers\nShows the reach of Copilot across the team's output. Useful for understanding how much of your codebase may have AI-assisted contributions.\n\n### \u26a0\ufe0f Caveats\n- A seat holder may not use Copilot for every PR\n- Only counts merged PRs",
+      "description": "### What it measures\nCount of merged PRs authored by developers with an active Copilot seat in the selected time range.\n\n### What insight it offers\nShows the reach of Copilot across the team's output. Useful for understanding how much of your codebase may have AI-assisted contributions.\n\n### ⚠️ Caveats\n- A seat holder may not use Copilot for every PR\n- Only counts merged PRs",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -262,7 +262,7 @@
       "id": 6,
       "type": "timeseries",
       "title": "Lines Accepted vs Suggested over Time",
-      "description": "### What it measures\nDaily trend of lines suggested by Copilot versus lines accepted by developers.\n\n### What insight it offers\nThe gap between suggested and accepted lines shows how much assistance is offered versus taken. A narrowing gap indicates improving suggestion quality or developer trust.\n\n### \u26a0\ufe0f Caveats\n- Daily granularity from copilot_org_metrics\n- Weekend dips are expected due to reduced developer activity",
+      "description": "### What it measures\nDaily trend of lines suggested by Copilot versus lines accepted by developers.\n\n### What insight it offers\nThe gap between suggested and accepted lines shows how much assistance is offered versus taken. A narrowing gap indicates improving suggestion quality or developer trust.\n\n### ⚠️ Caveats\n- Daily granularity from copilot_org_metrics\n- Weekend dips are expected due to reduced developer activity",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -307,7 +307,7 @@
       "id": 7,
       "type": "timeseries",
       "title": "Acceptance Rate Trend",
-      "description": "### What it measures\nDaily Copilot suggestion acceptance rate as a percentage over time.\n\n### What insight it offers\nAn upward trend may indicate improving model quality, better developer familiarity with Copilot, or a shift toward tasks where Copilot excels.\n\n### \u26a0\ufe0f Caveats\n- Daily rate can be noisy; use a moving average mentally when interpreting trends\n- Low suggestion volume days may produce extreme rates",
+      "description": "### What it measures\nDaily Copilot suggestion acceptance rate as a percentage over time.\n\n### What insight it offers\nAn upward trend may indicate improving model quality, better developer familiarity with Copilot, or a shift toward tasks where Copilot excels.\n\n### ⚠️ Caveats\n- Daily rate can be noisy; use a moving average mentally when interpreting trends\n- Low suggestion volume days may produce extreme rates",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -352,7 +352,7 @@
       "id": 8,
       "type": "stat",
       "title": "Copilot PR Rate (%)",
-      "description": "### What it measures\nPercentage of all merged PRs in the time range that were authored by active Copilot seat holders.\n\n### What insight it offers\nTracks the proportion of team output with potential AI assistance. Growing rate indicates expanding Copilot adoption impact.\n\n### \u26a0\ufe0f Caveats\n- Copilot seat holder is not the same as Copilot was used for the PR\n- Only counts merged PRs",
+      "description": "### What it measures\nPercentage of all merged PRs in the time range that were authored by active Copilot seat holders.\n\n### What insight it offers\nTracks the proportion of team output with potential AI assistance. Growing rate indicates expanding Copilot adoption impact.\n\n### ⚠️ Caveats\n- Copilot seat holder is not the same as Copilot was used for the PR\n- Only counts merged PRs",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -414,7 +414,7 @@
       "id": 9,
       "type": "table",
       "title": "Top 10 by Lines Added (Copilot Users)",
-      "description": "### What it measures\nTop 10 developers ranked by total lines accepted from Copilot suggestions in the selected time range.\n\n### What insight it offers\nIdentifies power users and Copilot champions. These developers can serve as internal advocates and trainers for the broader team.\n\n### \u26a0\ufe0f Caveats\n- Only includes developers with copilot_user_metrics records\n- High lines added does not necessarily mean high code quality",
+      "description": "### What it measures\nTop 10 developers ranked by total lines accepted from Copilot suggestions in the selected time range.\n\n### What insight it offers\nIdentifies power users and Copilot champions. These developers can serve as internal advocates and trainers for the broader team.\n\n### ⚠️ Caveats\n- Only includes developers with copilot_user_metrics records\n- High lines added does not necessarily mean high code quality",
       "gridPos": {
         "h": 8,
         "w": 18,

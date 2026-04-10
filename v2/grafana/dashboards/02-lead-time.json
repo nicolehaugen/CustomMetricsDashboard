@@ -1,7 +1,7 @@
 {
   "uid": "lead-time",
-  "title": "\u23f1\ufe0f Lead Time for Changes [v2]",
-  "description": "DORA Pillar: Lead Time for Changes \u2014 Measures time from code merge to successful deployment. Elite teams achieve under 1 hour.",
+  "title": "⏱️ Lead Time for Changes [v2]",
+  "description": "DORA Pillar: Lead Time for Changes — Measures time from code merge to successful deployment. Elite teams achieve under 1 hour.",
   "tags": [
     "dora"
   ],
@@ -54,16 +54,16 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "# \u23f1 Lead Time for Changes\n\n**DORA Pillar: Throughput**\n\n## What it Measures\nLead Time for Changes measures the time it takes for a code commit to reach production. This includes the time for code review (PR cycle time) and the deployment pipeline. It is the second DORA *throughput* metric and reflects how quickly your team can deliver value once code is written.\n\n## Why it Matters\nShorter lead times mean faster feedback loops, reduced risk per change, and quicker delivery of features and fixes to users. Long lead times often indicate bottlenecks in code review, testing, or deployment processes.\n\n## How to Interpret\n| Performance Level | Lead Time | What it Means |\n|---|---|---|\n| \ud83d\udfe2 Elite | Less than 1 hour | Automated pipelines, fast reviews, small changes |\n| \ud83d\udfe1 High | 1 hour to 1 day | Good automation with some review delays |\n| \ud83d\udfe0 Medium | 1 day to 1 week | Manual steps or batch processing slowing delivery |\n| \ud83d\udd34 Low | More than 1 week | Significant bottlenecks in review or deployment |\n\n**PR Cycle Time** (created \u2192 merged) is the largest measurable component of lead time.\n\n## How to Take Action\n- **If high lead time**: Look for bottlenecks in code review (long PR wait times), reduce PR size, automate testing\n- **If PR cycle time is high**: Add more reviewers, set review SLAs, use Copilot Code Review for faster initial feedback\n- **If trending up**: Check for team capacity issues, increasing PR complexity, or CI pipeline slowdowns"
+        "content": "# ⏱ Lead Time for Changes\n\n**DORA Pillar: Throughput**\n\n## What it Measures\nLead Time for Changes measures the time it takes for a code commit to reach production. This includes the time for code review (PR cycle time) and the deployment pipeline. It is the second DORA *throughput* metric and reflects how quickly your team can deliver value once code is written.\n\n## Why it Matters\nShorter lead times mean faster feedback loops, reduced risk per change, and quicker delivery of features and fixes to users. Long lead times often indicate bottlenecks in code review, testing, or deployment processes.\n\n## How to Interpret\n| Performance Level | Lead Time | What it Means |\n|---|---|---|\n| 🟢 Elite | Less than 1 hour | Automated pipelines, fast reviews, small changes |\n| 🟡 High | 1 hour to 1 day | Good automation with some review delays |\n| 🟠 Medium | 1 day to 1 week | Manual steps or batch processing slowing delivery |\n| 🔴 Low | More than 1 week | Significant bottlenecks in review or deployment |\n\n**PR Cycle Time** (created → merged) is the largest measurable component of lead time.\n\n## How to Take Action\n- **If high lead time**: Look for bottlenecks in code review (long PR wait times), reduce PR size, automate testing\n- **If PR cycle time is high**: Add more reviewers, set review SLAs, use Copilot Code Review for faster initial feedback\n- **If trending up**: Check for team capacity issues, increasing PR complexity, or CI pipeline slowdowns"
       },
       "transparent": true,
-      "description": "Lead Time for Changes \u2014 DORA throughput pillar. Performance tiers and action guidance."
+      "description": "Lead Time for Changes — DORA throughput pillar. Performance tiers and action guidance."
     },
     {
       "id": 2,
       "type": "stat",
       "title": "Change Lead Time (median hours)",
-      "description": "### What it measures\nMedian time in hours from PR merge to successful deployment in the selected environment.\n\n### What insight it offers\nElite: <1h, High: <1d, Medium: <1w, Low: >1w. Shorter lead times enable faster feedback and lower risk per change.\n\n### \u26a0\ufe0f Caveats\n- Only considers PRs linked to deployments via deployment_pull_requests\n- PRs without merged_at are excluded",
+      "description": "### What it measures\nMedian time in hours from PR merge to successful deployment in the selected environment.\n\n### What insight it offers\nElite: <1h, High: <1d, Medium: <1w, Low: >1w. Shorter lead times enable faster feedback and lower risk per change.\n\n### ⚠️ Caveats\n- Only considers PRs linked to deployments via deployment_pull_requests\n- PRs without merged_at are excluded",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -125,7 +125,7 @@
       "id": 3,
       "type": "stat",
       "title": "PR Cycle Time (median hours)",
-      "description": "### What it measures\nMedian time in hours from PR creation to merge in the selected time range.\n\n### What insight it offers\nLong cycle times may indicate review bottlenecks or overly large PRs. Shorter times correlate with better team velocity.\n\n### \u26a0\ufe0f Caveats\n- Only counts PRs that have been merged\n- Does not filter by environment",
+      "description": "### What it measures\nMedian time in hours from PR creation to merge in the selected time range.\n\n### What insight it offers\nLong cycle times may indicate review bottlenecks or overly large PRs. Shorter times correlate with better team velocity.\n\n### ⚠️ Caveats\n- Only counts PRs that have been merged\n- Does not filter by environment",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -187,7 +187,7 @@
       "id": 4,
       "type": "stat",
       "title": "P90 Lead Time (hours)",
-      "description": "### What it measures\n90th percentile lead time \u2014 the time within which 90% of changes are deployed.\n\n### What insight it offers\nP90 reveals worst-case experiences and outliers that the median hides. Large P50/P90 gaps indicate high variance in your pipeline.\n\n### \u26a0\ufe0f Caveats\n- Sensitive to outlier PRs that sat undeployed for long periods\n- Environment and time filter applied",
+      "description": "### What it measures\n90th percentile lead time — the time within which 90% of changes are deployed.\n\n### What insight it offers\nP90 reveals worst-case experiences and outliers that the median hides. Large P50/P90 gaps indicate high variance in your pipeline.\n\n### ⚠️ Caveats\n- Sensitive to outlier PRs that sat undeployed for long periods\n- Environment and time filter applied",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -249,7 +249,7 @@
       "id": 5,
       "type": "timeseries",
       "title": "Change Lead Time over Time",
-      "description": "### What it measures\nWeekly median and P90 lead time trend for the selected environment.\n\n### What insight it offers\nTrending down is positive. Sudden spikes may indicate deployment pipeline issues or batching of large releases.\n\n### \u26a0\ufe0f Caveats\n- Computed at weekly granularity; weeks with few deployments produce less reliable percentiles\n- Environment filter applied",
+      "description": "### What it measures\nWeekly median and P90 lead time trend for the selected environment.\n\n### What insight it offers\nTrending down is positive. Sudden spikes may indicate deployment pipeline issues or batching of large releases.\n\n### ⚠️ Caveats\n- Computed at weekly granularity; weeks with few deployments produce less reliable percentiles\n- Environment filter applied",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -294,7 +294,7 @@
       "id": 6,
       "type": "timeseries",
       "title": "PR Cycle Time over Time",
-      "description": "### What it measures\nWeekly median PR cycle time (creation to merge) trend.\n\n### What insight it offers\nRising cycle times may signal growing review backlogs, increasing PR complexity, or team capacity issues.\n\n### \u26a0\ufe0f Caveats\n- All repositories included; does not filter by environment\n- Time range filter applied on PR creation date",
+      "description": "### What it measures\nWeekly median PR cycle time (creation to merge) trend.\n\n### What insight it offers\nRising cycle times may signal growing review backlogs, increasing PR complexity, or team capacity issues.\n\n### ⚠️ Caveats\n- All repositories included; does not filter by environment\n- Time range filter applied on PR creation date",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -339,7 +339,7 @@
       "id": 7,
       "type": "table",
       "title": "Slowest PRs by Lead Time",
-      "description": "### What it measures\nTop 20 PRs with the longest lead time from merge to deployment.\n\n### What insight it offers\nIdentify specific PRs or authors that consistently contribute to high lead times, enabling targeted process improvements.\n\n### \u26a0\ufe0f Caveats\n- Capped at 20 rows\n- Only includes PRs linked to successful deployments in the selected environment",
+      "description": "### What it measures\nTop 20 PRs with the longest lead time from merge to deployment.\n\n### What insight it offers\nIdentify specific PRs or authors that consistently contribute to high lead times, enabling targeted process improvements.\n\n### ⚠️ Caveats\n- Capped at 20 rows\n- Only includes PRs linked to successful deployments in the selected environment",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -378,7 +378,7 @@
       "id": 8,
       "type": "barchart",
       "title": "Lead Time: Copilot vs Non-Copilot",
-      "description": "### What it measures\nMedian lead time comparison between PRs authored by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users have lower lead times, it suggests AI assistance reduces time-to-deploy by helping produce cleaner, faster-reviewed code.\n\n### \u26a0\ufe0f Caveats\n- Copilot user definition: active seat in the last 28 days\n- Small cohort sizes reduce statistical reliability",
+      "description": "### What it measures\nMedian lead time comparison between PRs authored by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users have lower lead times, it suggests AI assistance reduces time-to-deploy by helping produce cleaner, faster-reviewed code.\n\n### ⚠️ Caveats\n- Copilot user definition: active seat in the last 28 days\n- Small cohort sizes reduce statistical reliability",
       "gridPos": {
         "h": 8,
         "w": 12,

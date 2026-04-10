@@ -1,6 +1,6 @@
 {
   "uid": "overview",
-  "title": "\ud83d\udcca Engineering Overview [v2]",
+  "title": "📊 Engineering Overview [v2]",
   "description": "High-level summary of all DORA metrics and Copilot adoption/impact indicators for the last 28 days.",
   "tags": [
     "overview"
@@ -32,16 +32,16 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "# \ud83d\udcca Engineering Overview\n\n**All Four DORA Pillars \u2014 At a Glance**\n\n## What it Shows\nThis overview dashboard presents the four core DORA (DevOps Research & Assessment) metrics side-by-side, giving engineering leaders a single-pane view of team health across throughput and stability.\n\n| Metric | Pillar | What it Tracks |\n|---|---|---|\n| **Deployment Frequency** | Throughput | How often code ships to production |\n| **Lead Time for Changes** | Throughput | Time from commit to production |\n| **Change Failure Rate** | Stability | % of deployments causing incidents |\n| **MTTR** | Stability | Time to restore service after failure |\n\n## Why it Matters\nDORA benchmarks are validated predictors of software delivery performance and organisational outcomes. High performers score well on *all four* metrics simultaneously \u2014 throughput gains must not come at the cost of stability.\n\n## How to Use This Dashboard\n- Use the stat panels to get an instant RAG (red/amber/green) status for each pillar\n- Drill into any pillar's dedicated dashboard for trend charts and actionable detail\n- Compare cohort breakdowns on the **DORA \u00d7 Copilot** dashboard to assess Copilot's impact"
+        "content": "# 📊 Engineering Overview\n\n**All Four DORA Pillars — At a Glance**\n\n## What it Shows\nThis overview dashboard presents the four core DORA (DevOps Research & Assessment) metrics side-by-side, giving engineering leaders a single-pane view of team health across throughput and stability.\n\n| Metric | Pillar | What it Tracks |\n|---|---|---|\n| **Deployment Frequency** | Throughput | How often code ships to production |\n| **Lead Time for Changes** | Throughput | Time from commit to production |\n| **Change Failure Rate** | Stability | % of deployments causing incidents |\n| **MTTR** | Stability | Time to restore service after failure |\n\n## Why it Matters\nDORA benchmarks are validated predictors of software delivery performance and organisational outcomes. High performers score well on *all four* metrics simultaneously — throughput gains must not come at the cost of stability.\n\n## How to Use This Dashboard\n- Use the stat panels to get an instant RAG (red/amber/green) status for each pillar\n- Drill into any pillar's dedicated dashboard for trend charts and actionable detail\n- Compare cohort breakdowns on the **DORA × Copilot** dashboard to assess Copilot's impact"
       },
       "transparent": true,
-      "description": "Engineering Overview \u2014 all four DORA pillars at a glance with drill-down links."
+      "description": "Engineering Overview — all four DORA pillars at a glance with drill-down links."
     },
     {
       "id": 2,
       "type": "stat",
       "title": "Deployment Frequency",
-      "description": "### What it measures\nAverage number of successful deployments per week over the last 28 days.\n\n### What insight it offers\nHigher frequency indicates smaller batch sizes, more automation, and faster value delivery. Elite performers deploy multiple times per day.\n\n### \u26a0\ufe0f Caveats\n- Only counts deployments with a 'success' status\n- Averaged over a fixed 28-day window",
+      "description": "### What it measures\nAverage number of successful deployments per week over the last 28 days.\n\n### What insight it offers\nHigher frequency indicates smaller batch sizes, more automation, and faster value delivery. Elite performers deploy multiple times per day.\n\n### ⚠️ Caveats\n- Only counts deployments with a 'success' status\n- Averaged over a fixed 28-day window",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -103,7 +103,7 @@
       "id": 3,
       "type": "stat",
       "title": "Lead Time (median hours)",
-      "description": "### What it measures\nMedian time from PR merge to successful deployment over the last 28 days.\n\n### What insight it offers\nShorter lead times mean faster feedback loops and value delivery. Elite teams achieve less than 1 hour.\n\n### \u26a0\ufe0f Caveats\n- Only considers PRs linked to successful deployments\n- PRs without a merged_at timestamp are excluded",
+      "description": "### What it measures\nMedian time from PR merge to successful deployment over the last 28 days.\n\n### What insight it offers\nShorter lead times mean faster feedback loops and value delivery. Elite teams achieve less than 1 hour.\n\n### ⚠️ Caveats\n- Only considers PRs linked to successful deployments\n- PRs without a merged_at timestamp are excluded",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -165,7 +165,7 @@
       "id": 4,
       "type": "stat",
       "title": "Change Fail Rate",
-      "description": "### What it measures\nPercentage of deployments that resulted in a production incident within 24 hours over the last 28 days.\n\n### What insight it offers\nLower CFR reflects higher code quality and better testing practices. Elite teams maintain below 5%.\n\n### \u26a0\ufe0f Caveats\n- Incidents are identified by the 'incident' label on GitHub Issues\n- Only considers deployments in the 28-day window",
+      "description": "### What it measures\nPercentage of deployments that resulted in a production incident within 24 hours over the last 28 days.\n\n### What insight it offers\nLower CFR reflects higher code quality and better testing practices. Elite teams maintain below 5%.\n\n### ⚠️ Caveats\n- Incidents are identified by the 'incident' label on GitHub Issues\n- Only considers deployments in the 28-day window",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -227,7 +227,7 @@
       "id": 5,
       "type": "stat",
       "title": "MTTR (median hours)",
-      "description": "### What it measures\nMedian time from deployment failure to the next successful deployment in the same environment, over the last 28 days.\n\n### What insight it offers\nLower MTTR indicates faster incident response and recovery capabilities. Elite teams recover in less than 1 hour.\n\n### \u26a0\ufe0f Caveats\n- Recovery is approximated as the next successful deployment after a failure\n- Requires at least one failure and one subsequent success to compute",
+      "description": "### What it measures\nMedian time from deployment failure to the next successful deployment in the same environment, over the last 28 days.\n\n### What insight it offers\nLower MTTR indicates faster incident response and recovery capabilities. Elite teams recover in less than 1 hour.\n\n### ⚠️ Caveats\n- Recovery is approximated as the next successful deployment after a failure\n- Requires at least one failure and one subsequent success to compute",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -289,7 +289,7 @@
       "id": 6,
       "type": "stat",
       "title": "Active Copilot Seats",
-      "description": "### What it measures\nNumber of Copilot seats with recorded activity in the last 28 days.\n\n### What insight it offers\nShows real adoption versus provisioned seats. A large gap between total and active seats indicates underutilization.\n\n### \u26a0\ufe0f Caveats\n- Activity is based on the last_activity_at field from the copilot_seats table\n- Does not differentiate between editor types",
+      "description": "### What it measures\nNumber of Copilot seats with recorded activity in the last 28 days.\n\n### What insight it offers\nShows real adoption versus provisioned seats. A large gap between total and active seats indicates underutilization.\n\n### ⚠️ Caveats\n- Activity is based on the last_activity_at field from the copilot_seats table\n- Does not differentiate between editor types",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -342,7 +342,7 @@
       "id": 7,
       "type": "stat",
       "title": "Acceptance Rate (%)",
-      "description": "### What it measures\nRatio of Copilot-suggested lines that were accepted (added) versus total lines suggested, over the last 28 days.\n\n### What insight it offers\nHigher acceptance rate indicates Copilot suggestions are relevant and useful to developers.\n\n### \u26a0\ufe0f Caveats\n- Based on aggregated org-level metrics from copilot_org_metrics\n- A low rate may reflect personal preference, not suggestion quality",
+      "description": "### What it measures\nRatio of Copilot-suggested lines that were accepted (added) versus total lines suggested, over the last 28 days.\n\n### What insight it offers\nHigher acceptance rate indicates Copilot suggestions are relevant and useful to developers.\n\n### ⚠️ Caveats\n- Based on aggregated org-level metrics from copilot_org_metrics\n- A low rate may reflect personal preference, not suggestion quality",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -404,7 +404,7 @@
       "id": 8,
       "type": "stat",
       "title": "Copilot PR Rate (%)",
-      "description": "### What it measures\nPercentage of merged PRs authored by developers with an active Copilot seat in the last 28 days.\n\n### What insight it offers\nIndicates how much of the team's output involves Copilot-assisted development. Growing rate suggests increasing adoption impact.\n\n### \u26a0\ufe0f Caveats\n- A user may have a Copilot seat but not use it for every PR\n- Only counts merged PRs",
+      "description": "### What it measures\nPercentage of merged PRs authored by developers with an active Copilot seat in the last 28 days.\n\n### What insight it offers\nIndicates how much of the team's output involves Copilot-assisted development. Growing rate suggests increasing adoption impact.\n\n### ⚠️ Caveats\n- A user may have a Copilot seat but not use it for every PR\n- Only counts merged PRs",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -466,7 +466,7 @@
       "id": 9,
       "type": "stat",
       "title": "Lines Accepted (28d)",
-      "description": "### What it measures\nTotal number of Copilot-suggested lines accepted by developers in the last 28 days.\n\n### What insight it offers\nAbsolute volume of Copilot-assisted code production. Useful for tracking growth in AI-assisted output over time.\n\n### \u26a0\ufe0f Caveats\n- Derived from aggregated org-level daily metrics\n- High volume does not guarantee high quality of accepted code",
+      "description": "### What it measures\nTotal number of Copilot-suggested lines accepted by developers in the last 28 days.\n\n### What insight it offers\nAbsolute volume of Copilot-assisted code production. Useful for tracking growth in AI-assisted output over time.\n\n### ⚠️ Caveats\n- Derived from aggregated org-level daily metrics\n- High volume does not guarantee high quality of accepted code",
       "gridPos": {
         "h": 4,
         "w": 6,

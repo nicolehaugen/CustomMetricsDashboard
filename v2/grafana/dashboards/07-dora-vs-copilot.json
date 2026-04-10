@@ -1,6 +1,6 @@
 {
   "uid": "dora-copilot",
-  "title": "\ud83d\udd2c DORA \u00d7 Copilot Cohort [v2]",
+  "title": "🔬 DORA × Copilot Cohort [v2]",
   "description": "Cross-analysis of DORA engineering metrics segmented by Copilot adoption cohort, revealing the impact of AI assistance on software delivery performance.",
   "tags": [
     "copilot",
@@ -55,16 +55,16 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "# \ud83d\udd2c DORA \u00d7 Copilot Cohort\n\n**Supplementary Metrics \u2014 Copilot impact on DORA performance**\n\n## What it Shows\nThis dashboard compares the four DORA metrics side-by-side for two cohorts: developers with an active Copilot seat versus those without. It surfaces whether Copilot usage correlates with faster lead times, more frequent deployments, or lower failure rates.\n\n## Why it Matters\nCohort comparisons provide the strongest available signal (short of a controlled experiment) for Copilot's impact on engineering velocity and quality. If Copilot-active developers consistently show better DORA scores, it strengthens the case for broader adoption and investment.\n\n> \u26a0\ufe0f **Attribution caveat**: Cohort membership is determined by active seat status (last activity within 28 days) \u2014 not by confirmed Copilot use on specific PRs. Selection bias may exist if higher-performing developers are also more likely to adopt new tools.\n\n## How to Interpret\n- **Lead Time / Cycle Time**: Lower values for Copilot cohort suggest faster code delivery\n- **PR throughput**: Higher weekly PR counts for Copilot cohort indicate productivity gains\n- **Lines changed**: More lines per developer in Copilot cohort may reflect reduced friction writing code\n\n## How to Use This Data\n- Use this dashboard to build the business case for Copilot investment\n- Combine with the **Copilot Adoption** dashboard to ensure the active cohort is large enough to be representative\n- Track trends over time \u2014 short-term spikes may reflect novelty effects rather than sustained productivity gains"
+        "content": "# 🔬 DORA × Copilot Cohort\n\n**Supplementary Metrics — Copilot impact on DORA performance**\n\n## What it Shows\nThis dashboard compares the four DORA metrics side-by-side for two cohorts: developers with an active Copilot seat versus those without. It surfaces whether Copilot usage correlates with faster lead times, more frequent deployments, or lower failure rates.\n\n## Why it Matters\nCohort comparisons provide the strongest available signal (short of a controlled experiment) for Copilot's impact on engineering velocity and quality. If Copilot-active developers consistently show better DORA scores, it strengthens the case for broader adoption and investment.\n\n> ⚠️ **Attribution caveat**: Cohort membership is determined by active seat status (last activity within 28 days) — not by confirmed Copilot use on specific PRs. Selection bias may exist if higher-performing developers are also more likely to adopt new tools.\n\n## How to Interpret\n- **Lead Time / Cycle Time**: Lower values for Copilot cohort suggest faster code delivery\n- **PR throughput**: Higher weekly PR counts for Copilot cohort indicate productivity gains\n- **Lines changed**: More lines per developer in Copilot cohort may reflect reduced friction writing code\n\n## How to Use This Data\n- Use this dashboard to build the business case for Copilot investment\n- Combine with the **Copilot Adoption** dashboard to ensure the active cohort is large enough to be representative\n- Track trends over time — short-term spikes may reflect novelty effects rather than sustained productivity gains"
       },
       "transparent": true,
-      "description": "DORA \u00d7 Copilot Cohort \u2014 compares DORA metrics between Copilot-active and non-active developers."
+      "description": "DORA × Copilot Cohort — compares DORA metrics between Copilot-active and non-active developers."
     },
     {
       "id": 2,
       "type": "barchart",
       "title": "Change Lead Time: Copilot vs Non-Copilot",
-      "description": "### What it measures\nMedian change lead time (merge to deploy) for PRs authored by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users have shorter lead times, it suggests AI-assisted development accelerates code review and deployment readiness.\n\n### \u26a0\ufe0f Caveats\n- Requires deployment-PR linkage via deployment_pull_requests\n- Copilot user definition: active seat in the last 28 days",
+      "description": "### What it measures\nMedian change lead time (merge to deploy) for PRs authored by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users have shorter lead times, it suggests AI-assisted development accelerates code review and deployment readiness.\n\n### ⚠️ Caveats\n- Requires deployment-PR linkage via deployment_pull_requests\n- Copilot user definition: active seat in the last 28 days",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -105,7 +105,7 @@
       "id": 3,
       "type": "barchart",
       "title": "PR Cycle Time: Copilot vs Non-Copilot",
-      "description": "### What it measures\nMedian PR cycle time (open to merge) for Copilot active users versus non-Copilot users.\n\n### What insight it offers\nShorter cycle times for Copilot users may indicate AI assistance helps produce cleaner code that passes review faster.\n\n### \u26a0\ufe0f Caveats\n- Does not filter by environment; all repositories included\n- Cycle time includes both coding and review waiting time",
+      "description": "### What it measures\nMedian PR cycle time (open to merge) for Copilot active users versus non-Copilot users.\n\n### What insight it offers\nShorter cycle times for Copilot users may indicate AI assistance helps produce cleaner code that passes review faster.\n\n### ⚠️ Caveats\n- Does not filter by environment; all repositories included\n- Cycle time includes both coding and review waiting time",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -146,7 +146,7 @@
       "id": 4,
       "type": "timeseries",
       "title": "Merged PRs by Cohort (weekly)",
-      "description": "### What it measures\nWeekly count of merged PRs split by Copilot active versus non-Copilot cohorts.\n\n### What insight it offers\nShows whether Copilot users are maintaining or increasing their output share over time relative to non-Copilot peers.\n\n### \u26a0\ufe0f Caveats\n- Copilot cohort is fixed at current 28-day active seats, not historical\n- Does not account for team size changes over time",
+      "description": "### What it measures\nWeekly count of merged PRs split by Copilot active versus non-Copilot cohorts.\n\n### What insight it offers\nShows whether Copilot users are maintaining or increasing their output share over time relative to non-Copilot peers.\n\n### ⚠️ Caveats\n- Copilot cohort is fixed at current 28-day active seats, not historical\n- Does not account for team size changes over time",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -191,7 +191,7 @@
       "id": 5,
       "type": "timeseries",
       "title": "Lines Changed by Cohort (weekly)",
-      "description": "### What it measures\nWeekly total lines of code changed (additions + deletions) in merged PRs, split by Copilot cohort.\n\n### What insight it offers\nHigher lines changed per PR from Copilot users may indicate AI assistance boosts throughput. However, this should be balanced against PR quality metrics.\n\n### \u26a0\ufe0f Caveats\n- Requires PR additions/deletions to be stored in pull_requests table\n- Very large PRs can skew weekly totals significantly",
+      "description": "### What it measures\nWeekly total lines of code changed (additions + deletions) in merged PRs, split by Copilot cohort.\n\n### What insight it offers\nHigher lines changed per PR from Copilot users may indicate AI assistance boosts throughput. However, this should be balanced against PR quality metrics.\n\n### ⚠️ Caveats\n- Requires PR additions/deletions to be stored in pull_requests table\n- Very large PRs can skew weekly totals significantly",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -236,7 +236,7 @@
       "id": 6,
       "type": "barchart",
       "title": "Change Fail Rate: Copilot vs Non-Copilot",
-      "description": "### What it measures\nChange failure rate for deployments linked to PRs by Copilot active users versus non-Copilot users.\n\n### What insight it offers\nLower CFR for Copilot users may suggest AI-assisted code is less likely to cause incidents, possibly due to better inline error detection.\n\n### \u26a0\ufe0f Caveats\n- Incident detection uses 24-hour window heuristic\n- Small sample sizes per cohort reduce statistical confidence",
+      "description": "### What it measures\nChange failure rate for deployments linked to PRs by Copilot active users versus non-Copilot users.\n\n### What insight it offers\nLower CFR for Copilot users may suggest AI-assisted code is less likely to cause incidents, possibly due to better inline error detection.\n\n### ⚠️ Caveats\n- Incident detection uses 24-hour window heuristic\n- Small sample sizes per cohort reduce statistical confidence",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -277,7 +277,7 @@
       "id": 7,
       "type": "barchart",
       "title": "MTTR: Copilot vs Non-Copilot",
-      "description": "### What it measures\nMedian MTTR for failure-recovery cycles in deployments associated with Copilot active versus non-Copilot PRs.\n\n### What insight it offers\nFaster recovery for Copilot teams may indicate AI assistance in diagnosing and fixing production issues or producing more reversible changes.\n\n### \u26a0\ufe0f Caveats\n- Requires deployment-PR linkage for cohort classification\n- Low failure counts per cohort reduce statistical reliability",
+      "description": "### What it measures\nMedian MTTR for failure-recovery cycles in deployments associated with Copilot active versus non-Copilot PRs.\n\n### What insight it offers\nFaster recovery for Copilot teams may indicate AI assistance in diagnosing and fixing production issues or producing more reversible changes.\n\n### ⚠️ Caveats\n- Requires deployment-PR linkage for cohort classification\n- Low failure counts per cohort reduce statistical reliability",
       "gridPos": {
         "h": 8,
         "w": 12,
