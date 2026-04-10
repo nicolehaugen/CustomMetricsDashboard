@@ -65,7 +65,7 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "suffix: deploys/wk",
           "decimals": 1,
           "thresholds": {
             "mode": "absolute",
