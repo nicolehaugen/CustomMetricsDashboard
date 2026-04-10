@@ -14,20 +14,152 @@
   ],
   "panels": [
     {
-      "description": "Shows the current data source mode (live, seed, or demo) and last sync status.",
+      "id": 1,
+      "type": "stat",
+      "title": "Data Source",
+      "description": "Shows the current data source mode (live, seed, or demo), the source repository or label, and a link to the source if available. Updates automatically after each sync.",
       "gridPos": {
         "h": 3,
-        "w": 24,
+        "w": 16,
         "x": 0,
         "y": 0
       },
-      "id": 1,
-      "options": {
-        "content": "## 📊 Custom Metrics Dashboard v2\nData mode and sync status shown below.",
-        "mode": "markdown"
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
       },
-      "title": "Data Source",
-      "type": "text"
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '🟢 Live — ' || source_label\n    WHEN 'seed' THEN '🟠 Seed — ' || source_label\n    WHEN 'demo' THEN '🎮 Demo — ' || source_label\n    ELSE '⚪ ' || mode || ' — ' || COALESCE(source_label, '')\n  END AS \"Data Source\",\n  COALESCE(source_url, '') AS \"Source URL\"\nFROM data_mode\nORDER BY id DESC LIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "string",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "links": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Source URL"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Data Source"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open source repository",
+                    "url": "${__data.fields[\"Source URL\"]}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Data Source$/",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 100,
+      "type": "stat",
+      "title": "Last Synced",
+      "description": "Timestamp of the most recent successful sync job. Updates automatically when a new sync completes.",
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT finished_at AS \"Last Synced\"\nFROM sync_jobs\nWHERE status = 'success'\nORDER BY finished_at DESC\nLIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsLocal",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
     },
     {
       "datasource": {

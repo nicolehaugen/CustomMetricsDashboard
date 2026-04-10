@@ -2,24 +2,170 @@
   "uid": "copilot-impact",
   "title": "💻 Copilot Code Impact [v2]",
   "description": "Measures the volume and quality of Copilot-assisted code contributions including lines suggested, accepted, acceptance rate, and PR attribution.",
-  "tags": ["copilot"],
+  "tags": [
+    "copilot"
+  ],
   "schemaVersion": 36,
   "version": 1,
   "refresh": "5m",
-  "time": { "from": "now-28d", "to": "now" },
+  "time": {
+    "from": "now-28d",
+    "to": "now"
+  },
   "timepicker": {},
-  "templating": { "list": [] },
-  "annotations": { "list": [] },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
   "panels": [
     {
       "id": 1,
-      "type": "text",
+      "type": "stat",
       "title": "Data Source",
-      "description": "Shows the current data source mode (live, seed, or demo) and last sync status.",
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "description": "Shows the current data source mode (live, seed, or demo), the source repository or label, and a link to the source if available. Updates automatically after each sync.",
+      "gridPos": {
+        "h": 3,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '🟢 Live — ' || source_label\n    WHEN 'seed' THEN '🟠 Seed — ' || source_label\n    WHEN 'demo' THEN '🎮 Demo — ' || source_label\n    ELSE '⚪ ' || mode || ' — ' || COALESCE(source_label, '')\n  END AS \"Data Source\",\n  COALESCE(source_url, '') AS \"Source URL\"\nFROM data_mode\nORDER BY id DESC LIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "string",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "links": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Source URL"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Data Source"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open source repository",
+                    "url": "${__data.fields[\"Source URL\"]}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "options": {
-        "mode": "markdown",
-        "content": "## 📊 Custom Metrics Dashboard v2\nData mode and sync status shown below."
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Data Source$/",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 100,
+      "type": "stat",
+      "title": "Last Synced",
+      "description": "Timestamp of the most recent successful sync job. Updates automatically when a new sync completes.",
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT finished_at AS \"Last Synced\"\nFROM sync_jobs\nWHERE status = 'success'\nORDER BY finished_at DESC\nLIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsLocal",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
       }
     },
     {
@@ -27,12 +173,23 @@
       "type": "stat",
       "title": "Lines Accepted (28d)",
       "description": "### What it measures\nTotal lines of code accepted from Copilot suggestions over the last 28 days (or selected time range).\n\n### What insight it offers\nAbsolute measure of AI-assisted code production. Growing numbers indicate increasing Copilot utilization across the team.\n\n### ⚠️ Caveats\n- Derived from loc_added_sum in copilot_org_metrics\n- Does not distinguish between languages or quality of accepted code",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT SUM(loc_added_sum) AS \"Lines Accepted (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
@@ -43,14 +200,21 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -62,12 +226,23 @@
       "type": "stat",
       "title": "Lines Suggested (28d)",
       "description": "### What it measures\nTotal lines of code suggested by Copilot over the last 28 days (or selected time range).\n\n### What insight it offers\nHigh suggestion volume relative to accepted lines reveals developer trust levels. Compare with Lines Accepted to gauge effectiveness.\n\n### ⚠️ Caveats\n- Derived from loc_suggested_to_add_sum in copilot_org_metrics\n- Includes all suggestions regardless of whether they were viewed",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT SUM(loc_suggested_to_add_sum) AS \"Lines Suggested (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
@@ -78,14 +253,21 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -97,12 +279,23 @@
       "type": "stat",
       "title": "Acceptance Rate (%)",
       "description": "### What it measures\nPercentage of Copilot-suggested lines that were accepted by developers in the selected time range.\n\n### What insight it offers\nHigher acceptance rates indicate more relevant and accurate suggestions. Industry benchmarks typically range from 25% to 45%.\n\n### ⚠️ Caveats\n- Computed as loc_added_sum / loc_suggested_to_add_sum across all days in range\n- Language mix and developer experience level affect acceptance rates",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT ROUND(\n  SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
@@ -114,16 +307,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 25 },
-              { "color": "green", "value": 40 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "green",
+                "value": 40
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -135,12 +341,23 @@
       "type": "stat",
       "title": "Copilot-Attributed PRs",
       "description": "### What it measures\nCount of merged PRs authored by developers with an active Copilot seat in the selected time range.\n\n### What insight it offers\nShows the reach of Copilot across the team's output. Useful for understanding how much of your codebase may have AI-assisted contributions.\n\n### ⚠️ Caveats\n- A seat holder may not use Copilot for every PR\n- Only counts merged PRs",
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT COUNT(DISTINCT pr.id) AS \"Copilot-Attributed PRs\"\nFROM pull_requests pr\nJOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
@@ -151,14 +368,21 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -170,12 +394,23 @@
       "type": "timeseries",
       "title": "Lines Accepted vs Suggested over Time",
       "description": "### What it measures\nDaily trend of lines suggested by Copilot versus lines accepted by developers.\n\n### What insight it offers\nThe gap between suggested and accepted lines shows how much assistance is offered versus taken. A narrowing gap indicates improving suggestion quality or developer trust.\n\n### ⚠️ Caveats\n- Daily granularity from copilot_org_metrics\n- Weekend dips are expected due to reduced developer activity",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  day AS time,\n  loc_suggested_to_add_sum AS \"Lines Suggested\",\n  loc_added_sum AS \"Lines Added\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
           "format": "time_series"
         }
@@ -183,13 +418,20 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list" }
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
       }
     },
     {
@@ -197,12 +439,23 @@
       "type": "timeseries",
       "title": "Acceptance Rate Trend",
       "description": "### What it measures\nDaily Copilot suggestion acceptance rate as a percentage over time.\n\n### What insight it offers\nAn upward trend may indicate improving model quality, better developer familiarity with Copilot, or a shift toward tasks where Copilot excels.\n\n### ⚠️ Caveats\n- Daily rate can be noisy; use a moving average mentally when interpreting trends\n- Low suggestion volume days may produce extreme rates",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  day AS time,\n  ROUND(loc_added_sum::numeric / NULLIF(loc_suggested_to_add_sum, 0) * 100, 1) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
           "format": "time_series"
         }
@@ -210,13 +463,20 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list" }
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
       }
     },
     {
@@ -224,12 +484,23 @@
       "type": "stat",
       "title": "Copilot PR Rate (%)",
       "description": "### What it measures\nPercentage of all merged PRs in the time range that were authored by active Copilot seat holders.\n\n### What insight it offers\nTracks the proportion of team output with potential AI assistance. Growing rate indicates expanding Copilot adoption impact.\n\n### ⚠️ Caveats\n- Copilot seat holder is not the same as Copilot was used for the PR\n- Only counts merged PRs",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 15 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
@@ -241,16 +512,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 30 },
-              { "color": "green", "value": 60 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 30
+              },
+              {
+                "color": "green",
+                "value": 60
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -262,12 +546,23 @@
       "type": "table",
       "title": "Top 10 by Lines Added (Copilot Users)",
       "description": "### What it measures\nTop 10 developers ranked by total lines accepted from Copilot suggestions in the selected time range.\n\n### What insight it offers\nIdentifies power users and Copilot champions. These developers can serve as internal advocates and trainers for the broader team.\n\n### ⚠️ Caveats\n- Only includes developers with copilot_user_metrics records\n- High lines added does not necessarily mean high code quality",
-      "gridPos": { "h": 8, "w": 18, "x": 6, "y": 15 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 18,
+        "x": 6,
+        "y": 15
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  user_login AS \"Developer\",\n  SUM(loc_added_sum) AS \"Lines Added\",\n  ROUND(SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1) AS \"Acceptance Rate (%)\"\nFROM copilot_user_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nGROUP BY user_login\nORDER BY \"Lines Added\" DESC\nLIMIT 10",
           "format": "table"
         }
@@ -276,7 +571,14 @@
         "defaults": {},
         "overrides": []
       },
-      "options": { "sortBy": [{ "displayName": "Lines Added", "desc": true }] }
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Lines Added",
+            "desc": true
+          }
+        ]
+      }
     }
   ]
 }

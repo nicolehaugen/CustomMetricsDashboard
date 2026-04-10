@@ -2,24 +2,170 @@
   "uid": "copilot-adopt",
   "title": "🤖 Copilot Adoption & Usage [v2]",
   "description": "Tracks GitHub Copilot seat provisioning, activation rates, and daily active user trends across the organization.",
-  "tags": ["copilot"],
+  "tags": [
+    "copilot"
+  ],
   "schemaVersion": 36,
   "version": 1,
   "refresh": "5m",
-  "time": { "from": "now-28d", "to": "now" },
+  "time": {
+    "from": "now-28d",
+    "to": "now"
+  },
   "timepicker": {},
-  "templating": { "list": [] },
-  "annotations": { "list": [] },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
   "panels": [
     {
       "id": 1,
-      "type": "text",
+      "type": "stat",
       "title": "Data Source",
-      "description": "Shows the current data source mode (live, seed, or demo) and last sync status.",
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "description": "Shows the current data source mode (live, seed, or demo), the source repository or label, and a link to the source if available. Updates automatically after each sync.",
+      "gridPos": {
+        "h": 3,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '🟢 Live — ' || source_label\n    WHEN 'seed' THEN '🟠 Seed — ' || source_label\n    WHEN 'demo' THEN '🎮 Demo — ' || source_label\n    ELSE '⚪ ' || mode || ' — ' || COALESCE(source_label, '')\n  END AS \"Data Source\",\n  COALESCE(source_url, '') AS \"Source URL\"\nFROM data_mode\nORDER BY id DESC LIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "string",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "links": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Source URL"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Data Source"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open source repository",
+                    "url": "${__data.fields[\"Source URL\"]}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "options": {
-        "mode": "markdown",
-        "content": "## 📊 Custom Metrics Dashboard v2\nData mode and sync status shown below."
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^Data Source$/",
+          "values": false
+        },
+        "orientation": "auto",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 100,
+      "type": "stat",
+      "title": "Last Synced",
+      "description": "Timestamp of the most recent successful sync job. Updates automatically when a new sync completes.",
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT finished_at AS \"Last Synced\"\nFROM sync_jobs\nWHERE status = 'success'\nORDER BY finished_at DESC\nLIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsLocal",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
       }
     },
     {
@@ -27,12 +173,23 @@
       "type": "stat",
       "title": "Total Seats",
       "description": "### What it measures\nTotal number of Copilot seats provisioned in the organization.\n\n### What insight it offers\nProvides the baseline for calculating utilization rate. Compare with active seats to understand deployment effectiveness.\n\n### ⚠️ Caveats\n- Includes all seats regardless of activity\n- May include seats for service accounts or bots",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT COUNT(*) AS \"Total Seats\" FROM copilot_seats",
           "format": "table"
         }
@@ -43,14 +200,21 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -62,12 +226,23 @@
       "type": "stat",
       "title": "Active Seats (28d)",
       "description": "### What it measures\nNumber of seats with recorded Copilot activity in the last 28 days.\n\n### What insight it offers\nActive seat count represents real adoption. Tracking this over time shows whether adoption is growing, stable, or declining.\n\n### ⚠️ Caveats\n- Activity threshold is any usage recorded in last_activity_at\n- Does not distinguish between heavy and light users",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT COUNT(*) AS \"Active Seats (28d)\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'",
           "format": "table"
         }
@@ -78,14 +253,21 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -97,12 +279,23 @@
       "type": "stat",
       "title": "Seat Utilization Rate (%)",
       "description": "### What it measures\nPercentage of provisioned seats that were actively used in the last 28 days.\n\n### What insight it offers\nLow utilization rates indicate wasted license spend or insufficient onboarding. Target above 80% for healthy adoption.\n\n### ⚠️ Caveats\n- Based on last_activity_at from the seat record, not daily metrics\n- New seats provisioned in the last 28 days may not yet show activity",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT ROUND(\n  COUNT(*) FILTER (WHERE last_activity_at >= NOW() - INTERVAL '28 days')::numeric * 100.0 / NULLIF(COUNT(*), 0), 1\n) AS \"Seat Utilization Rate (%)\" FROM copilot_seats",
           "format": "table"
         }
@@ -114,16 +307,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 50 },
-              { "color": "green", "value": 80 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -135,12 +341,23 @@
       "type": "stat",
       "title": "Inactive Seats (>14d)",
       "description": "### What it measures\nNumber of seats with no recorded activity for more than 14 days.\n\n### What insight it offers\nHighlights seats that may need re-engagement or reassignment. Reducing inactive seats improves ROI on Copilot licenses.\n\n### ⚠️ Caveats\n- 14-day threshold is configurable by changing the interval in the query\n- Includes seats that may be for developers on leave",
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT COUNT(*) AS \"Inactive Seats (>14d)\"\nFROM copilot_seats\nWHERE last_activity_at < NOW() - INTERVAL '14 days'\n   OR last_activity_at IS NULL",
           "format": "table"
         }
@@ -151,16 +368,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 5 },
-              { "color": "red", "value": 20 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -172,12 +402,23 @@
       "type": "timeseries",
       "title": "Daily Active Users",
       "description": "### What it measures\nDaily count of unique Copilot users with at least one suggestion interaction, from org-level metrics.\n\n### What insight it offers\nShows daily engagement trends. Dips may correlate with holidays, incidents, or reduced developer availability.\n\n### ⚠️ Caveats\n- Sourced from copilot_org_metrics; aggregated at org level\n- Does not break down by team or repository",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT day AS time, daily_active_users AS \"Daily Active\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
           "format": "time_series"
         }
@@ -185,13 +426,20 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
-          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list" }
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
       }
     },
     {
@@ -199,25 +447,40 @@
       "type": "barchart",
       "title": "Last Active Editor Distribution",
       "description": "### What it measures\nBreakdown of Copilot seats by the IDE/editor reported in their last activity.\n\n### What insight it offers\nShows which editors are most popular among Copilot users, informing where to focus onboarding and support efforts.\n\n### ⚠️ Caveats\n- Reports last known editor, not historical distribution\n- Seats with no editor recorded are excluded",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT last_activity_editor AS \"Editor\", COUNT(*) AS \"Seats\"\nFROM copilot_seats\nWHERE last_activity_editor IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC",
           "format": "table"
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "none" },
+        "defaults": {
+          "unit": "none"
+        },
         "overrides": []
       },
       "options": {
         "barWidth": 0.6,
         "groupWidth": 0.7,
         "stacking": "none",
-        "legend": { "displayMode": "list" }
+        "legend": {
+          "displayMode": "list"
+        }
       }
     },
     {
@@ -225,12 +488,23 @@
       "type": "table",
       "title": "Seat Activity Recency",
       "description": "### What it measures\nPer-developer Copilot seat activity showing last active date, editor, and plan type.\n\n### What insight it offers\nEnables team leads to identify inactive developers for re-engagement and verify plan assignments are correct.\n\n### ⚠️ Caveats\n- Ordered by most recently active; scroll to find inactive developers\n- last_activity_at is updated by GitHub's API sync cadence",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  assignee_login AS \"Developer\",\n  last_activity_at AS \"Last Active\",\n  last_activity_editor AS \"Editor\",\n  plan_type AS \"Plan\"\nFROM copilot_seats\nORDER BY last_activity_at DESC",
           "format": "table"
         }
@@ -239,7 +513,14 @@
         "defaults": {},
         "overrides": []
       },
-      "options": { "sortBy": [{ "displayName": "Last Active", "desc": true }] }
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Last Active",
+            "desc": true
+          }
+        ]
+      }
     }
   ]
 }

@@ -54,9 +54,22 @@ describe.each(ALL_DASHBOARDS)('%s — common structure', (filename) => {
     expect(dashboard.panels.length).toBeGreaterThan(0);
   });
 
-  it('first panel is a text/markdown panel (data source banner)', () => {
+  it('first panel is the data source banner (stat panel querying data_mode)', () => {
     dashboard = loadDashboard(filename);
-    expect(dashboard.panels[0].type).toBe('text');
+    const banner = dashboard.panels[0];
+    expect(banner.type).toBe('stat');
+    expect(banner.title).toBe('Data Source');
+    const sql = banner.targets?.[0]?.rawSql ?? '';
+    expect(sql).toContain('data_mode');
+  });
+
+  it('second panel is the last synced stat panel', () => {
+    dashboard = loadDashboard(filename);
+    const panel = dashboard.panels[1];
+    expect(panel.type).toBe('stat');
+    expect(panel.title).toBe('Last Synced');
+    const sql = panel.targets?.[0]?.rawSql ?? '';
+    expect(sql).toContain('sync_jobs');
   });
 
   it('all panels have non-empty descriptions', () => {
