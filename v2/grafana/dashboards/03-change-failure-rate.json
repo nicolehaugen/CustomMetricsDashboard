@@ -1,12 +1,17 @@
 {
   "uid": "change-fail",
-  "title": "🔥 Change Failure Rate & Quality [v2]",
-  "description": "DORA Pillar: Change Failure Rate — Measures the percentage of deployments that result in a degraded service. Elite teams keep CFR below 5%.",
-  "tags": ["dora"],
+  "title": "\ud83d\udd25 Change Failure Rate & Quality [v2]",
+  "description": "DORA Pillar: Change Failure Rate \u2014 Measures the percentage of deployments that result in a degraded service. Elite teams keep CFR below 5%.",
+  "tags": [
+    "dora"
+  ],
   "schemaVersion": 36,
   "version": 1,
   "refresh": "5m",
-  "time": { "from": "now-28d", "to": "now" },
+  "time": {
+    "from": "now-28d",
+    "to": "now"
+  },
   "timepicker": {},
   "templating": {
     "list": [
@@ -14,12 +19,18 @@
         "name": "environment",
         "type": "query",
         "label": "Environment",
-        "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+        "datasource": {
+          "type": "postgres",
+          "uid": "PostgreSQL"
+        },
         "definition": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
         "query": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
         "refresh": 2,
         "sort": 1,
-        "current": { "text": "production", "value": "production" },
+        "current": {
+          "text": "production",
+          "value": "production"
+        },
         "options": [],
         "hide": 0,
         "multi": false,
@@ -27,30 +38,49 @@
       }
     ]
   },
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "panels": [
     {
       "id": 1,
       "type": "text",
-      "title": "Data Source",
-      "description": "Shows the current data source mode (live, seed, or demo) and last sync status.",
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "title": "",
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "options": {
         "mode": "markdown",
-        "content": "## 📊 Custom Metrics Dashboard v2\nData mode and sync status shown below."
-      }
+        "content": "# \ud83d\udca5 Change Failure Rate\n\n**DORA Pillar: Stability**\n\n## What it Measures\nChange Failure Rate measures the percentage of deployments that result in a failure requiring remediation (e.g., rollback, hotfix, or patch). It is one of the two DORA *stability* metrics and reflects the quality and reliability of changes being deployed.\n\n## Why it Matters\nA high change failure rate indicates that changes are risky and frequently break production. This leads to unplanned work, reduced trust in deployments, and slower overall delivery. Low change failure rates indicate strong testing, code review, and quality practices.\n\n## How to Interpret\n| Performance Level | Failure Rate | What it Means |\n|---|---|---|\n| \ud83d\udfe2 Elite | 0\u20135% | Excellent quality gates, thorough testing |\n| \ud83d\udfe1 High | 5\u201310% | Good practices with occasional issues |\n| \ud83d\udfe0 Medium | 10\u201315% | Testing gaps or insufficient code review |\n| \ud83d\udd34 Low | >15% | Significant quality issues, high deployment risk |\n\n**Rework Rate** tracks hotfix/bugfix/rollback deployments as a supplementary signal.\n\n## How to Take Action\n- **If high**: Improve test coverage, add integration tests, strengthen code review requirements\n- **If rework rate is high**: Investigate root causes of hotfixes \u2014 are they from specific repos, teams, or change types?\n- **If trending up**: Check for rushed deployments, reduced review standards, or new team members needing support\n- **If stable/low**: Document quality practices and share across the organisation"
+      },
+      "transparent": true,
+      "description": "Change Failure Rate \u2014 DORA stability pillar. Performance tiers and action guidance."
     },
     {
       "id": 2,
       "type": "stat",
       "title": "Change Fail Rate (%)",
-      "description": "### What it measures\nPercentage of successful deployments followed by an incident (labeled issue) within 24 hours in the selected environment.\n\n### What insight it offers\nElite: <5%, High: <10%, Medium: <15%, Low: ≥15%. High CFR indicates insufficient testing or risky deployment practices.\n\n### ⚠️ Caveats\n- Incidents identified by 'incident' label on GitHub Issues\n- 24-hour window is an approximation; actual causation requires manual review",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "description": "### What it measures\nPercentage of successful deployments followed by an incident (labeled issue) within 24 hours in the selected environment.\n\n### What insight it offers\nElite: <5%, High: <10%, Medium: <15%, Low: \u226515%. High CFR indicates insufficient testing or risky deployment practices.\n\n### \u26a0\ufe0f Caveats\n- Incidents identified by 'incident' label on GitHub Issues\n- 24-hour window is an approximation; actual causation requires manual review",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "WITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  ROUND(COUNT(DISTINCT df.deployment_id)::numeric /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100, 1) AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.environment = '$environment'\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
@@ -62,16 +92,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 5 },
-              { "color": "red", "value": 15 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -82,13 +125,24 @@
       "id": 3,
       "type": "stat",
       "title": "Deployment Rework Rate (%)",
-      "description": "### What it measures\nPercentage of deployments that were followed by a hotfix deployment within 48 hours, indicating rework.\n\n### What insight it offers\nFrequent rework indicates that changes are not sufficiently tested before deployment. Reducing rework improves overall team efficiency.\n\n### ⚠️ Caveats\n- Hotfix detection is based on deployment frequency within a short window, not labels\n- May over-count in high-frequency deployment environments",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "description": "### What it measures\nPercentage of deployments that were followed by a hotfix deployment within 48 hours, indicating rework.\n\n### What insight it offers\nFrequent rework indicates that changes are not sufficiently tested before deployment. Reducing rework improves overall team efficiency.\n\n### \u26a0\ufe0f Caveats\n- Hotfix detection is based on deployment frequency within a short window, not labels\n- May over-count in high-frequency deployment environments",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "WITH ranked AS (\n  SELECT\n    d.deployment_id,\n    d.created_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS next_deploy_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(\n  COUNT(CASE WHEN next_deploy_at - created_at < INTERVAL '48 hours' THEN 1 END)::numeric * 100.0\n  / NULLIF(COUNT(*), 0), 1\n) AS \"Rework Rate (%)\"\nFROM ranked",
           "format": "table"
         }
@@ -100,16 +154,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 10 },
-              { "color": "red", "value": 25 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -120,13 +187,24 @@
       "id": 4,
       "type": "stat",
       "title": "Total Incidents",
-      "description": "### What it measures\nTotal number of GitHub Issues labeled 'incident' created in the selected time range.\n\n### What insight it offers\nAbsolute incident count provides context for the CFR metric and helps track service reliability over time.\n\n### ⚠️ Caveats\n- Counts all incidents regardless of deployment linkage\n- Requires consistent use of the 'incident' label in your GitHub workflow",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "description": "### What it measures\nTotal number of GitHub Issues labeled 'incident' created in the selected time range.\n\n### What insight it offers\nAbsolute incident count provides context for the CFR metric and helps track service reliability over time.\n\n### \u26a0\ufe0f Caveats\n- Counts all incidents regardless of deployment linkage\n- Requires consistent use of the 'incident' label in your GitHub workflow",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT COUNT(*) AS \"Total Incidents\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\nAND i.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
@@ -137,16 +215,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 5 },
-              { "color": "red", "value": 10 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
         "orientation": "auto",
         "colorMode": "background",
         "graphMode": "none",
@@ -157,13 +248,24 @@
       "id": 5,
       "type": "timeseries",
       "title": "Change Fail Rate over Time",
-      "description": "### What it measures\nWeekly change failure rate percentage trend for the selected environment.\n\n### What insight it offers\nTrending down indicates improving quality. Sudden spikes may correlate with large releases, team changes, or infrastructure events.\n\n### ⚠️ Caveats\n- Weeks with very few deployments produce less reliable percentages\n- Incident labeling must be consistent for trend accuracy",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "description": "### What it measures\nWeekly change failure rate percentage trend for the selected environment.\n\n### What insight it offers\nTrending down indicates improving quality. Sudden spikes may correlate with large releases, team changes, or infrastructure events.\n\n### \u26a0\ufe0f Caveats\n- Weeks with very few deployments produce less reliable percentages\n- Incident labeling must be consistent for trend accuracy",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "WITH weekly_deploys AS (\n  SELECT\n    date_trunc('week', d.created_at) AS week,\n    d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nweekly_failures AS (\n  SELECT DISTINCT date_trunc('week', d.created_at) AS week, d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  wd.week AS time,\n  ROUND(COUNT(DISTINCT wf.deployment_id)::numeric / NULLIF(COUNT(DISTINCT wd.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM weekly_deploys wd\nLEFT JOIN weekly_failures wf ON wf.week = wd.week AND wf.deployment_id = wd.deployment_id\nGROUP BY 1\nORDER BY 1",
           "format": "time_series"
         }
@@ -171,54 +273,93 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list" }
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
       }
     },
     {
       "id": 6,
       "type": "timeseries",
       "title": "Incidents over Time",
-      "description": "### What it measures\nWeekly count of new incident-labeled issues created over time.\n\n### What insight it offers\nAligning incident spikes with deployment activity reveals which releases caused the most disruption.\n\n### ⚠️ Caveats\n- Incident creation date may lag the actual incident by hours\n- Does not filter by environment (incidents are cross-environment)",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "description": "### What it measures\nWeekly count of new incident-labeled issues created over time.\n\n### What insight it offers\nAligning incident spikes with deployment activity reveals which releases caused the most disruption.\n\n### \u26a0\ufe0f Caveats\n- Incident creation date may lag the actual incident by hours\n- Does not filter by environment (incidents are cross-environment)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  date_trunc('week', i.created_at) AS time,\n  COUNT(*) AS \"Incidents\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\nAND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
           "format": "time_series"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "color": { "fixedColor": "orange", "mode": "fixed" },
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          },
           "unit": "none",
-          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
         },
         "overrides": []
       },
       "options": {
-        "tooltip": { "mode": "multi" },
-        "legend": { "displayMode": "list" }
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
       }
     },
     {
       "id": 7,
       "type": "table",
       "title": "Open Incidents",
-      "description": "### What it measures\nList of currently open GitHub Issues labeled 'incident', ordered by most recently created.\n\n### What insight it offers\nProvides an at-a-glance view of active incidents that may still be impacting service reliability.\n\n### ⚠️ Caveats\n- Only shows open issues; resolved incidents are excluded\n- Requires the 'incident' label to be consistently applied",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "description": "### What it measures\nList of currently open GitHub Issues labeled 'incident', ordered by most recently created.\n\n### What insight it offers\nProvides an at-a-glance view of active incidents that may still be impacting service reliability.\n\n### \u26a0\ufe0f Caveats\n- Only shows open issues; resolved incidents are excluded\n- Requires the 'incident' label to be consistently applied",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "SELECT\n  i.number AS \"Issue #\",\n  i.title AS \"Title\",\n  i.user_login AS \"Reporter\",\n  i.created_at AS \"Created At\",\n  i.state AS \"State\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'\nORDER BY i.created_at DESC\nLIMIT 50",
           "format": "table"
         }
@@ -227,32 +368,54 @@
         "defaults": {},
         "overrides": []
       },
-      "options": { "sortBy": [{ "displayName": "Created At", "desc": true }] }
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Created At",
+            "desc": true
+          }
+        ]
+      }
     },
     {
       "id": 8,
       "type": "barchart",
       "title": "CFR: Copilot vs Non-Copilot",
-      "description": "### What it measures\nChange failure rate comparison between deployments linked to PRs by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users have lower CFR, it may indicate that AI-assisted development leads to fewer defects reaching production.\n\n### ⚠️ Caveats\n- Requires deployment-PR linkage\n- Incident attribution uses the same 24-hour window heuristic",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
-      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "description": "### What it measures\nChange failure rate comparison between deployments linked to PRs by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users have lower CFR, it may indicate that AI-assisted development leads to fewer defects reaching production.\n\n### \u26a0\ufe0f Caveats\n- Requires deployment-PR linkage\n- Incident attribution uses the same 24-hour window heuristic",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\ndeploy_cohorts AS (\n  SELECT\n    d.deployment_id,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort\n  FROM deployments d\n  JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  JOIN pull_requests pr ON pr.number = dpr.pr_number\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nfailures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  dc.cohort AS \"Cohort\",\n  ROUND(COUNT(DISTINCT f.deployment_id)::numeric / NULLIF(COUNT(DISTINCT dc.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM deploy_cohorts dc\nLEFT JOIN failures f ON f.deployment_id = dc.deployment_id\nGROUP BY 1",
           "format": "table"
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "percent" },
+        "defaults": {
+          "unit": "percent"
+        },
         "overrides": []
       },
       "options": {
         "barWidth": 0.5,
         "groupWidth": 0.7,
         "stacking": "none",
-        "legend": { "displayMode": "list" }
+        "legend": {
+          "displayMode": "list"
+        }
       }
     }
   ]

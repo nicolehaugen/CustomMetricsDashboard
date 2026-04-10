@@ -6,7 +6,7 @@
   "refresh": "5m",
   "timepicker": {},
   "version": 1,
-  "title": "🚀 Deployment Frequency [v2]",
+  "title": "\ud83d\ude80 Deployment Frequency [v2]",
   "schemaVersion": 36,
   "uid": "deploy-freq",
   "tags": [
@@ -14,7 +14,6 @@
   ],
   "panels": [
     {
-      "description": "Shows the current data source mode (live, seed, or demo) and last sync status.",
       "gridPos": {
         "h": 3,
         "w": 24,
@@ -23,18 +22,20 @@
       },
       "id": 1,
       "options": {
-        "content": "## 📊 Custom Metrics Dashboard v2\nData mode and sync status shown below.",
+        "content": "# \ud83d\ude80 Deployment Frequency\n\n**DORA Pillar: Throughput**\n\n## What it Measures\nDeployment Frequency measures how often your organisation successfully deploys code to production. It is one of the two DORA *throughput* metrics and reflects the pace at which your team delivers value to users.\n\n## Why it Matters\nHigher deployment frequency indicates a mature, well-automated CI/CD pipeline and a team that delivers small, incremental changes. Elite-performing teams deploy on demand (multiple times per day), while low performers deploy less than once per month.\n\n## How to Interpret\n| Performance Level | Frequency | What it Means |\n|---|---|---|\n| \ud83d\udfe2 Elite | Multiple deploys/day (>7/wk) | On-demand delivery, small batch sizes |\n| \ud83d\udfe1 High | 1\u20137 deploys/week | Regular cadence, good automation |\n| \ud83d\udfe0 Medium | 1\u20134 deploys/month (<1/wk) | Larger batches, some manual steps |\n| \ud83d\udd34 Low | <1 deploy/month (<0.25/wk) | Infrequent releases, high risk per deploy |\n\n## How to Take Action\n- **If low**: Break work into smaller PRs, automate deployment pipelines, reduce manual approval gates\n- **If declining**: Investigate CI/CD bottlenecks, review branch protection policies, check for flaky tests blocking deployments\n- **If improving**: Document what's working, share practices across teams",
         "mode": "markdown"
       },
-      "title": "Data Source",
-      "type": "text"
+      "title": "",
+      "type": "text",
+      "transparent": true,
+      "description": "Deployment Frequency \u2014 DORA throughput pillar. Performance tiers and action guidance."
     },
     {
       "datasource": {
         "type": "postgres",
         "uid": "PostgreSQL"
       },
-      "description": "### What it measures\nAverage number of successful deployments per week in the selected environment and time range.\n\n### What insight it offers\nElite: ≥5/day, High: ≥1/week, Medium: ≥1/month, Low: <1/month. Higher frequency indicates better CI/CD maturity.\n\n### ⚠️ Caveats\n- Only counts deployments with 'success' status\n- Divide total by number of weeks in the time range",
+      "description": "### What it measures\nAverage number of successful deployments per week in the selected environment and time range.\n\n### What insight it offers\nElite: \u22655/day, High: \u22651/week, Medium: \u22651/month, Low: <1/month. Higher frequency indicates better CI/CD maturity.\n\n### \u26a0\ufe0f Caveats\n- Only counts deployments with 'success' status\n- Divide total by number of weeks in the time range",
       "fieldConfig": {
         "defaults": {
           "decimals": 1,
@@ -96,7 +97,7 @@
         "type": "postgres",
         "uid": "PostgreSQL"
       },
-      "description": "### What it measures\nWeekly count of successful deployments in the selected environment over time.\n\n### What insight it offers\nShows deployment velocity trends — identify acceleration, slowdowns, or seasonal patterns in your release cadence.\n\n### ⚠️ Caveats\n- Partial weeks at the start/end of the range will have lower counts\n- Environment filter applied",
+      "description": "### What it measures\nWeekly count of successful deployments in the selected environment over time.\n\n### What insight it offers\nShows deployment velocity trends \u2014 identify acceleration, slowdowns, or seasonal patterns in your release cadence.\n\n### \u26a0\ufe0f Caveats\n- Partial weeks at the start/end of the range will have lower counts\n- Environment filter applied",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -141,7 +142,7 @@
         "type": "postgres",
         "uid": "PostgreSQL"
       },
-      "description": "### What it measures\nTotal successful deployments grouped by environment in the selected time range.\n\n### What insight it offers\nCompare deployment volumes across environments to understand where delivery focus lies.\n\n### ⚠️ Caveats\n- The environment template variable does not filter this panel; it shows all environments for comparison",
+      "description": "### What it measures\nTotal successful deployments grouped by environment in the selected time range.\n\n### What insight it offers\nCompare deployment volumes across environments to understand where delivery focus lies.\n\n### \u26a0\ufe0f Caveats\n- The environment template variable does not filter this panel; it shows all environments for comparison",
       "fieldConfig": {
         "defaults": {
           "unit": "none"
@@ -182,7 +183,7 @@
         "type": "postgres",
         "uid": "PostgreSQL"
       },
-      "description": "### What it measures\nPercentage of deployments in the selected environment that completed successfully.\n\n### What insight it offers\nLow success rates indicate pipeline instability or environment configuration issues that need attention.\n\n### ⚠️ Caveats\n- Deployments with no status record are excluded\n- May include retries counted as separate deployments",
+      "description": "### What it measures\nPercentage of deployments in the selected environment that completed successfully.\n\n### What insight it offers\nLow success rates indicate pipeline instability or environment configuration issues that need attention.\n\n### \u26a0\ufe0f Caveats\n- Deployments with no status record are excluded\n- May include retries counted as separate deployments",
       "fieldConfig": {
         "defaults": {
           "decimals": 1,
@@ -244,7 +245,7 @@
         "type": "postgres",
         "uid": "PostgreSQL"
       },
-      "description": "### What it measures\nWeekly count of failed deployments in the selected environment over time.\n\n### What insight it offers\nSpikes in failures often correlate with risky changes, under-tested releases, or infrastructure issues.\n\n### ⚠️ Caveats\n- Failures are deployments with state = 'failure' only\n- Does not include deployments with state = 'error' or 'cancelled'",
+      "description": "### What it measures\nWeekly count of failed deployments in the selected environment over time.\n\n### What insight it offers\nSpikes in failures often correlate with risky changes, under-tested releases, or infrastructure issues.\n\n### \u26a0\ufe0f Caveats\n- Failures are deployments with state = 'failure' only\n- Does not include deployments with state = 'error' or 'cancelled'",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -293,7 +294,7 @@
         "type": "postgres",
         "uid": "PostgreSQL"
       },
-      "description": "### What it measures\nLast 50 deployments in the selected environment, ordered by most recent.\n\n### What insight it offers\nProvides an audit trail of recent releases including who triggered them and their final status.\n\n### ⚠️ Caveats\n- Capped at 50 rows for performance\n- Status reflects the latest status record; earlier states are not shown",
+      "description": "### What it measures\nLast 50 deployments in the selected environment, ordered by most recent.\n\n### What insight it offers\nProvides an audit trail of recent releases including who triggered them and their final status.\n\n### \u26a0\ufe0f Caveats\n- Capped at 50 rows for performance\n- Status reflects the latest status record; earlier states are not shown",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
@@ -332,7 +333,7 @@
         "type": "postgres",
         "uid": "PostgreSQL"
       },
-      "description": "### What it measures\nComparison of weekly deployment counts for PRs authored by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users ship more frequently, it may indicate reduced friction in the development workflow.\n\n### ⚠️ Caveats\n- Copilot user definition: active seat in the last 28 days\n- Deployment-PR linkage is required; unlinked deployments are excluded",
+      "description": "### What it measures\nComparison of weekly deployment counts for PRs authored by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users ship more frequently, it may indicate reduced friction in the development workflow.\n\n### \u26a0\ufe0f Caveats\n- Copilot user definition: active seat in the last 28 days\n- Deployment-PR linkage is required; unlinked deployments are excluded",
       "fieldConfig": {
         "defaults": {
           "unit": "none"
@@ -394,5 +395,5 @@
       }
     ]
   },
-  "description": "DORA Pillar: Deployment Frequency — Measures how often code is successfully deployed. Elite teams deploy multiple times per day."
+  "description": "DORA Pillar: Deployment Frequency \u2014 Measures how often code is successfully deployed. Elite teams deploy multiple times per day."
 }
