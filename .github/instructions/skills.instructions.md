@@ -1,5 +1,5 @@
 ---
-applyTo: ".github/skills/**/*.md"
+applyTo: ".github/skills/**/SKILL.md"
 ---
 
 # Skill Authoring — Sensei Auto-Invocation
