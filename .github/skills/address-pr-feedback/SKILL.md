@@ -1,6 +1,6 @@
 ---
 name: address-pr-feedback
-description: "Reviews and addresses new feedback on the pull request for the currently checked out branch. Validates feedback accuracy before making code changes."
+description: "Reviews and addresses new feedback on the pull request for the currently checked out branch. Validates feedback accuracy before making code changes. WHEN: \"address pr feedback\", \"fix review comments\", \"respond to pr review\", \"handle pr comments\", \"address review feedback\"."
 ---
 
 ## Confirmation Mode Detection
