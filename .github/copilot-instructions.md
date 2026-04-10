@@ -119,6 +119,12 @@ npm test && npm run lint && npm run build
 ```
 All three must pass. Fix any failures before proceeding.
 
+### PR testing requirements
+Every pull request must pass **both** test suites before merge. Run from `v2/`.
+
+1. **Unit tests** (`npm test`) — run after every code change. Fast, offline, no Docker needed. Tests live in `tests/**/*.test.ts`.
+2. **E2E tests** (`npm run test:e2e`) — run when changes affect dashboard JSON, Grafana SQL, seed data, or the sync pipeline. Requires the docker-compose stack running and the database seeded. Tests live in `tests/e2e/*.spec.ts`.
+
 Unit tests mock `../src/db/connection` by defining `mockPool` before the `vi.mock(...)` call:
 ```ts
 const mockPool = { query: vi.fn() };
