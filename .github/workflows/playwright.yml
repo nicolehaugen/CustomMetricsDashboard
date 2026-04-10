@@ -27,6 +27,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create .env for CI
+        run: |
+          cat > .env <<'EOF'
+          GITHUB_TOKEN=placeholder
+          GITHUB_ORG=placeholder
+          GITHUB_REPO=placeholder
+          PG_HOST=postgres
+          PG_PORT=5432
+          PG_DATABASE=dora_metrics
+          PG_USER=postgres
+          PG_PASSWORD=postgres
+          PORT=3003
+          DATA_MODE=seed
+          DATA_SOURCE_LABEL=ci
+          DATA_SOURCE_URL=https://github.com
+          EOF
+
       - name: Start services
         run: docker compose up -d
         env:
