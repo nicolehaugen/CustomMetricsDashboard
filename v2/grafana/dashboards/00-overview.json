@@ -226,7 +226,7 @@
     {
       "id": 5,
       "type": "stat",
-      "title": "MTTR (median hours)",
+      "title": "MTTR (median)",
       "description": "### What it measures\nMedian time from deployment failure to the next successful deployment in the same environment, over the last 28 days.\n\n### What insight it offers\nLower MTTR indicates faster incident response and recovery capabilities. Elite teams recover in less than 1 hour.\n\n### ⚠️ Caveats\n- Recovery is approximated as the next successful deployment after a failure\n- Requires at least one failure and one subsequent success to compute",
       "gridPos": {
         "h": 4,

@@ -45,7 +45,7 @@ test.describe('Overview Dashboard', () => {
       'Lines Accepted (28d)',
     ];
     // MTTR only has data when there's a recovery deployment after a failure
-    const softPanels = ['MTTR (median hours)'];
+    const softPanels = ['MTTR (median)'];
     for (const title of panels) {
       const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
       await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });

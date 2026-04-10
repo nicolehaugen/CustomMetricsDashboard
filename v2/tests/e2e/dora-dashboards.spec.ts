@@ -55,7 +55,7 @@ const DORA_DASHBOARDS: {
     title: /Recovery/i,
     // MTTR requires a recovery deployment after a failure; may be empty if last deployment was a failure
     stats: ['Incidents Still Open'],
-    softStats: ['MTTR (median hours)', 'P90 MTTR (hours)'],
+    softStats: ['MTTR (median)', 'P90 MTTR (hours)'],
     charts: ['MTTR over Time'],
     tables: ['Recent Failures with Recovery Time'],
   },

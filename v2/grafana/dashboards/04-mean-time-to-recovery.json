@@ -62,7 +62,7 @@
     {
       "id": 2,
       "type": "stat",
-      "title": "MTTR (median hours)",
+      "title": "MTTR (median)",
       "description": "### What it measures\nMedian time from a failed deployment to the next successful deployment in the same environment.\n\n### What insight it offers\nElite: <1h, High: <1d, Medium: <1w, Low: >1w. Faster recovery reduces the blast radius of failures and customer impact.\n\n### ⚠️ Caveats\n- Recovery is proxied as the next successful deployment after a failure in the same environment\n- Does not use incident issue resolution time",
       "gridPos": {
         "h": 4,
