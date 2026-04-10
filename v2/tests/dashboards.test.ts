@@ -101,6 +101,17 @@ describe('Copilot dashboards', () => {
     const d = loadDashboard(filename);
     expect(d.tags).toContain('copilot');
   });
+
+  it.each(COPILOT_DASHBOARDS)('%s data panels have noValue for graceful empty states', (filename) => {
+    const d = loadDashboard(filename);
+    const dataPanels = d.panels.filter((p: any) => p.type !== 'text');
+    for (const panel of dataPanels) {
+      expect(
+        panel.fieldConfig?.defaults?.noValue,
+        `panel "${panel.title}" in ${filename} should have fieldConfig.defaults.noValue`
+      ).toBeTruthy();
+    }
+  });
 });
 
 describe('cross-dashboard uniqueness', () => {

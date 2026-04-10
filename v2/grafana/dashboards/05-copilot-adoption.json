@@ -40,6 +40,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -75,6 +76,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -103,7 +105,7 @@
         {
           "refId": "A",
           "datasource": { "type": "postgres", "uid": "PostgreSQL" },
-          "rawSql": "SELECT ROUND(\n  COUNT(*) FILTER (WHERE last_activity_at >= NOW() - INTERVAL '28 days')::numeric * 100.0 / NULLIF(COUNT(*), 0), 1\n) AS \"Seat Utilization Rate (%)\" FROM copilot_seats",
+          "rawSql": "SELECT COALESCE(ROUND(\n  COUNT(*) FILTER (WHERE last_activity_at >= NOW() - INTERVAL '28 days')::numeric * 100.0 / NULLIF(COUNT(*), 0), 1\n), 0) AS \"Seat Utilization Rate (%)\" FROM copilot_seats",
           "format": "table"
         }
       ],
@@ -111,6 +113,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -148,6 +151,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -185,6 +189,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "No Copilot metrics — org may not have a Copilot license",
           "custom": { "lineWidth": 2, "fillOpacity": 10 }
         },
         "overrides": []
@@ -210,7 +215,10 @@
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "none" },
+        "defaults": {
+          "unit": "none",
+          "noValue": "No Copilot seat data — org may not have a Copilot license"
+        },
         "overrides": []
       },
       "options": {
@@ -236,7 +244,9 @@
         }
       ],
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "noValue": "No Copilot seat data — org may not have a Copilot license"
+        },
         "overrides": []
       },
       "options": { "sortBy": [{ "displayName": "Last Active", "desc": true }] }

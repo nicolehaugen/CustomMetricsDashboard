@@ -33,13 +33,14 @@
         {
           "refId": "A",
           "datasource": { "type": "postgres", "uid": "PostgreSQL" },
-          "rawSql": "SELECT SUM(loc_added_sum) AS \"Lines Accepted (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "rawSql": "SELECT COALESCE(SUM(loc_added_sum), 0) AS \"Lines Accepted (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -68,13 +69,14 @@
         {
           "refId": "A",
           "datasource": { "type": "postgres", "uid": "PostgreSQL" },
-          "rawSql": "SELECT SUM(loc_suggested_to_add_sum) AS \"Lines Suggested (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "rawSql": "SELECT COALESCE(SUM(loc_suggested_to_add_sum), 0) AS \"Lines Suggested (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -103,7 +105,7 @@
         {
           "refId": "A",
           "datasource": { "type": "postgres", "uid": "PostgreSQL" },
-          "rawSql": "SELECT ROUND(\n  SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "rawSql": "SELECT COALESCE(ROUND(\n  SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1\n), 0) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
       ],
@@ -111,6 +113,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -148,6 +151,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -183,6 +187,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "No Copilot metrics — org may not have a Copilot license",
           "custom": { "lineWidth": 2, "fillOpacity": 10 }
         },
         "overrides": []
@@ -210,6 +215,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
+          "noValue": "No Copilot metrics — org may not have a Copilot license",
           "custom": { "lineWidth": 2, "fillOpacity": 10 }
         },
         "overrides": []
@@ -230,7 +236,7 @@
         {
           "refId": "A",
           "datasource": { "type": "postgres", "uid": "PostgreSQL" },
-          "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT COALESCE(ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n), 0) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
       ],
@@ -238,6 +244,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
+          "noValue": "N/A — no Copilot license",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -273,7 +280,9 @@
         }
       ],
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "noValue": "No Copilot user metrics — org may not have a Copilot license"
+        },
         "overrides": []
       },
       "options": { "sortBy": [{ "displayName": "Lines Added", "desc": true }] }

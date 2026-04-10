@@ -56,7 +56,10 @@
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "h" },
+        "defaults": {
+          "unit": "h",
+          "noValue": "No data — requires Copilot seats and deployment-PR linkage"
+        },
         "overrides": []
       },
       "options": {
@@ -82,7 +85,10 @@
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "h" },
+        "defaults": {
+          "unit": "h",
+          "noValue": "No data — requires Copilot seats and merged PRs"
+        },
         "overrides": []
       },
       "options": {
@@ -110,6 +116,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "No data — requires Copilot seats and merged PRs",
           "custom": { "lineWidth": 2, "fillOpacity": 10 }
         },
         "overrides": []
@@ -137,6 +144,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "none",
+          "noValue": "No data — requires Copilot seats and merged PRs",
           "custom": { "lineWidth": 2, "fillOpacity": 10 }
         },
         "overrides": []
@@ -162,7 +170,10 @@
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "percent" },
+        "defaults": {
+          "unit": "percent",
+          "noValue": "No data — requires Copilot seats and deployment-PR linkage"
+        },
         "overrides": []
       },
       "options": {
@@ -188,7 +199,10 @@
         }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "h" },
+        "defaults": {
+          "unit": "h",
+          "noValue": "No data — requires Copilot seats and deployment failure-recovery data"
+        },
         "overrides": []
       },
       "options": {
