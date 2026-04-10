@@ -119,6 +119,43 @@ npm test && npm run lint && npm run build
 ```
 All three must pass. Fix any failures before proceeding.
 
+### PR testing requirements
+Every pull request must pass **both** test suites before it can be merged. Run all tests from inside `v2/`.
+
+#### 1. Unit tests (Vitest)
+Run after **every code change** — they are fast, offline, and require no infrastructure:
+```bash
+npm test                  # Run all unit tests
+npx vitest run tests/bridge-resolver.test.ts   # Run a single test file
+```
+Unit tests live in `tests/**/*.test.ts` and cover:
+- **Config** (`config.test.ts`) — environment variable validation
+- **Seed** (`seed-config.test.ts`, `seed-generator.test.ts`) — synthetic data shape and distribution checks
+- **Fetchers** (`fetchers/*.test.ts`) — mock Octokit calls for PRs, deployments, issues, workflow runs, Copilot seats, org metrics, and user metrics
+- **Schema** (`schema-check.test.ts`) — `assertSchemaMatch` for Copilot data columns
+- **Bridge resolver** (`bridge-resolver.test.ts`) — deployment ↔ PR linking by SHA
+- **Dashboards** (`dashboards.test.ts`) — structural validation of all Grafana dashboard JSON files
+
+All unit tests mock the database via `vi.mock('../src/db/connection')` — no PostgreSQL or Docker required.
+
+#### 2. E2E tests (Playwright)
+Run when changes affect **dashboard JSON, Grafana SQL, seed data, or the sync pipeline**:
+```bash
+npm run test:e2e          # Run all E2E tests
+npx playwright test tests/e2e/dora-dashboards.spec.ts   # Run a single spec file
+```
+E2E tests live in `tests/e2e/*.spec.ts` and cover:
+- **DORA dashboards** (`dora-dashboards.spec.ts`) — Deployment Frequency, Lead Time, Change Failure Rate, MTTR panels load with data
+- **Copilot dashboards** (`copilot-dashboards.spec.ts`) — Copilot Adoption, Code Impact, and DORA × Copilot panels
+- **Overview dashboard** (`overview-dashboard.spec.ts`) — combined overview page
+
+**Prerequisites for E2E tests:**
+1. The docker-compose stack must be running: `docker-compose up -d` from `v2/`
+2. The database must be seeded: `npm run seed` from `v2/`
+3. Grafana must be accessible at `http://localhost:3004`
+
+E2E tests open Grafana in a headless Chromium browser and assert that panels render with data. They are slower than unit tests, so run them after unit tests pass.
+
 Unit tests mock `../src/db/connection` by defining `mockPool` before the `vi.mock(...)` call:
 ```ts
 const mockPool = { query: vi.fn() };
