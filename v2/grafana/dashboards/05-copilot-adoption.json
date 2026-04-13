@@ -116,7 +116,7 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 3,
+        "h": 12,
         "w": 24,
         "x": 0,
         "y": 2
@@ -137,7 +137,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 5
+        "y": 14
       },
       "datasource": {
         "type": "postgres",
@@ -190,7 +190,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 5
+        "y": 14
       },
       "datasource": {
         "type": "postgres",
@@ -243,7 +243,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 5
+        "y": 14
       },
       "datasource": {
         "type": "postgres",
@@ -305,7 +305,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 5
+        "y": 14
       },
       "datasource": {
         "type": "postgres",
@@ -366,7 +366,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 18
       },
       "datasource": {
         "type": "postgres",
@@ -411,7 +411,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 18
       },
       "datasource": {
         "type": "postgres",
@@ -452,7 +452,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 26
       },
       "datasource": {
         "type": "postgres",

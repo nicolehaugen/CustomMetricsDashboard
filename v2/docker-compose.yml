@@ -52,11 +52,13 @@ services:
       GF_AUTH_DISABLE_LOGIN_FORM: "false"
       GF_USERS_DEFAULT_THEME: dark
       GF_FEATURE_TOGGLES_ENABLE: ""
+      GF_SERVER_CUSTOM_CSS_PATH: /etc/grafana/custom.css
       PG_USER: ${PG_USER:-postgres}
       PG_PASSWORD: ${PG_PASSWORD:-postgres}
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/custom.css:/etc/grafana/custom.css:ro
       - grafanaData:/var/lib/grafana
 
 volumes:

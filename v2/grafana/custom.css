@@ -1,0 +1,15 @@
+/*
+ * Custom Grafana CSS overrides
+ *
+ * Widens the panel description tooltip so that multi-section markdown
+ * (### headings, tables, bullet lists) renders readably instead of
+ * being squashed into the default ~300px wide tooltip.
+ *
+ * Grafana 11 uses Popper.js for tooltips. The [data-popper-placement]
+ * attribute is reliably added by Popper.js to every tooltip element.
+ */
+
+/* Widen all Popper.js-based tooltips (panel description popovers) */
+[data-popper-placement] {
+  max-width: 520px !important;
+}
