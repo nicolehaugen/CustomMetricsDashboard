@@ -44,6 +44,9 @@ jobs:
           DATA_SOURCE_URL=https://github.com
           EOF
 
+      - name: Create data directories
+        run: mkdir -p data/raw
+
       - name: Start services
         run: docker compose up -d
         env:
@@ -60,6 +63,9 @@ jobs:
             echo "Attempt $i/30 — waiting..."
             sleep 2
           done
+
+      - name: Apply database schema
+        run: docker compose exec -T postgres psql -U postgres -d dora_metrics < src/db/schema.sql
 
       - name: Seed database
         run: npm run seed
