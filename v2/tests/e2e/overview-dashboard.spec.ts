@@ -47,13 +47,15 @@ test.describe('Overview Dashboard', () => {
     // MTTR only has data when there's a recovery deployment after a failure
     const softPanels = ['MTTR (median)'];
     for (const title of panels) {
-      const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
+      // Match by panel whose innerText starts with the title — avoids matching text/markdown
+      // panels whose *content* mentions the title in a description table.
+      const panel = page.locator('[data-panelid]').filter({ hasText: new RegExp(`^\\s*${title}`) }).first();
       await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
       const text = await panel.innerText();
       expect(/\d/.test(text), `"${title}" should show a number, got: ${text}`).toBe(true);
     }
     for (const title of softPanels) {
-      const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
+      const panel = page.locator('[data-panelid]').filter({ hasText: new RegExp(`^\\s*${title}`) }).first();
       await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
     }
   });

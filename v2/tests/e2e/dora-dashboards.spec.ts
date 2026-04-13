@@ -96,8 +96,11 @@ for (const dash of DORA_DASHBOARDS) {
     });
 
     test('chart panels contain canvas or SVG', async ({ page }) => {
+      // Scroll through the full page to trigger rendering of panels below the fold
+      await scrollDashboard(page);
       for (const title of dash.charts) {
         const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
+        await panel.scrollIntoViewIfNeeded();
         await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
         const chart = panel.locator('canvas, svg, [class*="graph"], [class*="chart"]');
         expect(await chart.count(), `"${title}" should render a chart`).toBeGreaterThan(0);
