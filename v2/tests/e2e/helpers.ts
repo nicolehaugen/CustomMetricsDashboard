@@ -2,18 +2,37 @@ import { Page } from '@playwright/test';
 
 /**
  * Wait for Grafana panels to finish loading.
- * Waits for loading indicators to clear rather than using a fixed timeout.
+ * Waits for panel containers to mount, then for loading indicators to clear
+ * rather than using only a fixed timeout.
  */
 export async function waitForPanels(page: Page): Promise<void> {
-  await page
-    .waitForFunction(
-      () =>
-        document.querySelectorAll(
-          '[data-testid="panel-loading-bar"], [class*="loadingBar"], [class*="loadingIndicator"]'
-        ).length === 0,
+  const loadingSelector =
+    '[data-testid="panel-loading-bar"], [class*="loadingBar"], [class*="loadingIndicator"]';
+
+  await page.waitForFunction(
+    () => document.querySelectorAll('[data-panelid]').length > 0,
+    { timeout: 15_000 }
+  );
+
+  let loadingAppeared = false;
+  try {
+    await page.waitForFunction(
+      (selector) => document.querySelectorAll(selector).length > 0,
+      loadingSelector,
+      { timeout: 2_000 }
+    );
+    loadingAppeared = true;
+  } catch {
+    loadingAppeared = false;
+  }
+
+  if (loadingAppeared) {
+    await page.waitForFunction(
+      (selector) => document.querySelectorAll(selector).length === 0,
+      loadingSelector,
       { timeout: 15_000 }
-    )
-    .catch(() => {}); // ignore if spinner never appeared or already gone
+    );
+  }
   await page.waitForTimeout(500);
 }
 
