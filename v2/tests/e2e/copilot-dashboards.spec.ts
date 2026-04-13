@@ -1,20 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-async function waitForPanels(page: any) {
-  await page.waitForTimeout(3000);
-}
-
-async function scrollDashboard(page: any) {
-  await page.evaluate(async () => {
-    const el = document.querySelector('.scrollbar-view') || document.documentElement;
-    el.scrollTop = el.scrollHeight / 2;
-    await new Promise(r => setTimeout(r, 500));
-    el.scrollTop = el.scrollHeight;
-    await new Promise(r => setTimeout(r, 500));
-    el.scrollTop = 0;
-  });
-  await page.waitForTimeout(2000);
-}
+import { waitForPanels, scrollDashboard, findPanel } from './helpers';
 
 const COPILOT_DASHBOARDS = [
   {
@@ -76,43 +61,45 @@ for (const dash of COPILOT_DASHBOARDS) {
 
     test('stat panels show numeric values', async ({ page }) => {
       for (const title of dash.stats) {
-        const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
+        const panel = findPanel(page, title);
+        await panel.scrollIntoViewIfNeeded();
         await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
         const text = await panel.innerText();
         expect(/\d/.test(text), `"${title}" should show a number, got: ${text}`).toBe(true);
       }
       // softStats: panels that require Copilot API data — only check visibility, not numeric value
       for (const title of (dash.softStats ?? [])) {
-        const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
+        const panel = findPanel(page, title);
+        await panel.scrollIntoViewIfNeeded();
         await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
       }
     });
 
     test('chart panels contain canvas or SVG', async ({ page }) => {
+      await scrollDashboard(page);
       for (const title of dash.charts) {
-        const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
+        const panel = findPanel(page, title);
+        await panel.scrollIntoViewIfNeeded();
         await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
-        const chart = panel.locator('canvas, svg, [class*="graph"], [class*="chart"]');
+        const chart = panel.locator('canvas, svg, [class*="uplot"], [class*="graph"], [class*="chart"]');
         expect(await chart.count(), `"${title}" should render a chart`).toBeGreaterThan(0);
       }
     });
 
     test('table panels contain data rows', async ({ page }) => {
       if (dash.tables.length === 0 && (dash.softTables ?? []).length === 0) return;
-      await page.evaluate((pct: number) => {
-        const el = document.querySelector('.scrollbar-view') ?? document.documentElement;
-        el.scrollTop = el.scrollHeight * pct;
-      }, 0.7);
-      await page.waitForTimeout(2000);
+      await scrollDashboard(page);
       for (const title of dash.tables) {
-        const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
+        const panel = findPanel(page, title);
+        await panel.scrollIntoViewIfNeeded();
         await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
         const rows = panel.locator('table tbody tr, [role="row"]:has([role="cell"])');
         expect(await rows.count(), `"${title}" should have rows`).toBeGreaterThan(0);
       }
       // softTables: require Copilot API data — only check visibility, not row count
       for (const title of (dash.softTables ?? [])) {
-        const panel = page.locator('[data-panelid], [class*="panel"]').filter({ hasText: title }).first();
+        const panel = findPanel(page, title);
+        await panel.scrollIntoViewIfNeeded();
         await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
       }
     });

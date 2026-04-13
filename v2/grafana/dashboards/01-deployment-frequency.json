@@ -176,7 +176,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "SELECT COUNT(DISTINCT d.deployment_id)::float / GREATEST(1, EXTRACT(DAY FROM ($__timeTo()::timestamptz - $__timeFrom()::timestamptz)) / 7.0) AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\nAND ds.state = 'success'\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "rawSql": "SELECT COUNT(DISTINCT d.deployment_id)::float / GREATEST(1, EXTRACT(DAY FROM ($__timeTo()::timestamptz - $__timeFrom()::timestamptz)) / 7.0) AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\nAND ds.state = 'success'\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "refId": "A"
         }
       ],
@@ -221,7 +221,7 @@
             "uid": "PostgreSQL"
           },
           "format": "time_series",
-          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
           "refId": "A"
         }
       ],
@@ -324,7 +324,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "SELECT ROUND(\n  COUNT(DISTINCT CASE WHEN ds.state = 'success' THEN d.deployment_id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT d.deployment_id), 0), 1\n) AS \"Success Rate (%)\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "rawSql": "SELECT ROUND(\n  COUNT(DISTINCT CASE WHEN ds.state = 'success' THEN d.deployment_id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT d.deployment_id), 0), 1\n) AS \"Success Rate (%)\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "refId": "A"
         }
       ],
@@ -373,7 +373,7 @@
             "uid": "PostgreSQL"
           },
           "format": "time_series",
-          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Failed Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'failure'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Failed Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'failure'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
           "refId": "A"
         }
       ],
@@ -412,7 +412,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "SELECT\n  d.sha,\n  d.environment,\n  ds.state AS status,\n  d.creator_login,\n  d.created_at\nFROM deployments d\nLEFT JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY d.created_at DESC\nLIMIT 50",
+          "rawSql": "SELECT\n  d.sha,\n  d.environment,\n  ds.state AS status,\n  d.creator_login,\n  d.created_at\nFROM deployments d\nLEFT JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY d.created_at DESC\nLIMIT 50",
           "refId": "A"
         }
       ],
@@ -453,7 +453,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1",
+          "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1",
           "refId": "A"
         }
       ],
@@ -464,17 +464,12 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "text": "production",
-          "value": "production"
-        },
         "datasource": {
           "type": "postgres",
           "uid": "PostgreSQL"
         },
         "definition": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
         "hide": 0,
-        "includeAll": false,
         "label": "Environment",
         "multi": false,
         "name": "environment",
@@ -482,7 +477,13 @@
         "query": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
         "refresh": 2,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "includeAll": true,
+        "allValue": "__all__",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
   },
