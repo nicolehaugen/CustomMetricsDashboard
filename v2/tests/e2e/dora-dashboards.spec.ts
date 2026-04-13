@@ -48,7 +48,7 @@ const DORA_DASHBOARDS: {
 
 for (const dash of DORA_DASHBOARDS) {
   test.describe(`DORA: ${dash.uid}`, () => {
-    const URL = `/d/${dash.uid}/?orgId=1&from=now-28d&to=now&var-environment=production`;
+    const URL = `/d/${dash.uid}/?orgId=1&from=now-28d&to=now`;
 
     test.beforeEach(async ({ page }) => {
       await page.goto(URL);
