@@ -44,6 +44,9 @@ jobs:
           DATA_SOURCE_URL=https://github.com
           EOF
 
+      - name: Create data directories
+        run: mkdir -p data/raw
+
       - name: Start services
         run: docker compose up -d
         env:
