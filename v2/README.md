@@ -51,7 +51,7 @@ npm run seed
 
 ### 5. Open Grafana
 
-Navigate to http://localhost:3002 (admin / admin).
+Navigate to http://localhost:3004 (admin / admin).
 
 ## Dashboards
 
@@ -81,11 +81,11 @@ Use a **Classic PAT** (not fine-grained) — Copilot org endpoints may not suppo
 
 Trigger a fresh sync without restarting the stack:
 ```bash
-curl -s -X POST http://localhost:3001/api/sync
+curl -s -X POST http://localhost:3003/api/sync
 # Returns: { "jobId": 5, "status": "started" }
 
 # Monitor progress:
-curl http://localhost:3001/api/sync/status/5
+curl http://localhost:3003/api/sync/jobs/5
 ```
 
 ## Data Mode Banner
@@ -122,6 +122,72 @@ npm install
 npm run dev          # Start sync server (tsx, hot reload)
 npm test             # Unit tests (Vitest)
 npm run test:e2e     # E2E tests (Playwright, requires running stack)
+```
+
+## Troubleshooting — "No Data" on Dashboards
+
+### 1. Check stack health first
+```bash
+docker ps
+# Confirm v2-postgres-1, v2-sync-server-1, and v2-grafana-1 are all running
+docker-compose up -d   # Start any stopped containers
+```
+
+### 2. Data not loaded — run seed or sync
+```bash
+# Check if any rows exist
+docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT COUNT(*) FROM pull_requests;"
+
+# Option A: Load synthetic data (no PAT required)
+npm run seed
+
+# Option B: Trigger a live sync (requires valid .env)
+curl -s -X POST http://localhost:3003/api/sync
+curl http://localhost:3003/api/sync/jobs/1   # check progress
+```
+
+### 3. Copilot panels show "No data" after sync
+A sync can report `status: success` while Copilot tables stay empty — errors are caught per-fetcher and logged as warnings. Check the seat count:
+```bash
+docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT COUNT(*) FROM copilot_seats;"
+```
+If 0, check the sync server logs:
+```bash
+docker logs v2-sync-server-1 | grep -E "WARN|ERROR|copilot"
+```
+Common causes:
+- PAT lacks `admin:org` scope — regenerate with `repo`, `read:org`, `admin:org`, `actions`
+- Wrong `GITHUB_ORG` value in `.env` (must be org slug, not display name)
+- Copilot is not enabled for your organisation
+- Fine-grained PAT used instead of Classic PAT
+
+After fixing `.env`, rebuild and restart:
+```bash
+docker-compose up -d --build
+curl -s -X POST http://localhost:3003/api/sync
+```
+
+### 4. DORA panels show "No data" — no GitHub Deployments
+The deployment-based panels (Deployment Frequency, Lead Time, MTTR, Change Failure Rate) require your repo to use the [GitHub Deployments API](https://docs.github.com/en/rest/deployments/deployments). If your repo uses a different deployment mechanism (e.g., direct Actions runs, external CD), the `deployments` table will be empty.
+
+The `$environment` template variable auto-includes an **All** option, so you will see 0 rather than a broken filter — but you will need to create at least one GitHub Deployment for meaningful data.
+
+### 5. "Lead Time" and cohort panels show "No data" even with deployments
+These panels JOIN through `deployment_pull_requests`, which links deployments to the PRs that caused them. The bridge resolver matches `deployment.sha` to `pull_request.merge_commit_sha` (direct) or `pull_request.head_sha` (squash fallback). If your CI pipeline generates synthetic deployment SHAs that don't match any PR SHA, the bridge table stays empty.
+
+Check bridge links:
+```bash
+docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT COUNT(*) FROM deployment_pull_requests;"
+```
+
+### 6. Datasource type mismatch (Grafana 12+)
+Grafana 12 renamed the PostgreSQL datasource type from `postgres` to `grafana-postgresql-datasource`. Verify the datasource at http://localhost:3004/connections/datasources — a mismatch silently breaks all panels.
+
+### 7. Dashboard banner shows "No data"
+The banner reads from the `data_mode` table. If you applied the schema manually without running `setup-db.sh`, insert a row:
+```bash
+docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c \
+  "INSERT INTO data_mode (mode, source_label) VALUES ('seed', 'No data loaded yet') ON CONFLICT DO NOTHING;"
 ```
 
 ## Project Structure
