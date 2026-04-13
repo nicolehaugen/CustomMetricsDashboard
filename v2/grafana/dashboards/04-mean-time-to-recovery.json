@@ -173,7 +173,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR ('$environment' = '__all__' OR d.environment = '$environment'))\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL",
+          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL",
           "format": "table"
         }
       ],
@@ -235,7 +235,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR ('$environment' = '__all__' OR d.environment = '$environment'))\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"P90 MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL",
+          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"P90 MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL",
           "format": "table"
         }
       ],
@@ -358,7 +358,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR ('$environment' = '__all__' OR d.environment = '$environment'))\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  date_trunc('week', failed_at) AS time,\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P50 (hours)\",\n  ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P90 (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  date_trunc('week', failed_at) AS time,\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P50 (hours)\",\n  ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P90 (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\nGROUP BY 1\nORDER BY 1",
           "format": "time_series"
         }
       ],
@@ -448,7 +448,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.environment,\n    d.sha,\n    d.creator_login,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR ('$environment' = '__all__' OR d.environment = '$environment'))\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  sha AS \"SHA\",\n  environment AS \"Environment\",\n  creator_login AS \"Creator\",\n  failed_at AS \"Failed At\",\n  recovered_at AS \"Recovered At\",\n  ROUND(EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0::numeric, 1) AS \"Recovery Time (hours)\"\nFROM failure_windows\nORDER BY failed_at DESC\nLIMIT 25",
+          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.environment,\n    d.sha,\n    d.creator_login,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  sha AS \"SHA\",\n  environment AS \"Environment\",\n  creator_login AS \"Creator\",\n  failed_at AS \"Failed At\",\n  recovered_at AS \"Recovered At\",\n  ROUND(EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0::numeric, 1) AS \"Recovery Time (hours)\"\nFROM failure_windows\nORDER BY failed_at DESC\nLIMIT 25",
           "format": "table"
         }
       ],

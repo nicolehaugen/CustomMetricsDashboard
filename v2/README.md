@@ -85,7 +85,7 @@ curl -s -X POST http://localhost:3003/api/sync
 # Returns: { "jobId": 5, "status": "started" }
 
 # Monitor progress:
-curl http://localhost:3003/api/sync/jobs/5
+curl http://localhost:3003/api/sync/status/5
 ```
 
 ## Data Mode Banner
@@ -143,7 +143,7 @@ npm run seed
 
 # Option B: Trigger a live sync (requires valid .env)
 curl -s -X POST http://localhost:3003/api/sync
-curl http://localhost:3003/api/sync/jobs/1   # check progress
+curl http://localhost:3003/api/sync/status/1   # check progress
 ```
 
 ### 3. Copilot panels show "No data" after sync
@@ -187,7 +187,7 @@ Grafana 12 renamed the PostgreSQL datasource type from `postgres` to `grafana-po
 The banner reads from the `data_mode` table. If you applied the schema manually without running `setup-db.sh`, insert a row:
 ```bash
 docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c \
-  "INSERT INTO data_mode (mode, source_label) VALUES ('seed', 'No data loaded yet') ON CONFLICT DO NOTHING;"
+  "INSERT INTO data_mode (mode, source_label) SELECT 'seed', 'No data loaded yet' WHERE NOT EXISTS (SELECT 1 FROM data_mode);"
 ```
 
 ## Project Structure
