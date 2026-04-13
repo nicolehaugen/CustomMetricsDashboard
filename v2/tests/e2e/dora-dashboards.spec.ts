@@ -71,8 +71,9 @@ for (const dash of DORA_DASHBOARDS) {
         const panel = findPanel(page, title);
         await panel.scrollIntoViewIfNeeded();
         await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
-        const text = await panel.innerText();
-        expect(/\d/.test(text), `"${title}" should show a number`).toBe(true);
+        // Use auto-retrying assertion so the check naturally waits for
+        // template-variable queries to resolve and panels to re-render.
+        await expect(panel, `"${title}" should show a number`).toContainText(/\d/, { timeout: 15_000 });
       }
       // softStats: panels that may have no data in some scenarios (e.g., MTTR when no recovery deployment exists)
       for (const title of (dash.softStats ?? [])) {
@@ -101,9 +102,13 @@ for (const dash of DORA_DASHBOARDS) {
         await panel.scrollIntoViewIfNeeded();
         await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
         const rows = panel.locator('table tbody tr, [role="row"]:has([role="cell"])');
-        // Open Incidents may legitimately be empty; others must have rows
-        if (title !== 'Open Incidents') {
-          expect(await rows.count(), `"${title}" should have rows`).toBeGreaterThan(0);
+        // Some tables may legitimately be empty depending on seed data:
+        // - Open Incidents: no open incidents if all are closed
+        // - Recent Failures with Recovery Time: no failed deployments in production
+        //   (seed data randomly assigns environment + status, ~7.5% chance per deployment)
+        if (title !== 'Open Incidents' && title !== 'Recent Failures with Recovery Time') {
+          // Auto-retrying assertion waits for rows to appear after variable resolution
+          await expect(rows.first(), `"${title}" should have rows`).toBeVisible({ timeout: 15_000 });
         }
       }
     });
