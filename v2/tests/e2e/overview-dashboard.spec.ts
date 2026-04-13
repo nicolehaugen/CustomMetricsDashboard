@@ -1,22 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { waitForPanels, scrollDashboard, findPanel } from './helpers';
 
 const OVERVIEW_URL = '/d/overview/engineering-overview?orgId=1&from=now-28d&to=now';
-
-async function waitForPanels(page: any) {
-  await page.waitForTimeout(3000); // let panel SQL queries complete
-}
-
-async function scrollDashboard(page: any) {
-  await page.evaluate(async () => {
-    const el = document.querySelector('.scrollbar-view') || document.documentElement;
-    el.scrollTop = el.scrollHeight / 2;
-    await new Promise(r => setTimeout(r, 500));
-    el.scrollTop = el.scrollHeight;
-    await new Promise(r => setTimeout(r, 500));
-    el.scrollTop = 0;
-  });
-  await page.waitForTimeout(2000);
-}
 
 test.describe('Overview Dashboard', () => {
   test.beforeEach(async ({ page }) => {
@@ -47,15 +32,15 @@ test.describe('Overview Dashboard', () => {
     // MTTR only has data when there's a recovery deployment after a failure
     const softPanels = ['MTTR (median)'];
     for (const title of panels) {
-      // Match by panel whose innerText starts with the title — avoids matching text/markdown
-      // panels whose *content* mentions the title in a description table.
-      const panel = page.locator('[data-panelid]').filter({ hasText: new RegExp(`^\\s*${title}`) }).first();
+      const panel = findPanel(page, title);
+      await panel.scrollIntoViewIfNeeded();
       await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
       const text = await panel.innerText();
       expect(/\d/.test(text), `"${title}" should show a number, got: ${text}`).toBe(true);
     }
     for (const title of softPanels) {
-      const panel = page.locator('[data-panelid]').filter({ hasText: new RegExp(`^\\s*${title}`) }).first();
+      const panel = findPanel(page, title);
+      await panel.scrollIntoViewIfNeeded();
       await expect(panel, `"${title}" should be visible`).toBeVisible({ timeout: 15_000 });
     }
   });
