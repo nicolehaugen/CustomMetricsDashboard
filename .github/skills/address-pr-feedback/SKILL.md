@@ -27,8 +27,9 @@ If confirmation mode is **not** detected, follow the Standard Flow below. If it 
 7. Run linters, formatters, and relevant tests to ensure your changes are correct.
 8. Commit your changes.
 9. Reply to each piece of feedback (PR comment, PR review comment, or top-level PR review body) that was addressed or considered. Each reply should be concise. For addressed feedback, include the commit hash containing the corresponding changes. For feedback you chose not to address, briefly explain why.
-10. After replying to feedback from AI/bot reviewers (e.g., Copilot), mark that feedback as resolved. Do **not** mark human reviewer feedback as resolved — just address it and reply.
-11. Provide a summary to the user of what feedback was addressed and why, and note any feedback that was not addressed with an explanation.
+10. For each thread from AI/bot reviewers (e.g., Copilot): resolve it **only if the feedback was fully addressed** by a code change or was already fixed prior to this session. If you chose not to act on a piece of feedback (e.g., it was invalid, out of scope, or already handled elsewhere), leave that thread **unresolved** — your reply in that thread is explanation enough. Do **not** resolve human reviewer feedback — just reply to it.
+11. Post a single summary comment on the PR listing every piece of feedback that was reviewed, the action taken for each (fixed in commit X / skipped because Y / already resolved), and which threads were resolved vs. left open.
+12. Provide a summary to the user of what feedback was addressed and why, and note any feedback that was not addressed with an explanation.
 
 ---
 
@@ -58,5 +59,6 @@ If confirmation mode is **not** detected, follow the Standard Flow below. If it 
 
 11. **Present each proposed PR reply to the user** using `ask_user` — show the exact reply text you intend to post for each piece of feedback (including the commit hash where applicable). Ask the user to approve, edit, or skip each reply.
 12. Post only the approved replies.
-13. After posting replies to feedback from AI/bot reviewers (e.g., Copilot), mark that feedback as resolved. Do **not** mark human reviewer feedback as resolved — just address it and reply.
-14. Provide a summary to the user of what feedback was addressed and why, and note any feedback that was not addressed with an explanation.
+13. For each thread from AI/bot reviewers (e.g., Copilot): resolve it **only if the feedback was fully addressed** by a code change or was already fixed prior to this session. If you chose not to act on a piece of feedback (e.g., it was invalid, out of scope, or already handled elsewhere), leave that thread **unresolved** — your reply in that thread is explanation enough. Do **not** resolve human reviewer feedback — just reply to it.
+14. Post a single summary comment on the PR listing every piece of feedback that was reviewed, the action taken for each (fixed in commit X / skipped because Y / already resolved), and which threads were resolved vs. left open.
+15. Provide a summary to the user of what feedback was addressed and why, and note any feedback that was not addressed with an explanation.
