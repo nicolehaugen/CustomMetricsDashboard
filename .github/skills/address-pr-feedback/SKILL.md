@@ -1,6 +1,6 @@
 ---
 name: address-pr-feedback
-description: "Reviews and addresses new feedback on the pull request for the currently checked out branch. Validates feedback accuracy before making changes."
+description: "**WORKFLOW SKILL** — Review, validate, and address pull request feedback for the current branch. WHEN: \"address PR comments\", \"fix PR feedback\", \"respond to review\", \"resolve PR threads\", \"address code review\". INVOKES: GitHub MCP tools for PR reads and replies, git for branch and commit. FOR SINGLE OPERATIONS: Use GitHub MCP tools directly for reading PR comments only."
 ---
 
 ## Confirmation Mode Detection

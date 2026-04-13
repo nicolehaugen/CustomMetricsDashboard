@@ -1,0 +1,51 @@
+name: address-pr-feedback-triggers
+skill: address-pr-feedback
+
+# Prompts that SHOULD activate this skill
+shouldTriggerPrompts:
+  # From WHEN: "address PR comments"
+  - "address PR comments"
+  - "How do I address the PR comments?"
+  - "Address all the comments on my PR"
+  - "address PR comments on my branch"
+
+  # From WHEN: "fix PR feedback"
+  - "fix PR feedback"
+  - "Fix the feedback on my pull request"
+  - "fix PR feedback from the reviewer"
+
+  # From WHEN: "respond to review"
+  - "respond to review"
+  - "How do I respond to the code review?"
+  - "respond to review comments on my PR"
+
+  # From WHEN: "resolve PR threads"
+  - "resolve PR threads"
+  - "Resolve the open threads on my pull request"
+  - "resolve PR threads that are still open"
+
+  # From WHEN: "address code review"
+  - "address code review"
+  - "Address the code review on my PR"
+  - "help me address the code review feedback"
+
+shouldNotTriggerPrompts:
+  # Reading PR comments only — use GitHub MCP tools directly
+  - "show me the PR comments"
+  - "list the review comments on PR 42"
+  - "what comments are on my PR"
+  - "get the review threads for this PR"
+
+  # Merging / approving PRs — different operation
+  - "merge my pull request"
+  - "approve the PR"
+  - "squash and merge PR 12"
+
+  # Creating or opening a PR — different operation
+  - "open a pull request"
+  - "create a PR for my branch"
+
+  # Unrelated topics
+  - "run the Playwright tests"
+  - "deploy to Azure"
+  - "fix the build failure"
