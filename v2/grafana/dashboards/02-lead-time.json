@@ -27,14 +27,15 @@
         "query": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
         "refresh": 2,
         "sort": 1,
-        "current": {
-          "text": "production",
-          "value": "production"
-        },
         "options": [],
         "hide": 0,
         "multi": false,
-        "includeAll": false
+        "includeAll": true,
+        "allValue": "__all__",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
   },
@@ -172,7 +173,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
       ],
@@ -296,7 +297,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"P90 Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "rawSql": "SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"P90 Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
       ],
@@ -358,7 +359,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P50 (hours)\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P90 (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P50 (hours)\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P90 (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
           "format": "time_series"
         }
       ],
@@ -448,7 +449,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  ROUND(EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time (hours)\" DESC\nLIMIT 20",
+          "rawSql": "SELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  ROUND(EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time (hours)\" DESC\nLIMIT 20",
           "format": "table"
         }
       ],
@@ -487,7 +488,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Median Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1",
+          "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Median Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1",
           "format": "table"
         }
       ],
