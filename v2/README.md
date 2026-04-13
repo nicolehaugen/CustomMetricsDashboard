@@ -142,8 +142,9 @@ docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT COUNT(*) F
 npm run seed
 
 # Option B: Trigger a live sync (requires valid .env)
-curl -s -X POST http://localhost:3003/api/sync
-curl http://localhost:3003/api/sync/status/1   # check progress
+response=$(curl -s -X POST http://localhost:3003/api/sync)
+echo "$response"   # includes the returned jobId
+curl http://localhost:3003/api/sync/status/<jobId>   # replace <jobId> with the returned value
 ```
 
 ### 3. Copilot panels show "No data" after sync

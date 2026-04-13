@@ -597,7 +597,18 @@
         },
         "orientation": "auto",
         "textMode": "auto",
-        "colorMode": "background"
+        "colorMode": "background",
+        "mappings": [
+          {
+            "type": "special",
+            "options": {
+              "match": "null",
+              "result": {
+                "text": "Never"
+              }
+            }
+          }
+        ]
       }
     }
   ]
