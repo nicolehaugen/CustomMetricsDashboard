@@ -2,7 +2,7 @@
 
 ## Worktree Isolation (REQUIRED before any code changes)
 
-**Before making any file edits or code changes**, invoke the **`safe-branch`** skill to ensure you are in an isolated **worktree** based on `origin/<default>` — never the local default branch, which may contain unpushed commits.
+**Before making any file edits or code changes**, invoke the **`safe-worktree`** skill to ensure you are in an isolated **worktree** based on `origin/<default>` — never the local default branch, which may contain unpushed commits.
 
 This applies in all modes: interactive, autopilot, and fleet.
 
