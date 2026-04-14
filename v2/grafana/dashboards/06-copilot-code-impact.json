@@ -42,7 +42,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '📡 Live Data — ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '🎮 Demo Environment — ' || COALESCE(source_label, '')\n    ELSE '❓ Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    ELSE '📡 ' || COALESCE(source_label, '')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
           "format": "table"
         }
       ],
@@ -52,7 +52,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": "📡",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -66,16 +66,6 @@
                 "result": {
                   "color": "#FA6400",
                   "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo Environment",
-                "result": {
-                  "color": "#5794F2",
-                  "index": 2
                 }
               }
             }
@@ -100,7 +90,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
@@ -256,7 +246,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT ROUND(\n  SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "rawSql": "SELECT ROUND(\n  SUM((f->>'loc_added_sum')::numeric)\n  / NULLIF(SUM((f->>'loc_suggested_to_add_sum')::numeric), 0) * 100, 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics, jsonb_array_elements(totals_by_feature) AS f\nWHERE f->>'feature' = 'code_completion'\nAND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
       ],
@@ -416,7 +406,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  day AS time,\n  ROUND(loc_added_sum::numeric / NULLIF(loc_suggested_to_add_sum, 0) * 100, 1) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
+          "rawSql": "SELECT\n  day AS time,\n  ROUND(\n    SUM((f->>'loc_added_sum')::numeric)\n    / NULLIF(SUM((f->>'loc_suggested_to_add_sum')::numeric), 0) * 100, 1\n  ) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics, jsonb_array_elements(totals_by_feature) AS f\nWHERE f->>'feature' = 'code_completion'\nAND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nGROUP BY day\nORDER BY day",
           "format": "time_series"
         }
       ],

@@ -65,7 +65,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '📡 Live Data — ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '🎮 Demo Environment — ' || COALESCE(source_label, '')\n    ELSE '❓ Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    ELSE '📡 ' || COALESCE(source_label, '')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
           "format": "table"
         }
       ],
@@ -75,7 +75,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": "📡",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -89,16 +89,6 @@
                 "result": {
                   "color": "#FA6400",
                   "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo Environment",
-                "result": {
-                  "color": "#5794F2",
-                  "index": 2
                 }
               }
             }
@@ -123,7 +113,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
@@ -154,7 +144,7 @@
     {
       "id": 2,
       "type": "stat",
-      "title": "Change Lead Time (median hours)",
+      "title": "Change Lead Time (median)",
       "description": "### What it measures\nMedian time in hours from PR merge to successful deployment in the selected environment.\n\n### What insight it offers\nElite: <1h, High: <1d, Medium: <1w, Low: >1w. Shorter lead times enable faster feedback and lower risk per change.\n\n### ⚠️ Caveats\n- Only considers PRs linked to deployments via deployment_pull_requests\n- PRs without merged_at are excluded",
       "gridPos": {
         "h": 4,
@@ -173,14 +163,14 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at))\n) AS \"Lead Time\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "h",
-          "decimals": 1,
+          "unit": "dtdurations",
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -190,11 +180,11 @@
               },
               {
                 "color": "yellow",
-                "value": 24
+                "value": 86400
               },
               {
                 "color": "red",
-                "value": 168
+                "value": 604800
               }
             ]
           }
@@ -216,7 +206,7 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "PR Cycle Time (median hours)",
+      "title": "PR Cycle Time (median)",
       "description": "### What it measures\nMedian time in hours from PR creation to merge in the selected time range.\n\n### What insight it offers\nLong cycle times may indicate review bottlenecks or overly large PRs. Shorter times correlate with better team velocity.\n\n### ⚠️ Caveats\n- Only counts PRs that have been merged\n- Does not filter by environment",
       "gridPos": {
         "h": 4,
@@ -235,14 +225,14 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at))\n) AS \"PR Cycle Time\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "h",
-          "decimals": 1,
+          "unit": "dtdurations",
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -252,11 +242,11 @@
               },
               {
                 "color": "yellow",
-                "value": 24
+                "value": 86400
               },
               {
                 "color": "red",
-                "value": 72
+                "value": 259200
               }
             ]
           }
@@ -278,7 +268,7 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "P90 Lead Time (hours)",
+      "title": "P90 Lead Time",
       "description": "### What it measures\n90th percentile lead time — the time within which 90% of changes are deployed.\n\n### What insight it offers\nP90 reveals worst-case experiences and outliers that the median hides. Large P50/P90 gaps indicate high variance in your pipeline.\n\n### ⚠️ Caveats\n- Sensitive to outlier PRs that sat undeployed for long periods\n- Environment and time filter applied",
       "gridPos": {
         "h": 4,
@@ -297,14 +287,14 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"P90 Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "rawSql": "SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at))\n) AS \"P90 Lead Time\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "h",
-          "decimals": 1,
+          "unit": "dtdurations",
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -314,11 +304,11 @@
               },
               {
                 "color": "yellow",
-                "value": 48
+                "value": 172800
               },
               {
                 "color": "red",
-                "value": 336
+                "value": 1209600
               }
             ]
           }
@@ -359,13 +349,13 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P50 (hours)\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P90 (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at))\n  ) AS \"Lead Time P50\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at))\n  ) AS \"Lead Time P90\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
           "format": "time_series"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "h",
+          "unit": "dtdurations",
           "custom": {
             "lineWidth": 2,
             "fillOpacity": 10
@@ -404,13 +394,13 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  date_trunc('week', pr.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  ) AS \"PR Cycle Time P50 (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
+          "rawSql": "SELECT\n  date_trunc('week', pr.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at))\n  ) AS \"PR Cycle Time P50\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
           "format": "time_series"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "h",
+          "unit": "dtdurations",
           "custom": {
             "lineWidth": 2,
             "fillOpacity": 10
@@ -449,18 +439,23 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  ROUND(EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time (hours)\" DESC\nLIMIT 20",
+          "rawSql": "SELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) AS \"Lead Time\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time\" DESC\nLIMIT 20",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {},
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Lead Time" },
+            "properties": [{ "id": "unit", "value": "dtdurations" }]
+          }
+        ]
       },
       "options": {
         "sortBy": [
           {
-            "displayName": "Lead Time (hours)",
+            "displayName": "Lead Time",
             "desc": true
           }
         ]
@@ -488,13 +483,13 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Median Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1",
+          "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at))\n  )::numeric AS \"Median Lead Time\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "h"
+          "unit": "dtdurations"
         },
         "overrides": []
       },

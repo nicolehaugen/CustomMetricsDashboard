@@ -42,7 +42,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '📡 Live Data — ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '🎮 Demo Environment — ' || COALESCE(source_label, '')\n    ELSE '❓ Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    ELSE '📡 ' || COALESCE(source_label, '')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
           "format": "table"
         }
       ],
@@ -52,7 +52,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": "📡",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -66,16 +66,6 @@
                 "result": {
                   "color": "#FA6400",
                   "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo Environment",
-                "result": {
-                  "color": "#5794F2",
-                  "index": 2
                 }
               }
             }
@@ -100,7 +90,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
@@ -193,7 +183,7 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "Lead Time (median hours)",
+      "title": "Lead Time (median)",
       "description": "### What it measures\nMedian time from PR merge to successful deployment over the last 28 days.\n\n### What insight it offers\nShorter lead times mean faster feedback loops and value delivery. Elite teams achieve less than 1 hour.\n\n### ⚠️ Caveats\n- Only considers PRs linked to successful deployments\n- PRs without a merged_at timestamp are excluded",
       "gridPos": {
         "h": 4,
@@ -212,14 +202,14 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND pr.merged_at IS NOT NULL\nAND d.created_at >= NOW() - INTERVAL '28 days'",
+          "rawSql": "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at))\n) AS \"Lead Time\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND pr.merged_at IS NOT NULL\nAND d.created_at >= NOW() - INTERVAL '28 days'",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "h",
-          "decimals": 1,
+          "unit": "dtdurations",
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -229,11 +219,11 @@
               },
               {
                 "color": "yellow",
-                "value": 24
+                "value": 86400
               },
               {
                 "color": "red",
-                "value": 168
+                "value": 604800
               }
             ]
           }
@@ -451,7 +441,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(ROUND(SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1), 0) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics WHERE day >= NOW()::date - 28",
+          "rawSql": "SELECT COALESCE(ROUND(\n  SUM((f->>'loc_added_sum')::numeric)\n  / NULLIF(SUM((f->>'loc_suggested_to_add_sum')::numeric), 0) * 100, 1\n), 0) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics, jsonb_array_elements(totals_by_feature) AS f\nWHERE f->>'feature' = 'code_completion'\nAND day >= NOW()::date - 28",
           "format": "table"
         }
       ],

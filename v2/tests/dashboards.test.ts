@@ -62,6 +62,30 @@ describe.each(ALL_DASHBOARDS)('%s — common structure', (filename) => {
     expect(sql).toContain('data_mode');
   });
 
+  it('banner SQL uses simplified 2-state logic (seed vs repo)', () => {
+    dashboard = loadDashboard(filename);
+    const sql: string = dashboard.panels[0].targets?.[0]?.rawSql ?? '';
+    // Must have the seed case
+    expect(sql).toContain("WHEN 'seed'");
+    // Must have a catch-all else for live/demo/repo
+    expect(sql).toContain('ELSE');
+    // Must NOT have the removed 3-way cases
+    expect(sql).not.toContain("WHEN 'live'");
+    expect(sql).not.toContain("WHEN 'demo'");
+    expect(sql).not.toContain('Demo Environment');
+  });
+
+  it('banner color mappings use 2 entries: seed (amber) and repo (green)', () => {
+    dashboard = loadDashboard(filename);
+    const mappings: any[] = dashboard.panels[0].fieldConfig?.defaults?.mappings ?? [];
+    expect(mappings).toHaveLength(2);
+    const patterns = mappings.map((m: any) => m.options?.pattern);
+    expect(patterns).toContain('Seed Data');
+    expect(patterns).toContain('📡');
+    expect(patterns).not.toContain('Demo Environment');
+    expect(patterns).not.toContain('Live Data');
+  });
+
   it('data source banner has color thresholds for mode', () => {
     dashboard = loadDashboard(filename);
     const banner = dashboard.panels[0];
