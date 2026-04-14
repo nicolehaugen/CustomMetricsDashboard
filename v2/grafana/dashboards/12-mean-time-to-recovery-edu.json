@@ -1,0 +1,746 @@
+{
+  "uid": "edu-mttr",
+  "title": "🏥 Mean Time to Recovery [Edu] [v2]",
+  "description": "DORA Pillar: Mean Time to Recovery — Measures how quickly a team can restore service after a production failure. Elite teams recover in under 1 hour.",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5m",
+  "time": {
+    "from": "now-28d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "type": "query",
+        "label": "Environment",
+        "datasource": {
+          "type": "postgres",
+          "uid": "PostgreSQL"
+        },
+        "definition": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
+        "query": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
+        "refresh": 2,
+        "sort": 1,
+        "options": [],
+        "hide": 0,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "__all__",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "",
+      "description": "Data mode banner — shows whether this dashboard displays live GitHub data (green), synthetic seed data (amber), or demo data (blue).",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '📡 Live Data — ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '🎮 Demo Environment — ' || COALESCE(source_label, '')\n    ELSE '❓ Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "Live Data",
+                "result": {
+                  "color": "#73BF69",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "Seed Data",
+                "result": {
+                  "color": "#FA6400",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "Demo Environment",
+                "result": {
+                  "color": "#5794F2",
+                  "index": 2
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "transparent": false
+    },
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 15,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "# 🔧 Mean Time to Recovery (MTTR)\n\n**DORA Pillar: Stability**\n\n## What it Measures\nMean Time to Recovery measures how long it takes to restore service after a production failure or incident. It is the second DORA *stability* metric and reflects your team's ability to detect, diagnose, and resolve production issues quickly.\n\n## Why it Matters\nFast recovery reduces the impact of failures on users and the business. Teams with low MTTR can deploy with confidence, knowing that any issues will be resolved quickly. High MTTR often indicates gaps in monitoring, incident response processes, or deployment automation.\n\n## How to Interpret\n| Performance Level | Recovery Time | What it Means |\n|---|---|---|\n| 🟢 Elite | Less than 1 hour | Automated rollbacks, strong monitoring, fast incident response |\n| 🟡 High | 1 hour to 1 day | Good processes with some manual intervention |\n| 🟠 Medium | 1 day to 1 week | Slow diagnosis or complex recovery procedures |\n| 🔴 Low | More than 1 week | Major gaps in monitoring or incident response |\n\n**Incident Resolution Time** tracks issue-based incidents as a supplementary measure."
+      },
+      "transparent": true,
+      "description": "Mean Time to Recovery — DORA stability pillar. Performance tiers and action guidance."
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "MTTR (median)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 17
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 24
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
+    },
+    {
+      "id": 200,
+      "type": "row",
+      "title": "MTTR (median) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 250,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 18,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nProxy metric: median time between a failed deployment and the next successful deployment in the same environment, computed with a SQL LEAD() window function.\n### ⚠️ Calculation Challenges\n\n- **Proxy, not actual restoration time** — MTTR here measures deploy-gap, not when the service was actually restored. A config change or manual rollback that fixes the service without a new deployment is invisible.\n- **LEAD() pairs each failure with the immediately next deployment** — if multiple failures stack before a fix, each is measured to the same recovery deployment.\n- **Environment name is exact-match** — 'production' and 'prod' are separate partitions; a fix to 'prod' does not close a failure on 'production'.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether users experienced an actual outage.\n- Time spent on diagnosis, communication, or post-incident review.\n\n### 🔍 SQL Query\n\n```sql\nWITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      }
+    },
+    {
+      "id": 300,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "P90 MTTR (hours)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 24
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"P90 MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 4
+              },
+              {
+                "color": "red",
+                "value": 48
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
+    },
+    {
+      "id": 201,
+      "type": "row",
+      "title": "P90 MTTR (hours) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 251,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 18,
+            "w": 24,
+            "x": 0,
+            "y": 29
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\n90th percentile of time between a failed deployment and the next successful deployment in the same environment.\n### ⚠️ Calculation Challenges\n\n- **Same proxy limitation as median MTTR** — deploy-gap, not actual service restoration time.\n- **Small sample sensitivity** — with few deployment failures, P90 is based on a very small N. One slow recovery dramatically changes the value.\n- **LEAD() partitioned by environment** — a fix deployed to 'prod' does not close a failure on 'production'; environment strings must match exactly.\n### 💡 What This Metric Doesn't Tell You\n\n- The maximum (worst-case) recovery time.\n- What caused or remediated the P90 failures.\n\n### 🔍 SQL Query\n\n```sql\nWITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"P90 MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    },
+    {
+      "id": 301,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Incidents Still Open",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 31
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"Incidents Still Open\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `GET /repos/{owner}/{repo}/issues?labels=incident&state=open` | Tables: `issues`"
+    },
+    {
+      "id": 202,
+      "type": "row",
+      "title": "Incidents Still Open - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 252,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 18,
+            "w": 24,
+            "x": 0,
+            "y": 36
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident&state=open`\n\n### 🗄️ Database Table(s)\n\n`issues`\n\n### 📐 How It's Calculated\n\nCount of GitHub Issues labeled 'incident' that are currently open, with NO time-range filter — this shows all-time open incidents.\n### ⚠️ Calculation Challenges\n\n- **Ignores the Grafana time picker** — this stat shows all-time open 'incident' issues, not just those in your selected date range.\n- **Stale open issues** — issues opened months ago and never closed (due to team hygiene) inflate this count.\n- **GitHub state ≠ operational status** — an issue may be 'open' as a post-mortem tracking artifact while the system has been stable for weeks.\n### 💡 What This Metric Doesn't Tell You\n\n- How long each incident has been open.\n- Which incidents are currently being actively worked on.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Incidents Still Open\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      }
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "MTTR over Time",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 38
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  date_trunc('week', failed_at) AS time,\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P50 (hours)\",\n  ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P90 (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
+      },
+      "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
+    },
+    {
+      "id": 203,
+      "type": "row",
+      "title": "MTTR over Time - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 253,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 18,
+            "w": 24,
+            "x": 0,
+            "y": 47
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nWeekly median recovery time using the same LEAD() proxy. Weeks with no deployment failures appear as gaps in the chart.\n### ⚠️ Calculation Challenges\n\n- **Gaps mean no failures** — a gap in the MTTR chart is actually positive news (no deploy failures that week), but can be misread as missing data.\n- **Small-sample volatility** — one slow recovery in a low-failure week makes median equal to that single value (N=1).\n- **Environment mixing** — if both staging and production have failures in the same week, their recovery times are averaged regardless of relative importance.\n### 💡 What This Metric Doesn't Tell You\n\n- Trend causality (better runbooks, automation, or staffing?).\n- Recovery time for incidents not tracked via the Deployments API.\n\n### 🔍 SQL Query\n\n```sql\nWITH failure_windows AS (\n  SELECT\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  date_trunc('week', failed_at) AS time,\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P50 (hours)\",\n  ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P90 (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\nGROUP BY 1\nORDER BY 1\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      }
+    },
+    {
+      "id": 303,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Incident Resolution Time",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 49
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  date_trunc('week', i.created_at) AS time,\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (i.closed_at - i.created_at)) / 3600.0\n  )::numeric, 1) AS \"Issue Resolution Time P50 (hours)\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.closed_at IS NOT NULL\n  AND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list"
+        }
+      },
+      "description": "Source: `GET /repos/{owner}/{repo}/issues?labels=incident` | Tables: `issues`"
+    },
+    {
+      "id": 204,
+      "type": "row",
+      "title": "Incident Resolution Time - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 254,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 18,
+            "w": 24,
+            "x": 0,
+            "y": 58
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident`\n\n### 🗄️ Database Table(s)\n\n`issues`\n\n### 📐 How It's Calculated\n\nAlternative MTTR signal: weekly median of (closed_at - created_at) for incident-labeled issues.\n### ⚠️ Calculation Challenges\n\n- **closed_at ≠ service restored** — the issue may be closed by automation or a team member hours after actual service restoration.\n- **Open issues excluded entirely** — issues never closed don't appear, which understates resolution time for teams with poor issue hygiene.\n- **Different metric than deployment-based MTTR** — these two charts measure different things and will often disagree. Neither is definitively 'correct'.\n### 💡 What This Metric Doesn't Tell You\n\n- Actual time-to-restore-service vs time-to-close-issue.\n- Whether resolution was a quick fix or a complex workaround.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', i.created_at) AS time,\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (i.closed_at - i.created_at)) / 3600.0\n  )::numeric, 1) AS \"Issue Resolution Time P50 (hours)\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.closed_at IS NOT NULL\n  AND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 57
+      }
+    },
+    {
+      "id": 304,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Recent Failures with Recovery Time",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.environment,\n    d.sha,\n    d.creator_login,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  sha AS \"SHA\",\n  environment AS \"Environment\",\n  creator_login AS \"Creator\",\n  failed_at AS \"Failed At\",\n  recovered_at AS \"Recovered At\",\n  ROUND(EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0::numeric, 1) AS \"Recovery Time (hours)\"\nFROM failure_windows\nORDER BY failed_at DESC\nLIMIT 25",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "sortBy": [
+          {
+            "displayName": "Failed At",
+            "desc": true
+          }
+        ]
+      },
+      "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
+    },
+    {
+      "id": 205,
+      "type": "row",
+      "title": "Recent Failures with Recovery Time - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 255,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 18,
+            "w": 24,
+            "x": 0,
+            "y": 69
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nTable using SQL LEAD() window function to pair each failed deployment with the timestamp of the next deployment in the same environment.\n### ⚠️ Calculation Challenges\n\n- **LEAD() pairs failure with the immediate next deployment** — if the next deployment also fails, the 'recovery time' is time to the next failure, not an actual recovery.\n- **NULL recovered_at** — the last failure in each environment partition has no subsequent deployment, so recovered_at is NULL. These rows still appear in the table.\n- **SHA is the commit SHA** — to identify what fix was deployed, you need to cross-reference with the bridge resolver or GitHub commits.\n### 💡 What This Metric Doesn't Tell You\n\n- What fix was applied to recover.\n- Whether recovery was a new deployment or a rollback.\n\n### 🔍 SQL Query\n\n```sql\nWITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.environment,\n    d.sha,\n    d.creator_login,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  sha AS \"SHA\",\n  environment AS \"Environment\",\n  creator_login AS \"Creator\",\n  failed_at AS \"Failed At\",\n  recovered_at AS \"Recovered At\",\n  ROUND(EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0::numeric, 1) AS \"Recovery Time (hours)\"\nFROM failure_windows\nORDER BY failed_at DESC\nLIMIT 25\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 68
+      }
+    },
+    {
+      "id": 305,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    }
+  ],
+  "tags": [
+    "dora",
+    "edu"
+  ]
+}
