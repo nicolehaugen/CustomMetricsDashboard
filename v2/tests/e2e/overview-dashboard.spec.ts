@@ -23,7 +23,7 @@ test.describe('Overview Dashboard', () => {
   test('key stat panels display numeric values', async ({ page }) => {
     const panels = [
       'Deployment Frequency',
-      'Lead Time (median hours)',
+      'Lead Time (median)',
       'Change Fail Rate',
       'Active Copilot Seats',
       'Acceptance Rate (%)',
