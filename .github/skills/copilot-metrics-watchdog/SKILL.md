@@ -12,8 +12,10 @@ Scan official announcement sources for the past 7 days, identify any additions o
 | Source | URL |
 |---|---|
 | VS Code release notes | https://code.visualstudio.com/updates |
-| GitHub Changelog | https://github.blog/changelog/ |
+| GitHub Changelog (RSS) | https://github.blog/changelog/feed/ |
 | GitHub Copilot CLI changelog | https://github.com/github/copilot-cli/blob/main/changelog.md |
+
+> **⚠️ Do NOT use `https://github.blog/changelog/` as the GitHub Changelog URL.** That page is JavaScript-rendered and returns only a newsletter form to the fetcher. Always use the RSS feed URL above.
 
 ## Procedure
 
@@ -23,12 +25,42 @@ Record today's date as `YYYY-MM-DD`. Compute the cutoff date as 7 days before to
 
 ### 2. Fetch and parse each source
 
-Use the `web_fetch` tool to retrieve page content from each source listed above. For each source:
+Use the `web_fetch` tool to retrieve page content from each source. Follow the source-specific instructions below.
 
-1. Fetch the URL.
-2. Parse the returned markdown/HTML for individual entries (release notes, changelog items, or commit entries).
-3. Identify the date of each entry and discard anything older than the 7-day window.
-4. If a source is unreachable (network error, non-200 status, or empty response), log a warning like `⚠️ Could not fetch [source name] — skipping` and continue with the remaining sources. Do **not** stop the entire scan.
+#### GitHub Changelog — two-pass RSS strategy
+
+The RSS feed (`github.blog/changelog/feed/`) returns XML with 10 items per page. Each item includes a large `content:encoded` block (3,000–8,000 chars). **Never rely on a single fetch with a low `max_length` to capture all items** — this silently truncates entries mid-page.
+
+Instead, use a two-pass approach:
+
+**Pass 1 — Title discovery.** For each RSS page:
+
+1. Fetch `https://github.blog/changelog/feed/?paged=N` with `max_length=20000`.
+2. Extract **only** the `<title>` and `<link>` values from each `<item>`. Ignore `content:encoded`.
+3. Note the `<pubDate>` of each item. Stop paginating when all items on a page are older than the cutoff date.
+4. If the current `paged=N` response is truncated (the `Content truncated` note appears in the response), fetch that same page again using `start_index` as many times as needed to read the remaining `<item>` entries.
+5. Collect all titles and links within the date window, including items recovered from any continuation fetches for that page.
+
+**Pass 2 — Full content fetch.** For every title that matches any step 3 keyword (case-insensitive):
+
+1. Fetch the individual post URL (e.g. `https://github.blog/changelog/2026-04-08-...`) directly with `max_length=10000`.
+2. Read the full post body to confirm relevance and extract the details for the summary.
+
+This guarantees **complete coverage** of all items in the date window regardless of RSS item verbosity.
+
+#### VS Code release notes
+
+1. Fetch `https://code.visualstudio.com/updates`.
+2. Parse for release entries within the date window.
+
+#### GitHub Copilot CLI changelog
+
+1. Fetch `https://github.com/github/copilot-cli/blob/main/changelog.md`.
+2. Parse for entries within the date window.
+
+#### General error handling
+
+If a source is unreachable (network error, non-200 status, or empty response), log a warning like `⚠️ Could not fetch [source name] — skipping` and continue with the remaining sources. Do **not** stop the entire scan.
 
 ### 3. Filter for Copilot metrics relevance
 
