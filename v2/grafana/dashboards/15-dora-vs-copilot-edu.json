@@ -542,7 +542,7 @@
           "displayMode": "list"
         }
       },
-      "description": "Source: GitHub Issues (incident label) + GitHub Deployments API + Copilot seats | Tables: `deployments`, `issues`, `copilot_seats`"
+      "description": "Source: GitHub Issues (incident label) + GitHub Deployments API + Deployment-to-PR bridge + Pull Requests + Deployment statuses + Copilot seats | Tables: `deployments`, `deployment_pull_requests`, `pull_requests`, `deployment_statuses`, `issues`, `copilot_seats`"
     },
     {
       "id": 204,
