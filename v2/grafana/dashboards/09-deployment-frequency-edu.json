@@ -638,7 +638,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "SELECT\n  d.sha,\n  d.environment,\n  ds.state AS status,\n  d.creator_login,\n  d.created_at\nFROM deployments d\nLEFT JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY d.created_at DESC\nLIMIT 50",
+          "rawSql": "SELECT\n  d.sha,\n  d.environment,\n  ds.state AS status,\n  d.creator_login,\n  d.created_at\nFROM deployments d\nLEFT JOIN LATERAL (\n  SELECT state\n  FROM deployment_statuses\n  WHERE deployment_id = d.deployment_id\n  ORDER BY created_at DESC\n  LIMIT 1\n) ds ON TRUE\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY d.created_at DESC\nLIMIT 50",
           "refId": "A"
         }
       ],
