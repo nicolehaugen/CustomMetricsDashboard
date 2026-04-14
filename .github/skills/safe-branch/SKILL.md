@@ -1,11 +1,11 @@
 ---
 name: safe-branch
-description: "**WORKFLOW SKILL** — Creates an isolated Git branch from origin/<default> before any code changes. Fetches remote first to avoid inheriting unpushed local commits. WHEN: \"start any coding task\", \"before making code changes\", \"beginning implementation\", \"autopilot session start\", \"create branch for task\". INVOKES: git fetch, git checkout. FOR SINGLE OPERATIONS: use git checkout -b directly if already on a clean isolated branch."
+description: "**WORKFLOW SKILL** — Creates an isolated Git worktree from origin/<default> before any code changes. Fetches remote first to avoid inheriting unpushed local commits. WHEN: \"start any coding task\", \"before making code changes\", \"beginning implementation\", \"autopilot session start\", \"create branch for task\". INVOKES: git fetch, git worktree add. FOR SINGLE OPERATIONS: use git worktree add directly if already on a clean isolated worktree."
 ---
 
-# Safe Branch
+# Safe Worktree
 
-Branch from `origin/<default>` — never the local default ref — to avoid inheriting unpushed commits that would pollute the PR.
+Create a **linked worktree** from `origin/<default>` — never the local default ref — to keep each agent session isolated.
 
 ## 1. Detect default branch
 
@@ -21,31 +21,43 @@ git remote show origin | sed -n 's/.*HEAD branch: //p'
 git fetch origin
 ```
 
-Always fetch first so `origin/<default>` reflects true remote state.
-
 ## 3. Check if already isolated
 
 ```bash
-git rev-list --count origin/<default>..HEAD
+CURRENT=$(git branch --show-current)
+AHEAD=$(git rev-list --count origin/<default>..HEAD)
 ```
 
-If output is `0` and current branch is not `<default>`, skip to step 5.
+If `CURRENT` is not `<default>` **and** `AHEAD` is `0`, you are already in an isolated worktree — skip to step 6.
 
-## 4. Create branch from `origin/<default>`
+## 4. Create worktree from `origin/<default>`
 
 ```bash
-git checkout -b <fix|feat|chore|refactor>/<short-description> origin/<default>
+BRANCH=<fix|feat|chore|refactor>/<short-description>
+SLUG=$(echo "$BRANCH" | tr '/' '-')
+REPO_NAME=$(basename "$(git rev-parse --show-toplevel)")
+WT_PATH="../${REPO_NAME}-${SLUG}"
+
+git worktree add "$WT_PATH" -b "$BRANCH" origin/<default>
 ```
 
-**Never** branch from local `<default>` — it may have unpushed commits.
+**Never** create the worktree from local `<default>` — it may have unpushed commits.
 
-## 5. Confirm
+## 5. Change into the worktree
+
+```bash
+cd "$WT_PATH"
+```
+
+All file edits and commands must run from inside this directory.
+
+## 6. Confirm
 
 ```bash
 git rev-list --count origin/<default>..HEAD   # must output 0
 ```
 
-## 6. Complete task, then push
+## 7. Complete task, then push
 
 ```bash
 git push -u origin <branch-name>

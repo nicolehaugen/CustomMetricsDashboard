@@ -1,12 +1,12 @@
 # Copilot Instructions — CustomMetricsDashboard
 
-## Branch Isolation (REQUIRED before any code changes)
+## Worktree Isolation (REQUIRED before any code changes)
 
-**Before making any file edits or code changes**, invoke the **`safe-branch`** skill to ensure you are on an isolated branch based on `origin/<default>` — never the local default branch, which may contain unpushed commits.
+**Before making any file edits or code changes**, invoke the **`safe-branch`** skill to ensure you are in an isolated **worktree** based on `origin/<default>` — never the local default branch, which may contain unpushed commits.
 
 This applies in all modes: interactive, autopilot, and fleet.
 
-Skip only if you are already on a non-default branch with zero commits ahead of `origin/<default>` (verified by `git rev-list --count origin/<default>..HEAD` returning `0`).
+Skip only if you are already in an isolated worktree (current branch is non-default with zero commits ahead of `origin/<default>`, verified by `git rev-list --count origin/<default>..HEAD` returning `0`).
 
 ## Setup Checks
 
