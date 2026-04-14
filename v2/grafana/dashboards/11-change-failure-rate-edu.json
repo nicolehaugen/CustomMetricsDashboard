@@ -316,7 +316,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /repos/{owner}/{repo}/pulls?labels=hotfix,bugfix,rollback` + bridge resolver + Deployments | Tables: `pull_requests`, `deployments`, `deployment_pull_requests`"
+      "description": "Source: successful deployments and deployment statuses | Calculation: a deployment counts as rework when the next successful deployment in the same environment occurs within 48 hours | Tables: `deployments`, `deployment_statuses`"
     },
     {
       "id": 201,
