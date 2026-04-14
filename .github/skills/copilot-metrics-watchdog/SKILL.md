@@ -38,8 +38,8 @@ Instead, use a two-pass approach:
 1. Fetch `https://github.blog/changelog/feed/?paged=N` with `max_length=20000`.
 2. Extract **only** the `<title>` and `<link>` values from each `<item>`. Ignore `content:encoded`.
 3. Note the `<pubDate>` of each item. Stop paginating when all items on a page are older than the cutoff date.
-4. If page 1 is truncated (the `Content truncated` note appears in the response), fetch again using `start_index` to read remaining items.
-5. Collect all titles and links within the date window.
+4. If the current `paged=N` response is truncated (the `Content truncated` note appears in the response), fetch that same page again using `start_index` as many times as needed to read the remaining `<item>` entries.
+5. Collect all titles and links within the date window, including items recovered from any continuation fetches for that page.
 
 **Pass 2 — Full content fetch.** For every title that matches any step 3 keyword (case-insensitive):
 
