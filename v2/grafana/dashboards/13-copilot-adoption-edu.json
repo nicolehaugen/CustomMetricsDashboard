@@ -190,14 +190,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 22
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nTotal count of all rows in `copilot_seats` at sync time. Point-in-time snapshot — no historical data. Multiple GitHub orgs require separate API calls. A 403 during sync → table empty with no error surfaced to dashboards.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Total Seats\" FROM copilot_seats\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nTotal count of all rows in copilot_seats at sync time, regardless of activity.\n### ⚠️ Calculation Challenges\n\n- **Snapshot, not history** — this endpoint returns who has a seat right now. Seats added or removed between syncs are not tracked historically.\n- **Multi-org gap** — if your company has multiple GitHub orgs, each requires a separate API call. Seats are not auto-aggregated across orgs.\n- **403 = 0 silently** — the sync server logs a warning on 403 but continues. The table stays empty and this panel shows 0.\n### 💡 What This Metric Doesn't Tell You\n\n- Historical seat assignment changes.\n- Billing or cost information per seat.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Total Seats\" FROM copilot_seats\n```"
           }
         }
       ],
@@ -289,14 +289,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 29
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats` → `last_activity_at` field\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of seats where `last_activity_at >= NOW() - INTERVAL '28 days'`. Any Copilot interaction qualifies as 'active' — including rejected suggestions. The 28-day window is hardcoded (always relative to now), not aligned to the Grafana time picker.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Active Seats (28d)\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats` → `last_activity_at` field\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of seats where last_activity_at >= NOW() - INTERVAL '28 days'. 'Activity' means any Copilot interaction (suggestions, chat, completions).\n### ⚠️ Calculation Challenges\n\n- **Broad activity definition** — last_activity_at is updated by any Copilot interaction, including rejected suggestions. A developer who dismissed one suggestion 27 days ago counts as 'active'.\n- **28-day window is hardcoded** — this is NOT your Grafana time picker. It is always relative to NOW().\n- **last_activity_at granularity** — in some API versions this field is a date (not datetime). Multiple activities on the same day are indistinguishable.\n### 💡 What This Metric Doesn't Tell You\n\n- Frequency of activity within the 28-day window.\n- Which Copilot features were used (completions vs chat vs CLI).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Active Seats (28d)\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n```"
           }
         }
       ],
@@ -397,14 +397,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 36
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRatio of active seats to total seats using `COUNT(*) FILTER (WHERE ...)` syntax. The numerator uses a rolling `NOW()-28d` window; the denominator uses the current total. Newly provisioned seats appear in the denominator immediately, before any activity.\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  COUNT(*) FILTER (WHERE last_activity_at >= NOW() - INTERVAL '28 days')::numeric * 100.0 / NULLIF(COUNT(*), 0), 1\n) AS \"Seat Utilization Rate (%)\" FROM copilot_seats\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRatio of active seats (28d) to total seats. Uses PostgreSQL COUNT(*) FILTER syntax.\n### ⚠️ Calculation Challenges\n\n- **Two different time contexts** — numerator uses rolling NOW()-28d; denominator uses total seats at sync time. A recently-provisioned seat inflates the denominator before the user becomes active.\n- **Utilization ≠ value** — 90% utilization with very low acceptance rates means Copilot is used but not found helpful.\n- **Newly provisioned seats deflate rate** — a seat provisioned yesterday for a new employee counts in the denominator immediately.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether highly-utilized seats generate accepted suggestions.\n- Which seats are underutilized and why.\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  COUNT(*) FILTER (WHERE last_activity_at >= NOW() - INTERVAL '28 days')::numeric * 100.0 / NULLIF(COUNT(*), 0), 1\n) AS \"Seat Utilization Rate (%)\" FROM copilot_seats\n```"
           }
         }
       ],
@@ -504,14 +504,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 43
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nSeats where `last_activity_at < NOW() - INTERVAL '14 days' OR last_activity_at IS NULL`. The 14-day threshold is arbitrary — developers on vacation are flagged as inactive. GitHub only allows seat reassignment at end of billing cycle.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Inactive Seats (>14d)\"\nFROM copilot_seats\nWHERE last_activity_at < NOW() - INTERVAL '14 days'\n   OR last_activity_at IS NULL\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nSeats where last_activity_at is older than 14 days OR NULL (never active). Useful for identifying seats to reclaim.\n### ⚠️ Calculation Challenges\n\n- **NULL last_activity_at included** — seats that have never been used are NULL, included via OR IS NULL.\n- **14-day threshold is arbitrary** — a developer on a 2-week vacation is flagged as inactive.\n- **Seat reassignment has a billing lag** — GitHub only allows reassignment at end of billing cycle. Identifying inactive seats ≠ reclaiming them immediately.\n### 💡 What This Metric Doesn't Tell You\n\n- Why seats are inactive (vacation, project pause, dissatisfaction).\n- Billing impact of reclaiming vs keeping inactive seats.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Inactive Seats (>14d)\"\nFROM copilot_seats\nWHERE last_activity_at < NOW() - INTERVAL '14 days'\n   OR last_activity_at IS NULL\n```"
           }
         }
       ],
@@ -595,14 +595,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 54
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `daily_active_users` field\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTime series of `daily_active_users` from the org-level 28-day report. **Two-step fetch required:** (1) call the API endpoint to get `download_links`, (2) fetch the signed S3 URL WITHOUT auth headers, (3) parse each line as a separate JSON object (NDJSON). Only covers the last 28 days from today.\n\n### 🔍 SQL Query\n\n```sql\nSELECT day AS time, daily_active_users AS \"Daily Active\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `daily_active_users` field\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTime series of daily_active_users from the org-level 28-day report. Each row in copilot_org_metrics is one day.\n### ⚠️ Calculation Challenges\n\n- **NDJSON response pattern** — this endpoint returns a `download_links` envelope. The sync server must: (1) call the API endpoint, (2) extract `download_links[0].url` from the response, (3) fetch that signed S3/CDN URL WITHOUT GitHub auth headers, (4) read the response body and parse each line as a separate JSON object.\n- **28-day rolling window** — the /latest endpoint always covers the most recent 28 days. Data older than 28 days requires the `organization-1-day` endpoint with a specific `?day=YYYY-MM-DD` parameter.\n- **Unique users per day, not interactions** — a user who made 100 suggestions counts the same as one who made 1.\n### 💡 What This Metric Doesn't Tell You\n\n- How many suggestions each active user generated.\n- Daily active users by editor, language, or repository.\n\n### 🔍 SQL Query\n\n```sql\nSELECT day AS time, daily_active_users AS \"Daily Active\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
           }
         }
       ],
@@ -682,14 +682,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 65
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats` → `last_activity_editor` field\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nBar chart of seat counts grouped by `last_activity_editor`. Records the **last** editor used, not the primary editor. Editor strings may include version numbers ('vscode/1.80.0'), which creates separate bars for the same editor.\n\n### 🔍 SQL Query\n\n```sql\nSELECT last_activity_editor AS \"Editor\", COUNT(*) AS \"Seats\"\nFROM copilot_seats\nWHERE last_activity_editor IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats` → `last_activity_editor` field\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nBar chart of seat counts grouped by last_activity_editor (e.g., 'vscode', 'neovim', 'jetbrains').\n### ⚠️ Calculation Challenges\n\n- **Last editor, not primary editor** — this records the most recently used editor. A developer who uses VS Code daily but tried the CLI once will show as whichever they used last.\n- **Editor string includes version** — some API responses report 'vscode/1.80.0' vs 'vscode', creating separate bars for the same editor at different versions.\n- **NULL excluded** — seats where the user has never been active (NULL last_activity_editor) are filtered out by the WHERE clause.\n### 💡 What This Metric Doesn't Tell You\n\n- Primary editor usage across the team.\n- Multi-editor users who switch between IDEs.\n\n### 🔍 SQL Query\n\n```sql\nSELECT last_activity_editor AS \"Editor\", COUNT(*) AS \"Seats\"\nFROM copilot_seats\nWHERE last_activity_editor IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC\n```"
           }
         }
       ],
@@ -767,14 +767,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 76
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nAll seat holders sorted by `last_activity_at` descending. Shows only the most-recent activity per seat — no activity history. `plan_type` column shows Individual / Business / Enterprise, which affects feature entitlements.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  assignee_login AS \"Developer\",\n  last_activity_at AS \"Last Active\",\n  last_activity_editor AS \"Editor\",\n  plan_type AS \"Plan\"\nFROM copilot_seats\nORDER BY last_activity_at DESC\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nTable of all seat holders sorted by last_activity_at descending, showing login, last active date, editor, and plan type.\n### ⚠️ Calculation Challenges\n\n- **No activity history** — only the single most-recent activity date is stored per seat. Activity frequency over time is not captured.\n- **plan_type field** — shows Copilot plan (Individual / Business / Enterprise), which affects feature entitlements.\n- **Sync cadence affects recency** — if syncs run daily, last_activity_at is accurate to ±1 day. Infrequent syncs produce stale recency data.\n### 💡 What This Metric Doesn't Tell You\n\n- Activity history or trend over time per seat.\n- Which specific Copilot features each developer uses.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  assignee_login AS \"Developer\",\n  last_activity_at AS \"Last Active\",\n  last_activity_editor AS \"Editor\",\n  plan_type AS \"Plan\"\nFROM copilot_seats\nORDER BY last_activity_at DESC\n```"
           }
         }
       ],
@@ -874,14 +874,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 83
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRow count of `copilot_seats` table — a data health indicator. If 0, the last sync did not load seat data (check server logs for a silent 403). The table is fully replaced on every sync (TRUNCATE + INSERT), unlike PRs and deployments (incremental).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRow count of copilot_seats table. Used as a data health indicator alongside 'Last Successful Sync'.\n### ⚠️ Calculation Challenges\n\n- **Silent 403 failure** — if the sync server receives a 403 on the seats endpoint, it logs a warning and continues. The table stays at 0 rows. A 'successful' sync job ≠ seats data was loaded.\n- **TRUNCATE + INSERT every sync** — unlike PRs and deployments (incremental), copilot_seats is fully replaced on every sync. A 403 leaves it empty.\n- **Proxy for sync health** — use this alongside 'Last Successful Sync' to confirm data freshness; check server logs if this shows 0.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether seat data is accurate or stale.\n- Breakdown by team or repository.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```"
           }
         }
       ],
@@ -963,7 +963,7 @@
         "textMode": "auto",
         "colorMode": "background"
       },
-      "description": "Source: Internal `sync_jobs` table (no GitHub API call) | Tables: `sync_jobs`"
+      "description": "Source: Internal sync_jobs table (no GitHub API call) | Tables: `sync_jobs`"
     },
     {
       "id": 208,
@@ -977,14 +977,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 90
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source\n\nInternal `sync_jobs` table (no GitHub API call)\n\n### 🗄️ Database Table(s)\n\n`sync_jobs`\n\n### 📐 How It's Calculated\n\n`MAX(finished_at)` from `sync_jobs` where `status='success'`. A 'success' status does NOT guarantee all resources were fetched — individual fetchers can fail silently (e.g., 403 on Copilot seats) while the overall job still completes with 'success'.\n\n### 🔍 SQL Query\n\n```sql\nSELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'\n```"
+            "content": "### 📡 GitHub API Source\n\nInternal sync_jobs table (no GitHub API call)\n\n### 🗄️ Database Table(s)\n\n`sync_jobs`\n\n### 📐 How It's Calculated\n\nMAX(finished_at) from sync_jobs where status='success'. Shows when the last complete sync run finished.\n### ⚠️ Calculation Challenges\n\n- **'Successful' sync ≠ all data loaded** — a sync job completes with status='success' while individual fetchers (e.g., copilot seats) fail silently. Always check records_synced per resource.\n- **Timestamps in UTC** — finished_at is stored in UTC. Grafana displays in browser timezone; a sync at 00:00 UTC appears as yesterday in UTC-5 timezones.\n- **sync_jobs is append-only** — each sync adds a row and the table grows indefinitely. No automatic pruning.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether all resources were successfully fetched (check records_synced column in the job record).\n- Failure reason if the last job has status other than 'success'.\n\n### 🔍 SQL Query\n\n```sql\nSELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'\n```"
           }
         }
       ],

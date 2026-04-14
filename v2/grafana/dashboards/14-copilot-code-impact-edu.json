@@ -190,14 +190,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 22
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_added_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nSum of `loc_added_sum` across daily rows in the selected date range. 'Accepted' means kept at suggestion time — the developer may immediately delete accepted lines. Org-level aggregate only; no per-repo or per-team breakdown.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_added_sum) AS \"Lines Accepted (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_added_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nSum of loc_added_sum across all daily rows in the selected date range from the org 28-day report.\n### ⚠️ Calculation Challenges\n\n- **'Accepted' = kept at suggestion time** — a developer can accept a suggestion and immediately delete it. The metric counts the accept event, not code survival.\n- **28-day rolling report** — the organization-28-day report always covers the last 28 days relative to today, not your Grafana time picker.\n- **Org-level only** — no repo or team breakdown available.\n### 💡 What This Metric Doesn't Tell You\n\n- How much accepted code is still in the codebase today.\n- Which repositories or teams generated the accepted lines.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_added_sum) AS \"Lines Accepted (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -289,14 +289,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 29
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTotal lines Copilot suggested (accepted or rejected) in the selected date range. Same download_links → NDJSON fetch pattern as all Copilot Metrics Reports endpoints. Org-level aggregate only — no per-repository or per-team breakdown.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_suggested_to_add_sum) AS \"Lines Suggested (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTotal lines Copilot suggested (accepted or not) in the selected date range from the org 28-day report.\n### ⚠️ Calculation Challenges\n\n- **Same NDJSON pattern** — download_links → fetch S3 URL → parse NDJSON line-by-line (same as all Copilot Metrics Reports API endpoints).\n- **Suggestion ≠ character saved** — a 1-line suggestion and a 20-line suggestion are both 'one suggestion'; loc_suggested counts the lines, not keystrokes.\n- **Org-level only** — no per-repository or per-team breakdown from the organization-28-day endpoint.\n### 💡 What This Metric Doesn't Tell You\n\n- Which languages or editors generated the most suggestions.\n- Suggestions partially accepted (edited before committing).\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_suggested_to_add_sum) AS \"Lines Suggested (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -383,7 +383,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
+      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `loc_added_sum` / `loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
     },
     {
       "id": 202,
@@ -397,14 +397,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 36
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nRatio of accepted lines to suggested lines. The endpoint returns a `download_links` envelope (not inline JSON) — the sync server must fetch the signed S3 URL separately and parse each line as a distinct JSON object (NDJSON format).\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `loc_added_sum` / `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nSum of accepted lines divided by sum of suggested lines across all language breakdowns in the org 28-day report.\n### ⚠️ Calculation Challenges\n\n- **Multi-line suggestion bias** — accepting a 10-line suggestion counts 10 accepted lines even if the developer only wanted 2 and edited the rest.\n- **NDJSON response pattern** — this endpoint returns a `download_links` envelope (not inline JSON). You must fetch the signed S3 URL and parse line-by-line.\n- **Org-level aggregate only** — no repo-level or team-level breakdown from this endpoint.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether accepted code was later reverted or modified significantly.\n- Acceptance rate by team, repository, or language.\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -496,14 +496,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 43
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal in GitHub API)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of merged PRs where the PR author has an active Copilot seat. ⚠️ **Proxy metric** — GitHub provides no per-PR or per-commit signal indicating Copilot was actually used. A developer may have written this PR entirely without Copilot.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT COUNT(DISTINCT pr.id) AS \"Copilot-Attributed PRs\"\nFROM pull_requests pr\nJOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal in GitHub API)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of merged PRs where the PR author has an active Copilot seat. ⚠️ Proxy metric — GitHub provides no per-PR Copilot usage signal.\n### ⚠️ Calculation Challenges\n\n- **⚠️ Proxy metric** — GitHub does not provide a per-PR or per-commit signal indicating Copilot was used. Seat activity is the only available proxy.\n- **Active seat ≠ used on this PR** — the author may have written this PR entirely without Copilot assistance despite having an active seat.\n- **Seat revocation retroactivity** — if a seat is revoked after PR merge, the PR loses 'Copilot-attributed' status on the next sync.\n### 💡 What This Metric Doesn't Tell You\n\n- How much Copilot contributed to any specific PR.\n- Code quality differences between attributed and non-attributed PRs.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT COUNT(DISTINCT pr.id) AS \"Copilot-Attributed PRs\"\nFROM pull_requests pr\nJOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
           }
         }
       ],
@@ -587,14 +587,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 54
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → daily rows\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTime series showing both `loc_suggested_to_add_sum` and `loc_added_sum` per day. Coverage is limited to the last 28 days (rolling window from today). The current calendar day may be incomplete if the sync ran before end of day.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  day AS time,\n  loc_suggested_to_add_sum AS \"Lines Suggested\",\n  loc_added_sum AS \"Lines Added\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → daily rows\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTime series showing both loc_suggested_to_add_sum and loc_added_sum per day to visualize acceptance volume.\n### ⚠️ Calculation Challenges\n\n- **Rolling 28-day report boundary** — the organization-28-day report covers only the last 28 days. Extending Grafana's time range beyond 28 days shows no additional data.\n- **No partial-day data** — each row is a complete calendar day. The current day's row may not appear until the next sync after midnight UTC.\n- **Org-level daily totals** — spikes may be caused by one developer making many completions that day.\n### 💡 What This Metric Doesn't Tell You\n\n- Day-of-week usage patterns.\n- Per-user or per-language acceptance trends.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  day AS time,\n  loc_suggested_to_add_sum AS \"Lines Suggested\",\n  loc_added_sum AS \"Lines Added\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
           }
         }
       ],
@@ -664,7 +664,7 @@
           "displayMode": "list"
         }
       },
-      "description": "Source: Copilot Metrics Reports API → `totals_by_language` JSONB array → `loc_added_sum / loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
+      "description": "Source: Copilot Metrics Reports API → `totals_by_language` JSONB array → `loc_added_sum` / `loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
     },
     {
       "id": 205,
@@ -678,14 +678,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 65
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API → `totals_by_language` JSONB array → `loc_added_sum / loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nDaily acceptance rate computed via `jsonb_array_elements(totals_by_language)` unnesting. JSONB array expansion is more expensive than scalar column access. On low-activity days, a small number of suggestions can swing the rate from 0% to 100%.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  day AS time,\n  ROUND(loc_added_sum::numeric / NULLIF(loc_suggested_to_add_sum, 0) * 100, 1) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API → `totals_by_language` JSONB array → `loc_added_sum` / `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nDaily acceptance rate computed by unnesting the totals_by_language JSONB array using jsonb_array_elements() and dividing loc_added_sum by loc_suggested_to_add_sum.\n### ⚠️ Calculation Challenges\n\n- **JSONB unnesting cost** — the query uses jsonb_array_elements(totals_by_language) to expand the per-language array before summing. This is more expensive than reading scalar columns.\n- **totals_by_language vs totals_by_editor** — the report contains both arrays. They should sum to the same overall rate but may differ slightly due to rounding.\n- **Day-to-day volatility on low-activity days** — if only a few dozen suggestions are generated on a quiet day, acceptance rate can swing from 0% to 100%.\n### 💡 What This Metric Doesn't Tell You\n\n- Acceptance rate trend for a specific language or editor.\n- Whether rate changes are driven by usage pattern shifts or suggestion quality changes.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  day AS time,\n  ROUND(loc_added_sum::numeric / NULLIF(loc_suggested_to_add_sum, 0) * 100, 1) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
           }
         }
       ],
@@ -772,7 +772,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API) | Tables: `pull_requests`, `copilot_seats`"
+      "description": "Source: `GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists) | Tables: `pull_requests`, `copilot_seats`"
     },
     {
       "id": 206,
@@ -786,14 +786,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 72
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nPercentage of merged PRs whose author has an active Copilot seat. ⚠️ **Proxy metric** — the GitHub API provides no per-PR or per-commit signal indicating Copilot was used. Active seat is the only available signal.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nPercentage of merged PRs whose author has an active Copilot seat. ⚠️ This is a proxy — GitHub provides no per-PR Copilot usage signal.\n### ⚠️ Calculation Challenges\n\n- **Proxy, not direct measurement** — GitHub does not provide a signal on whether Copilot was used for any specific PR. Seat activity is the only available proxy.\n- **Active seat ≠ used on this PR** — the author may have written this PR without opening Copilot at all.\n- **Seat revocation retroactivity** — if a seat is revoked after a PR is merged, the PR loses its 'Copilot-attributed' status on the next sync.\n### 💡 What This Metric Doesn't Tell You\n\n- How much Copilot contributed to any specific PR.\n- Code quality differences between attributed and non-attributed PRs.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
           }
         }
       ],
@@ -857,7 +857,7 @@
           }
         ]
       },
-      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` (2026-03-10) → per-user NDJSON | Tables: `copilot_user_metrics`"
+      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` (2026-03-10) → per-user NDJSON rows | Tables: `copilot_user_metrics`"
     },
     {
       "id": 207,
@@ -871,14 +871,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 83
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` (2026-03-10) → per-user NDJSON\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nTop 10 users by `loc_added_sum` from the **per-user** 28-day report — a **separate endpoint** from the org report. Same download_links → NDJSON pattern. Per-user data is visible to org owners and billing managers.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  user_login AS \"Developer\",\n  SUM(loc_added_sum) AS \"Lines Added\",\n  ROUND(SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1) AS \"Acceptance Rate (%)\"\nFROM copilot_user_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nGROUP BY user_login\nORDER BY \"Lines Added\" DESC\nLIMIT 10\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` (2026-03-10) → per-user NDJSON rows\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nTop 10 Copilot users by total loc_added_sum from the per-user 28-day report — a separate endpoint from the org-level report.\n### ⚠️ Calculation Challenges\n\n- **Separate API endpoint** — this uses users-28-day/latest, not organization-28-day/latest. Same download_links → NDJSON pattern, but the per-user report has one row per user per day.\n- **Privacy consideration** — per-user line counts are visible to org owners and billing managers. Individual developers may not be aware their per-user data is shown on this dashboard.\n- **Lines added ≠ productivity** — a developer making many small completions (e.g., auto-completing import statements) ranks highly without writing more complex code.\n### 💡 What This Metric Doesn't Tell You\n\n- Code complexity or quality of accepted lines.\n- Whether high line counts correlate with faster delivery or fewer bugs.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  user_login AS \"Developer\",\n  SUM(loc_added_sum) AS \"Lines Added\",\n  ROUND(SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1) AS \"Acceptance Rate (%)\"\nFROM copilot_user_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nGROUP BY user_login\nORDER BY \"Lines Added\" DESC\nLIMIT 10\n```"
           }
         }
       ],
@@ -978,14 +978,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 90
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRow count of `copilot_seats` table — a data health indicator. If 0, the last sync did not load seat data (check server logs for a silent 403). The table is fully replaced on every sync (TRUNCATE + INSERT), unlike PRs and deployments (incremental).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRow count of copilot_seats table. Used as a data health indicator alongside 'Last Successful Sync'.\n### ⚠️ Calculation Challenges\n\n- **Silent 403 failure** — if the sync server receives a 403 on the seats endpoint, it logs a warning and continues. The table stays at 0 rows. A 'successful' sync job ≠ seats data was loaded.\n- **TRUNCATE + INSERT every sync** — unlike PRs and deployments (incremental), copilot_seats is fully replaced on every sync. A 403 leaves it empty.\n- **Proxy for sync health** — use this alongside 'Last Successful Sync' to confirm data freshness; check server logs if this shows 0.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether seat data is accurate or stale.\n- Breakdown by team or repository.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```"
           }
         }
       ],
@@ -1067,7 +1067,7 @@
         "textMode": "auto",
         "colorMode": "background"
       },
-      "description": "Source: Internal `sync_jobs` table (no GitHub API call) | Tables: `sync_jobs`"
+      "description": "Source: Internal sync_jobs table (no GitHub API call) | Tables: `sync_jobs`"
     },
     {
       "id": 209,
@@ -1081,14 +1081,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 97
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source\n\nInternal `sync_jobs` table (no GitHub API call)\n\n### 🗄️ Database Table(s)\n\n`sync_jobs`\n\n### 📐 How It's Calculated\n\n`MAX(finished_at)` from `sync_jobs` where `status='success'`. A 'success' status does NOT guarantee all resources were fetched — individual fetchers can fail silently (e.g., 403 on Copilot seats) while the overall job still completes with 'success'.\n\n### 🔍 SQL Query\n\n```sql\nSELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'\n```"
+            "content": "### 📡 GitHub API Source\n\nInternal sync_jobs table (no GitHub API call)\n\n### 🗄️ Database Table(s)\n\n`sync_jobs`\n\n### 📐 How It's Calculated\n\nMAX(finished_at) from sync_jobs where status='success'. Shows when the last complete sync run finished.\n### ⚠️ Calculation Challenges\n\n- **'Successful' sync ≠ all data loaded** — a sync job completes with status='success' while individual fetchers (e.g., copilot seats) fail silently. Always check records_synced per resource.\n- **Timestamps in UTC** — finished_at is stored in UTC. Grafana displays in browser timezone; a sync at 00:00 UTC appears as yesterday in UTC-5 timezones.\n- **sync_jobs is append-only** — each sync adds a row and the table grows indefinitely. No automatic pruning.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether all resources were successfully fetched (check records_synced column in the job record).\n- Failure reason if the last job has status other than 'success'.\n\n### 🔍 SQL Query\n\n```sql\nSELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'\n```"
           }
         }
       ],

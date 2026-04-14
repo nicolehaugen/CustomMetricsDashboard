@@ -199,14 +199,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 22
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nCounts distinct successful deployments divided by the number of weeks in the selected time window. Only deployments made via the GitHub Deployments API are counted — external CI/CD tools not integrated with this API are invisible.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(DISTINCT d.deployment_id)::float / 4 AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nCounts distinct successful deployments divided by the number of weeks in the selected time window.\n### ⚠️ Calculation Challenges\n\n- **GitHub-native only** — deployments via ArgoCD, Jenkins, or other tools not integrated with the GitHub Deployments API are invisible to this metric.\n- **Environment field is free-text** — 'production', 'prod', and 'PROD' count as separate environments unless normalized.\n- **Success state is caller-set** — the deployer marks a deployment 'success'; GitHub does not independently verify it.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether deployed code is actually healthy in production.\n- Deployments that bypassed the GitHub Deployments API entirely.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(DISTINCT d.deployment_id)::float / 4 AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
           }
         }
       ],
@@ -293,7 +293,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (`src/sync/bridge-resolver.ts`) | Tables: `pull_requests`, `deployments`, `deployment_pull_requests`"
+      "description": "Source: `GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver | Tables: `pull_requests`, `deployments`, `deployment_pull_requests`"
     },
     {
       "id": 201,
@@ -307,14 +307,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 29
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (`src/sync/bridge-resolver.ts`)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `deployments`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nMedian hours from PR merge to first successful deployment, linked via bridge resolver SHA-matching. PRs whose merge_commit_sha (or head_sha for squash merges) does not match any deployment SHA are excluded from the calculation.\n\n### 🔍 SQL Query\n\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND pr.merged_at IS NOT NULL\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `deployments`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nMedian time (hours) from PR merge to first successful deployment, linked via the bridge resolver's SHA-matching algorithm.\n### ⚠️ Calculation Challenges\n\n- **Bridge resolver dependency** — PRs are linked to deployments by matching deployment SHA to PR merge_commit_sha (or head_sha for squash merges). If SHA matching fails, the PR is excluded from the metric.\n- **Multiple deployments per PR** — for multi-stage pipelines (staging → production), only the first deployment link is used.\n- **Median hides distribution** — use P90 alongside P50 to understand spread.\n### 💡 What This Metric Doesn't Tell You\n\n- Time spent in code review vs CI queue vs deployment queue.\n- Lead time for direct commits (no PR workflow).\n\n### 🔍 SQL Query\n\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND pr.merged_at IS NOT NULL\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
           }
         }
       ],
@@ -415,14 +415,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 36
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `issues`\n\n### 📐 How It's Calculated\n\nPercentage of deployments that co-occur with a GitHub Issue labeled 'incident' in the same time window. Co-occurrence is by time bucket, not an explicit causal link. Requires consistent use of the 'incident' label — incidents in PagerDuty, Jira, or Slack are invisible.\n\n### 🔍 SQL Query\n\n```sql\nWITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.created_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  COUNT(DISTINCT df.deployment_id)::float /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100 AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `issues`\n\n### 📐 How It's Calculated\n\nPercentage of deployments that coincide with a GitHub Issue labeled 'incident' in the same time window.\n### ⚠️ Calculation Challenges\n\n- **Label discipline required** — incidents must be tagged 'incident' on GitHub Issues. Teams using PagerDuty, Jira, or Slack exclusively show 0% CFR even during outages.\n- **Correlation, not causation** — co-occurrence in the same week, not a causal deployment-incident link.\n- **All environments equally weighted** — dev and production deployments are counted the same.\n### 💡 What This Metric Doesn't Tell You\n\n- Severity or business impact of incidents.\n- Incidents tracked outside GitHub Issues.\n\n### 🔍 SQL Query\n\n```sql\nWITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.created_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  COUNT(DISTINCT df.deployment_id)::float /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100 AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
           }
         }
       ],
@@ -523,14 +523,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 43
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\n**Proxy metric:** median time between a failed deployment and the next successful deployment in the same environment (SQL `LEAD()` window function). This measures deploy gap, not actual service restoration time.\n\n### 🔍 SQL Query\n\n```sql\nWITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND d.created_at >= NOW() - INTERVAL '28 days'\n)\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n) AS \"MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nProxy metric: median time between a failed deployment and the next successful deployment in the same environment, computed with a SQL LEAD() window function.\n### ⚠️ Calculation Challenges\n\n- **Proxy, not actual restoration time** — MTTR here measures deploy-gap, not when the service was actually restored. A config change or manual rollback that fixes the service without a new deployment is invisible.\n- **LEAD() pairs each failure with the immediately next deployment** — if multiple failures stack before a fix, each is measured to the same recovery deployment.\n- **Environment name is exact-match** — 'production' and 'prod' are separate partitions; a fix to 'prod' does not close a failure on 'production'.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether users experienced an actual outage.\n- Time spent on diagnosis, communication, or post-incident review.\n\n### 🔍 SQL Query\n\n```sql\nWITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND d.created_at >= NOW() - INTERVAL '28 days'\n)\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n) AS \"MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\n```"
           }
         }
       ],
@@ -622,14 +622,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 50
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of seats where `last_activity_at >= NOW() - INTERVAL '28 days'`. This window is **hardcoded** and does not respond to the Grafana time picker. A 403 error during sync silently leaves this table empty.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Active Seats\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of seats where last_activity_at is within the last 28 days (hardcoded, not Grafana time range).\n### ⚠️ Calculation Challenges\n\n- **Point-in-time snapshot** — the seats endpoint returns current state; no history. Seats removed between syncs don't appear.\n- **28-day window is hardcoded** — 'active' means last_activity_at >= NOW() - 28 days, not your selected Grafana range.\n- **403 = 0 seats silently** — if the sync token lacks org-owner or billing-manager permissions, the API returns 403 and the table is empty.\n### 💡 What This Metric Doesn't Tell You\n\n- How frequently Copilot was used by each seat holder.\n- Historical seat utilization over time.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Active Seats\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n```"
           }
         }
       ],
@@ -716,7 +716,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
+      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `loc_added_sum` / `loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
     },
     {
       "id": 205,
@@ -730,14 +730,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 57
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nRatio of accepted lines to suggested lines. The endpoint returns a `download_links` envelope (not inline JSON) — the sync server must fetch the signed S3 URL separately and parse each line as a distinct JSON object (NDJSON format).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COALESCE(ROUND(SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1), 0) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics WHERE day >= NOW()::date - 28\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `loc_added_sum` / `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nSum of accepted lines divided by sum of suggested lines across all language breakdowns in the org 28-day report.\n### ⚠️ Calculation Challenges\n\n- **Multi-line suggestion bias** — accepting a 10-line suggestion counts 10 accepted lines even if the developer only wanted 2 and edited the rest.\n- **NDJSON response pattern** — this endpoint returns a `download_links` envelope (not inline JSON). You must fetch the signed S3 URL and parse line-by-line.\n- **Org-level aggregate only** — no repo-level or team-level breakdown from this endpoint.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether accepted code was later reverted or modified significantly.\n- Acceptance rate by team, repository, or language.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COALESCE(ROUND(SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1), 0) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics WHERE day >= NOW()::date - 28\n```"
           }
         }
       ],
@@ -824,7 +824,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API) | Tables: `pull_requests`, `copilot_seats`"
+      "description": "Source: `GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists) | Tables: `pull_requests`, `copilot_seats`"
     },
     {
       "id": 206,
@@ -838,14 +838,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 64
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nPercentage of merged PRs whose author has an active Copilot seat. ⚠️ **Proxy metric** — the GitHub API provides no per-PR or per-commit signal indicating Copilot was used. Active seat is the only available signal.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at >= NOW() - INTERVAL '28 days'\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nPercentage of merged PRs whose author has an active Copilot seat. ⚠️ This is a proxy — GitHub provides no per-PR Copilot usage signal.\n### ⚠️ Calculation Challenges\n\n- **Proxy, not direct measurement** — GitHub does not provide a signal on whether Copilot was used for any specific PR. Seat activity is the only available proxy.\n- **Active seat ≠ used on this PR** — the author may have written this PR without opening Copilot at all.\n- **Seat revocation retroactivity** — if a seat is revoked after a PR is merged, the PR loses its 'Copilot-attributed' status on the next sync.\n### 💡 What This Metric Doesn't Tell You\n\n- How much Copilot contributed to any specific PR.\n- Code quality differences between attributed and non-attributed PRs.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at >= NOW() - INTERVAL '28 days'\n```"
           }
         }
       ],
@@ -937,14 +937,14 @@
           "title": "",
           "transparent": true,
           "gridPos": {
-            "h": 9,
+            "h": 18,
             "w": 24,
             "x": 0,
             "y": 71
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_added_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nSum of `loc_added_sum` across daily rows in the selected date range. 'Accepted' means kept at suggestion time — the developer may immediately delete accepted lines. Org-level aggregate only; no per-repo or per-team breakdown.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COALESCE(SUM(loc_added_sum), 0) AS \"Lines Accepted (28d)\" FROM copilot_org_metrics WHERE day >= NOW()::date - 28\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_added_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nSum of loc_added_sum across all daily rows in the selected date range from the org 28-day report.\n### ⚠️ Calculation Challenges\n\n- **'Accepted' = kept at suggestion time** — a developer can accept a suggestion and immediately delete it. The metric counts the accept event, not code survival.\n- **28-day rolling report** — the organization-28-day report always covers the last 28 days relative to today, not your Grafana time picker.\n- **Org-level only** — no repo or team breakdown available.\n### 💡 What This Metric Doesn't Tell You\n\n- How much accepted code is still in the codebase today.\n- Which repositories or teams generated the accepted lines.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COALESCE(SUM(loc_added_sum), 0) AS \"Lines Accepted (28d)\" FROM copilot_org_metrics WHERE day >= NOW()::date - 28\n```"
           }
         }
       ],
