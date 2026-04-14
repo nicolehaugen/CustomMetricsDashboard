@@ -2,10 +2,6 @@
   "uid": "edu-lead-time",
   "title": "⏱️ Lead Time for Changes [Edu] [v2]",
   "description": "DORA Pillar: Lead Time for Changes — Measures time from code merge to successful deployment. Elite teams achieve under 1 hour.",
-  "tags": [
-    "dora",
-    "edu"
-  ],
   "schemaVersion": 36,
   "version": 1,
   "refresh": "5m",
@@ -212,7 +208,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: GitHub Pulls + Deployments + bridge-resolver (direct_sha/squash_fallback). PRs without a SHA match are excluded."
+      "description": "Source: GitHub Pulls + Deployments + bridge-resolver (direct_sha / squash_fallback). PRs without SHA match are excluded."
     },
     {
       "id": 3,
@@ -336,7 +332,55 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: Bridge resolver + Deployments + PRs. PERCENTILE_CONT(0.9). One outlier PR can spike P90 dramatically."
+      "description": "Source: Bridge resolver + Deployments + PRs. PERCENTILE_CONT(0.9). One outlier PR can spike this value dramatically."
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Change Lead Time (median hours) — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n`GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (src/sync/bridge-resolver.ts)\n\n### 🗄️ Database Table(s)\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\nMedian of (deployment.created_at - pr.merged_at) in hours for PRs linked via deployment_pull_requests.\n\n### 🔍 SQL Query\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **Bridge resolver required** — two strategies: direct_sha (deployment.sha = pr.merge_commit_sha) and squash_fallback (deployment.sha = pr.head_sha). Neither match = PR excluded.\n- **Squash-merge fallback is imprecise** — squash creates a new SHA; only head_sha can be tried, which may produce false links.\n- **Median hides distribution** — combine with P90 to understand the tail.\n\n### 💡 What This Metric Doesn't Tell You\n- Stage breakdown: review wait, CI wait, deploy queue.\n- Lead time for hotfixes vs features."
+      },
+      "id": 200,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Change Lead Time (median hours) — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 9,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 PR Cycle Time (median hours) — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls?state=closed`\n\n### 🗄️ Database Table(s)\n`pull_requests`\n\n### 📐 How It's Calculated\nMedian of (merged_at - created_at) in hours for merged pull requests. No bridge resolver needed.\n\n### 🔍 SQL Query\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **Calendar time** — includes nights, weekends, holidays. Friday open + Monday merged = ~60h even if review took 2h.\n- **Draft PRs inflate the metric** — PRs opened as draft weeks before active review skew the result.\n- **No stage breakdown** — review wait, review duration, and CI wait are all in one number.\n\n### 💡 What This Metric Doesn't Tell You\n- How many revision rounds were needed.\n- Stage-level bottleneck identification."
+      },
+      "id": 201,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 PR Cycle Time (median hours) — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 18,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 P90 Lead Time (hours) — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\nSame as Change Lead Time: bridge resolver + GitHub Pulls + Deployments\n\n### 🗄️ Database Table(s)\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n90th percentile of (deployment.created_at - pr.merged_at) using PostgreSQL PERCENTILE_CONT(0.9).\n\n### 🔍 SQL Query\n```sql\nSELECT PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"P90 Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **Outlier sensitivity** — one old PR finally deployed can spike P90 even if 89% of PRs are fast.\n- **PERCENTILE_CONT interpolates** — may return a fractional value not present in raw data.\n- **Same exclusion bias** — PRs not linked by bridge resolver excluded, biasing toward simple PRs.\n\n### 💡 What This Metric Doesn't Tell You\n- The maximum (worst-case) lead time.\n- What causes the slowest 10% of deployments."
+      },
+      "id": 202,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 P90 Lead Time (hours) — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 27,
+        "x": 0
+      }
     },
     {
       "id": 5,
@@ -346,7 +390,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 36.0
       },
       "datasource": {
         "type": "postgres",
@@ -381,7 +425,7 @@
           "displayMode": "list"
         }
       },
-      "description": "Weekly P50/P90. Bucketed by deployment week (not merge week). Sparse weeks → noisy percentiles."
+      "description": "Weekly P50/P90. Bucketed by deployment week. Sparse weeks → noisy percentiles."
     },
     {
       "id": 6,
@@ -391,7 +435,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 36.0
       },
       "datasource": {
         "type": "postgres",
@@ -426,7 +470,39 @@
           "displayMode": "list"
         }
       },
-      "description": "Source: GitHub Pulls API. Weekly P50 by creation week. Includes all PR types — no distinction by size or complexity."
+      "description": "Source: GitHub Pulls API. Weekly P50 by creation week. Calendar time — includes all non-working hours."
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Change Lead Time over Time — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\nBridge resolver + GitHub Pulls + Deployments\n\n### 🗄️ Database Table(s)\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\nWeekly P50 and P90 of lead time, bucketed by deployment week (date_trunc('week', d.created_at)).\n\n### 🔍 SQL Query\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P50 (hours)\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P90 (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Bucketed by deployment week** — a PR merged in week 3 deployed in week 5 appears in week 5's bucket.\n- **Sparse weeks amplify noise** — 2–3 linked PRs per week is not enough for stable percentiles.\n- **Diverging P50/P90** — when they separate, a small number of outliers are dragging the tail.\n\n### 💡 What This Metric Doesn't Tell You\n- Trend causality — what drove lead time changes.\n- Per-author or per-team lead time trends."
+      },
+      "id": 203,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Change Lead Time over Time — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 44,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 PR Cycle Time over Time — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls?state=closed`\n\n### 🗄️ Database Table(s)\n`pull_requests`\n\n### 📐 How It's Calculated\nWeekly P50 of PR cycle time, bucketed by PR creation week (date_trunc('week', pr.created_at)).\n\n### 🔍 SQL Query\n```sql\nSELECT\n  date_trunc('week', pr.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  ) AS \"PR Cycle Time P50 (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Bucketed by creation week** — a PR created week 1, merged week 4, shows in week 1's bucket.\n- **Holiday/seasonal effects** — lower cycle time in focused sprints, higher during vacation periods.\n- **No PR-type distinction** — bugfixes, features, and refactors contribute equally.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether improvements came from process changes or simpler PRs.\n- Cycle time by PR size, author, or reviewer."
+      },
+      "id": 204,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 PR Cycle Time over Time — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 53,
+        "x": 0
+      }
     },
     {
       "id": 7,
@@ -436,7 +512,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 17
+        "y": 62.0
       },
       "datasource": {
         "type": "postgres",
@@ -465,7 +541,7 @@
           }
         ]
       },
-      "description": "Shows only bridge-resolver-linked PRs. A PR with multiple deployments appears multiple times (once per deployment)."
+      "description": "Shows only bridge-resolver-linked PRs. A PR linked to multiple deployments appears multiple times."
     },
     {
       "id": 8,
@@ -475,7 +551,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 17
+        "y": 62.0
       },
       "datasource": {
         "type": "postgres",
@@ -506,132 +582,43 @@
           "displayMode": "list"
         }
       },
-      "description": "⚠️ Cohort by PR author's current seat status (fixed 28d). Attribution differs from deployment-frequency chart (deployer vs author)."
+      "description": "⚠️ Cohort by PR author's current seat status (fixed 28d). Differs from deployment-frequency chart (deployer vs author)."
     },
     {
-      "collapsed": false,
-      "title": "📚 Learning Guide — How This Dashboard Works",
-      "id": 200,
-      "type": "row",
-      "gridPos": {
-        "h": 1,
-        "x": 0,
-        "w": 24,
-        "y": 25.0
-      },
-      "panels": []
-    },
-    {
-      "title": "📖 Change Lead Time (median hours) — Learning Guide",
-      "id": 201,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 26
-      },
-      "transparent": false,
       "options": {
-        "content": "## 📖 Learning Guide: Change Lead Time (median hours)\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n`GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (src/sync/bridge-resolver.ts)\n\n### 🗄️ Database Table(s)\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\nMedian of (deployment.created_at - pr.merged_at) in hours for PRs linked to deployments via deployment_pull_requests.\n\n### 🔍 SQL Query\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **Bridge resolver required** — no direct GitHub API link exists between a deployment and the PRs it contains. The resolver uses two strategies: direct_sha (deployment.sha = pr.merge_commit_sha) and squash_fallback (deployment.sha = pr.head_sha). If neither matches, the PR is excluded.\n- **Squash-merge fallback is imprecise** — squash merges create a new SHA, so only head_sha can be tried. This may produce false links if multiple open PRs shared the same head commit.\n- **Median hides distribution** — combine with P90 to understand the tail.\n\n### 💡 What This Metric Doesn't Tell You\n- Time breakdown by stage: review wait, CI wait, deploy queue.\n- Lead time for hotfixes vs features.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 PR Cycle Time (median hours) — Learning Guide",
-      "id": 202,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 35
+        "mode": "markdown",
+        "content": "## 📖 Slowest PRs by Lead Time — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + bridge resolver\n\n### 🗄️ Database Table(s)\n`pull_requests`, `deployment_pull_requests`, `deployments`\n\n### 📐 How It's Calculated\nTop PRs sorted by longest (deployment.created_at - pr.merged_at). Useful for investigating P90 outliers.\n\n### 🔍 SQL Query\n```sql\nSELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  ROUND(EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time (hours)\" DESC\nLIMIT 20\n```\n\n### ⚠️ Calculation Challenges\n- **A PR can appear multiple times** — linked to multiple deployments (staging + production) = one row per deployment.\n- **Only bridge-resolver-linked PRs** — unlinked PRs absent; list is not exhaustive.\n- **Lead time ≠ review time** — slow lead-time PRs may have been reviewed quickly but waited in deploy queue.\n\n### 💡 What This Metric Doesn't Tell You\n- Why the PR was slow.\n- Whether the slow deployment was intentional (scheduled release window)."
       },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: PR Cycle Time (median hours)\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls?state=closed`\n\n### 🗄️ Database Table(s)\n`pull_requests`\n\n### 📐 How It's Calculated\nMedian of (merged_at - created_at) in hours for merged pull requests. Does not require the bridge resolver.\n\n### 🔍 SQL Query\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **Calendar time** — includes nights, weekends, holidays. A PR opened Friday merged Monday shows ~60h even if review took 2h.\n- **Draft PRs inflate the metric** — a PR opened as draft 2 weeks before active review skews cycle time significantly.\n- **No stage breakdown** — time-to-first-review, review duration, and CI wait are all lumped into one number.\n\n### 💡 What This Metric Doesn't Tell You\n- How many reviewers touched the PR or how many revision rounds were needed.\n- Stage-level bottleneck identification.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 P90 Lead Time (hours) — Learning Guide",
-      "id": 203,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 44
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: P90 Lead Time (hours)\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\nSame as Change Lead Time: bridge resolver + GitHub Pulls + Deployments\n\n### 🗄️ Database Table(s)\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n90th percentile of (deployment.created_at - pr.merged_at) using PERCENTILE_CONT(0.9) — a PostgreSQL ordered-set aggregate.\n\n### 🔍 SQL Query\n```sql\nSELECT PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"P90 Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **Outlier sensitivity** — a single old PR finally deployed (e.g., a long-running feature branch) can spike P90 even if 89% of PRs are fast.\n- **PERCENTILE_CONT interpolates** — unlike PERCENTILE_DISC (which picks the nearest actual value), CONT may return a fractional value not present in the raw data.\n- **Same exclusion bias as median** — PRs not linked by bridge resolver are excluded, potentially biasing the percentile toward simple, cleanly-matched PRs.\n\n### 💡 What This Metric Doesn't Tell You\n- The maximum lead time (worst case).\n- What specifically causes the slowest 10% of deployments.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 Change Lead Time over Time — Learning Guide",
-      "id": 204,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 53
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Change Lead Time over Time\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\nBridge resolver + GitHub Pulls + Deployments\n\n### 🗄️ Database Table(s)\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\nWeekly P50 and P90 of lead time, bucketed by deployment week (date_trunc('week', d.created_at)).\n\n### 🔍 SQL Query\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P50 (hours)\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P90 (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Bucketed by deployment week, not merge week** — a PR merged in week 3 but deployed in week 5 appears in week 5's bucket.\n- **Sparse weeks amplify noise** — 2–3 linked PRs per week is not enough to produce stable percentile estimates.\n- **Diverging P50/P90** — when these lines separate, a small number of outlier PRs are dragging the tail. When they track closely, the distribution is tight.\n\n### 💡 What This Metric Doesn't Tell You\n- Trend causality — what drove lead time changes.\n- Per-author or per-team lead time trends.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 PR Cycle Time over Time — Learning Guide",
       "id": 205,
       "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 62
-      },
       "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: PR Cycle Time over Time\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls?state=closed`\n\n### 🗄️ Database Table(s)\n`pull_requests`\n\n### 📐 How It's Calculated\nWeekly P50 of PR cycle time, bucketed by PR creation week (date_trunc('week', pr.created_at)).\n\n### 🔍 SQL Query\n```sql\nSELECT\n  date_trunc('week', pr.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  ) AS \"PR Cycle Time P50 (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Bucketed by creation week** — a PR created in week 1, merged in week 4, shows in week 1's bucket. Week 4 gets credit for merges of PRs opened in previous weeks.\n- **Holiday/seasonal effects** — teams show lower cycle time in focused sprints and higher during vacation seasons.\n- **No PR-type distinction** — bugfixes, features, and refactors all contribute equally.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether improvements came from process changes or simpler PRs.\n- Cycle time by PR size, author, or reviewer.",
-        "mode": "markdown"
+      "title": "📖 Slowest PRs by Lead Time — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 70,
+        "x": 0
       }
     },
     {
-      "title": "📖 Slowest PRs by Lead Time — Learning Guide",
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Lead Time: Copilot vs Non-Copilot — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + bridge resolver + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `copilot_seats`, `deployment_pull_requests`, `deployments`\n\n### 📐 How It's Calculated\nBar chart comparing median lead time for PR authors with active Copilot seats vs those without.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Median Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Attribution by PR author** — unlike deployment frequency chart (deployer), this uses PR author. Different populations.\n- **Selection bias** — senior developers often get seats first; faster lead times may reflect seniority.\n- **Fixed 28-day seat window** — today's roster, not the roster at PR merge time.\n\n### 💡 What This Metric Doesn't Tell You\n- Causality between Copilot and lead time.\n- Whether cohorts have similar PR complexity or size distributions."
+      },
       "id": 206,
       "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 71
-      },
       "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Slowest PRs by Lead Time\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + bridge resolver\n\n### 🗄️ Database Table(s)\n`pull_requests`, `deployment_pull_requests`, `deployments`\n\n### 📐 How It's Calculated\nTop PRs sorted by longest (deployment.created_at - pr.merged_at) in hours. Useful for investigating P90 outliers.\n\n### 🔍 SQL Query\n```sql\nSELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  ROUND(EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time (hours)\" DESC\nLIMIT 20\n```\n\n### ⚠️ Calculation Challenges\n- **A PR can appear multiple times** — if linked to multiple deployments (staging + production), it appears once per deployment with different lead times.\n- **Only bridge-resolver-linked PRs appear** — unlinked PRs are absent, so this list cannot be exhaustive.\n- **Lead time ≠ review time** — the slowest lead-time PRs may have been reviewed quickly but waited in a deployment queue.\n\n### 💡 What This Metric Doesn't Tell You\n- Why the PR was slow.\n- Whether the slow deployment was intentional (scheduled release window).",
-        "mode": "markdown"
-      }
-    },
-    {
       "title": "📖 Lead Time: Copilot vs Non-Copilot — Learning Guide",
-      "id": 207,
-      "type": "text",
       "gridPos": {
-        "h": 9,
-        "x": 0,
         "w": 24,
-        "y": 80
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Lead Time: Copilot vs Non-Copilot\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + bridge resolver + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `copilot_seats`, `deployment_pull_requests`, `deployments`\n\n### 📐 How It's Calculated\nBar chart comparing median lead time for PR authors with active Copilot seats vs those without.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Median Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Attribution by PR author** — this uses the PR author's login (unlike the deployment frequency Copilot comparison which uses deployer login). These are different populations.\n- **Selection bias** — senior developers are often assigned Copilot seats first; their faster lead times may reflect seniority, not AI assistance.\n- **Fixed 28-day seat window** — seat roster is TODAY's active list, not the list at PR merge time.\n\n### 💡 What This Metric Doesn't Tell You\n- Causality between Copilot and lead time.\n- Whether cohorts have similar PR complexity or size distributions.",
-        "mode": "markdown"
+        "h": 9,
+        "y": 79,
+        "x": 0
       }
     }
+  ],
+  "tags": [
+    "dora",
+    "edu"
   ]
 }

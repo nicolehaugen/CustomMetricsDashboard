@@ -2,11 +2,6 @@
   "uid": "edu-dora-vs-copilot",
   "title": "🔬 DORA × Copilot [Edu] [v2]",
   "description": "Cross-analysis of DORA engineering metrics segmented by Copilot adoption cohort, revealing the impact of AI assistance on software delivery performance.",
-  "tags": [
-    "copilot",
-    "dora",
-    "edu"
-  ],
   "schemaVersion": 36,
   "version": 1,
   "refresh": "5m",
@@ -191,7 +186,7 @@
           "displayMode": "list"
         }
       },
-      "description": "copilot_users CTE uses fixed NOW()-28d. Bridge resolver required — unlinked PRs excluded. Observational only — correlation ≠ causation."
+      "description": "copilot_users CTE uses fixed NOW()-28d. Bridge resolver required. Observational only — correlation ≠ causation."
     },
     {
       "id": 3,
@@ -232,7 +227,39 @@
           "displayMode": "list"
         }
       },
-      "description": "⚠️ Proxy cohort: PR author's current seat status. Calendar time. Cohort N not shown — check sample size before drawing conclusions."
+      "description": "⚠️ Proxy cohort: PR author's current seat status. Calendar time. N not shown — verify sample size before drawing conclusions."
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Change Lead Time: Copilot vs Non-Copilot — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + bridge resolver + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `deployment_pull_requests`, `deployments`, `copilot_seats`\n\n### 📐 How It's Calculated\nBar chart comparing median lead time for 'Copilot Active' vs 'Non-Copilot' PR authors. With copilot_users CTE.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **copilot_users CTE** — SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'. Fixed 28-day window, not Grafana range.\n- **Bridge resolver required** — only PRs linked to deployments included; unlinked PRs excluded from both cohorts.\n- **Selection bias** — senior developers often get Copilot seats first; faster lead times may reflect experience.\n\n### 💡 What This Metric Doesn't Tell You\n- Statistical significance of the lead time difference.\n- Causality — observational comparison only."
+      },
+      "id": 200,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Change Lead Time: Copilot vs Non-Copilot — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 13,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 PR Cycle Time: Copilot vs Non-Copilot — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\nBar chart comparing median PR cycle time (merged_at - created_at) for Copilot vs non-Copilot PR authors.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  )::numeric, 1) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Calendar time** — wall-clock including nights, weekends, draft periods.\n- **Cohort balance not shown** — chart doesn't display N per bar; unequal cohort sizes make comparison unreliable.\n- **Seat roster timing** — current seat list; developer who had a seat during time range but lost it since = Non-Copilot.\n\n### 💡 What This Metric Doesn't Tell You\n- Statistical significance of the cycle time difference.\n- Effect size — is a 2-hour difference meaningful?"
+      },
+      "id": 201,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 PR Cycle Time: Copilot vs Non-Copilot — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 22,
+        "x": 0
+      }
     },
     {
       "id": 4,
@@ -242,7 +269,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 13
+        "y": 31.0
       },
       "datasource": {
         "type": "postgres",
@@ -277,7 +304,7 @@
           "displayMode": "list"
         }
       },
-      "description": "Current seat roster attributes ALL past PRs retroactively. No cohort-size normalization — compare rates, not raw counts."
+      "description": "Current seat roster attributes all past PRs retroactively. No cohort-size normalization — compare rates, not raw counts."
     },
     {
       "id": 5,
@@ -287,7 +314,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 13
+        "y": 31.0
       },
       "datasource": {
         "type": "postgres",
@@ -322,7 +349,39 @@
           "displayMode": "list"
         }
       },
-      "description": "Lines = pr.additions + pr.deletions (renames double-count). Auto-generated files inflate. Current seat roster — retroactive attribution."
+      "description": "Lines = pr.additions + pr.deletions (renames double-count). Auto-generated files inflate. Current seat roster."
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Merged PRs by Cohort (weekly) — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls?state=closed` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\nWeekly time series of merged PR counts split by Copilot/non-Copilot PR author cohort.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  COUNT(*) AS \"PRs\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Roster timing mismatch** — today's seat list attributes ALL past PRs retroactively.\n- **No per-developer normalization** — if Copilot cohort has 10 people and non-Copilot has 50, raw counts are misleading.\n- **Mutually exclusive split** — hard binary; developers never in both cohorts simultaneously.\n\n### 💡 What This Metric Doesn't Tell You\n- Per-developer PR rate (normalize by cohort headcount).\n- PR complexity or size differences between cohorts."
+      },
+      "id": 202,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Merged PRs by Cohort (weekly) — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 39,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Lines Changed by Cohort (weekly) — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\nWeekly sum of (pr.additions + pr.deletions) for each cohort.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  SUM(COALESCE(pr.additions, 0) + COALESCE(pr.deletions, 0)) AS \"Lines Changed\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **additions + deletions double-counts** — a 10-line rename = 20 lines changed.\n- **Auto-generated files** — lockfile regenerations or generated clients have high line counts with minimal developer effort.\n- **Same roster timing caveat** — current seat list, not historical.\n\n### 💡 What This Metric Doesn't Tell You\n- Code complexity or meaningful change volume.\n- Whether large line counts represent valuable engineering work."
+      },
+      "id": 203,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Lines Changed by Cohort (weekly) — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 48,
+        "x": 0
+      }
     },
     {
       "id": 6,
@@ -332,7 +391,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 21
+        "y": 57.0
       },
       "datasource": {
         "type": "postgres",
@@ -373,7 +432,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 21
+        "y": 57.0
       },
       "datasource": {
         "type": "postgres",
@@ -404,7 +463,39 @@
           "displayMode": "list"
         }
       },
-      "description": "⚠️ Proxy MTTR (deploy gap) split by deployer's seat status. Often N=1 or N=2 per cohort — median of one event is not a trend."
+      "description": "⚠️ Proxy MTTR (deploy gap) by deployer's seat status. Often N=1 per cohort — median of one event is not a trend."
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Change Fail Rate: Copilot vs Non-Copilot — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\nGitHub Issues (incident label) + GitHub Deployments API + Copilot seats\n\n### 🗄️ Database Table(s)\n`deployments`, `issues`, `copilot_seats`\n\n### 📐 How It's Calculated\nCompares change failure rate (incident co-occurrence / deployments) between deployer cohorts.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\ndeploy_cohorts AS (\n  SELECT\n    d.deployment_id,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort\n  FROM deployments d\n  JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  JOIN pull_requests pr ON pr.number = dpr.pr_number\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nfailures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  dc.cohort AS \"Cohort\",\n  ROUND(COUNT(DISTINCT f.deployment_id)::numeric / NULLIF(COUNT(DISTINCT dc.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM deploy_cohorts dc\nLEFT JOIN failures f ON f.deployment_id = dc.deployment_id\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Deployer cohort** — uses creator_login (who triggered deployment API), not the developer who wrote the code.\n- **Incident sparsity** — 1 extra incident can swing a cohort's CFR by 10–20 percentage points.\n- **No statistical testing** — raw percentages with no confidence intervals.\n\n### 💡 What This Metric Doesn't Tell You\n- Statistical significance of the difference.\n- Causality — many confounders exist."
+      },
+      "id": 204,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Change Fail Rate: Copilot vs Non-Copilot — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 65,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 MTTR: Copilot vs Non-Copilot — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n`GET /repos/{owner}/{repo}/deployments` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`deployments`, `deployment_statuses`, `copilot_seats`\n\n### 📐 How It's Calculated\nCompares median deploy-gap MTTR (proxy) between deployer cohorts.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\nfailure_deploys AS (\n  SELECT\n    d.deployment_id,\n    d.environment,\n    d.created_at AS failed_at,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  LEFT JOIN pull_requests pr ON pr.number = dpr.pr_number\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'failure'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  cohort AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"Median MTTR (hours)\"\nFROM failure_deploys\nWHERE recovered_at IS NOT NULL\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Same proxy limitation** — deploy-gap, not actual service restoration time.\n- **Very sparse data per cohort** — splitting sparse failures by two cohorts means each bar may represent only 1–2 events.\n- **Inconsistent cohort dimension** — this chart uses deployer login; lead time chart uses PR author. Different populations.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether Copilot helps teams recover faster.\n- Number of failures per cohort (denominator not shown)."
+      },
+      "id": 205,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 MTTR: Copilot vs Non-Copilot — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 74,
+        "x": 0
+      }
     },
     {
       "id": 9,
@@ -414,7 +505,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 83.0
       },
       "datasource": {
         "type": "postgres",
@@ -465,7 +556,7 @@
         "textMode": "auto",
         "colorMode": "background"
       },
-      "description": "DATA HEALTH INDICATOR: row count of copilot_seats. If 0, check sync logs for a silent 403 on GET /orgs/{org}/copilot/seats."
+      "description": "DATA HEALTH: row count of copilot_seats. If 0, check sync logs for a silent 403 on GET /orgs/{org}/copilot/seats."
     },
     {
       "id": 10,
@@ -475,7 +566,7 @@
         "h": 4,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 83.0
       },
       "datasource": {
         "type": "postgres",
@@ -522,148 +613,44 @@
         "textMode": "auto",
         "colorMode": "background"
       },
-      "description": "Source: sync_jobs table. 'success' status does NOT guarantee all resources synced — a silent 403 on any fetcher still produces status='success'."
+      "description": "Source: sync_jobs. 'success' status does NOT guarantee all resources synced — a silent 403 on any fetcher still produces status='success'."
     },
     {
-      "collapsed": false,
-      "title": "📚 Learning Guide — How This Dashboard Works",
-      "id": 200,
-      "type": "row",
-      "gridPos": {
-        "h": 1,
-        "x": 0,
-        "w": 24,
-        "y": 44.0
-      },
-      "panels": []
-    },
-    {
-      "title": "📖 Change Lead Time: Copilot vs Non-Copilot — Learning Guide",
-      "id": 201,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 45
-      },
-      "transparent": false,
       "options": {
-        "content": "## 📖 Learning Guide: Change Lead Time: Copilot vs Non-Copilot\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + bridge resolver + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `deployment_pull_requests`, `deployments`, `copilot_seats`\n\n### 📐 How It's Calculated\nBar chart comparing median lead time for 'Copilot Active' vs 'Non-Copilot' PR authors. Built with a WITH copilot_users CTE.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **copilot_users CTE** — defined as SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'. This is always a fixed 28-day window, not your Grafana time range.\n- **Bridge resolver required** — only PRs linked to deployments are included; unlinked PRs don't contribute to either cohort's lead time.\n- **Selection bias** — senior developers often get Copilot seats first; their faster lead times may reflect experience, not AI assistance.\n\n### 💡 What This Metric Doesn't Tell You\n- Statistical significance of the lead time difference.\n- Causality — this is observational; many confounders exist.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 PR Cycle Time: Copilot vs Non-Copilot — Learning Guide",
-      "id": 202,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 54
+        "mode": "markdown",
+        "content": "## 📖 Copilot Seats Loaded — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`copilot_seats`\n\n### 📐 How It's Calculated\nRow count of copilot_seats table — a data health indicator. If 0, the last sync did not load seat data.\n\n### 🔍 SQL Query\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```\n\n### ⚠️ Calculation Challenges\n- **Silent 403 failure** — sync server logs warning on 403 but continues; table stays at 0. 'Success' sync ≠ seats loaded.\n- **TRUNCATE + INSERT every sync** — unlike PRs/deployments (incremental), copilot_seats fully replaced each sync.\n- **Proxy for sync health** — use alongside 'Last Successful Sync'; check server logs if this shows 0.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether seat data is accurate or stale.\n- Breakdown by team or repository."
       },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: PR Cycle Time: Copilot vs Non-Copilot\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\nBar chart comparing median PR cycle time (merged_at - created_at) for Copilot vs non-Copilot PR authors.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  )::numeric, 1) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Calendar time** — wall-clock time including nights, weekends, and draft periods.\n- **Cohort balance not shown** — the chart doesn't show N (number of PRs) per bar. If cohorts have very different PR counts, the comparison is unreliable.\n- **Seat roster timing** — cohort uses current seat list. A developer who had a seat during the time range but lost it since then is now attributed to 'Non-Copilot'.\n\n### 💡 What This Metric Doesn't Tell You\n- Statistical significance of the cycle time difference.\n- Effect size — is a 2-hour difference meaningful?",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 Merged PRs by Cohort (weekly) — Learning Guide",
-      "id": 203,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 63
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Merged PRs by Cohort (weekly)\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls?state=closed` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\nWeekly time series of merged PR counts split by Copilot/non-Copilot PR author cohort.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  COUNT(*) AS \"PRs\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Roster timing mismatch** — today's seat list is used to attribute past PRs. A developer who got a Copilot seat last month is retroactively counted as 'Copilot Active' for all their historical PRs.\n- **No per-developer normalization** — if the Copilot cohort has 10 people and non-Copilot has 50, raw PR counts are misleading. Consider normalizing by cohort size.\n- **Mutually exclusive split** — the CTE creates a hard binary split; developers are never in both cohorts simultaneously.\n\n### 💡 What This Metric Doesn't Tell You\n- Per-developer PR rate (normalize by cohort headcount for fair comparison).\n- PR complexity or size differences between cohorts.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 Lines Changed by Cohort (weekly) — Learning Guide",
-      "id": 204,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 72
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Lines Changed by Cohort (weekly)\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\nWeekly sum of (pr.additions + pr.deletions) for each cohort. A rename counts as additions + deletions (double-counting).\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  SUM(COALESCE(pr.additions, 0) + COALESCE(pr.deletions, 0)) AS \"Lines Changed\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **additions + deletions double-counts** — a 10-line rename (10 deletions + 10 additions) shows as 20 lines changed, inflating 'refactor-heavy' cohorts.\n- **Auto-generated files** — PRs containing lockfile regenerations or generated clients have very high line counts with minimal developer effort.\n- **Same roster timing caveat** — current seat list, not historical roster at merge time.\n\n### 💡 What This Metric Doesn't Tell You\n- Code complexity or meaningful change volume.\n- Whether large line counts represent valuable engineering work.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 Change Fail Rate: Copilot vs Non-Copilot — Learning Guide",
-      "id": 205,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 81
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Change Fail Rate: Copilot vs Non-Copilot\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\nGitHub Issues (incident label) + GitHub Deployments API + Copilot seats\n\n### 🗄️ Database Table(s)\n`deployments`, `issues`, `copilot_seats`\n\n### 📐 How It's Calculated\nCompares change failure rate (incident co-occurrence / deployments) between deployers with and without active Copilot seats.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\ndeploy_cohorts AS (\n  SELECT\n    d.deployment_id,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort\n  FROM deployments d\n  JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  JOIN pull_requests pr ON pr.number = dpr.pr_number\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nfailures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  dc.cohort AS \"Cohort\",\n  ROUND(COUNT(DISTINCT f.deployment_id)::numeric / NULLIF(COUNT(DISTINCT dc.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM deploy_cohorts dc\nLEFT JOIN failures f ON f.deployment_id = dc.deployment_id\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Deployer cohort, not author cohort** — cohort uses creator_login (who triggered the deployment API call), not the developer who wrote the code.\n- **Incident sparsity** — with few incidents, 1 extra incident can swing a cohort's CFR by 10–20 percentage points.\n- **No statistical testing** — raw percentages with no confidence intervals. A 5% difference may be entirely due to chance with small N.\n\n### 💡 What This Metric Doesn't Tell You\n- Statistical significance of the difference.\n- Causality — Copilot users and non-users may differ in many confounding ways.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 MTTR: Copilot vs Non-Copilot — Learning Guide",
       "id": 206,
       "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 90
-      },
       "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: MTTR: Copilot vs Non-Copilot\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n`GET /repos/{owner}/{repo}/deployments` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`deployments`, `deployment_statuses`, `copilot_seats`\n\n### 📐 How It's Calculated\nCompares median deploy-gap MTTR (proxy) between deployers with and without active Copilot seats.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\nfailure_deploys AS (\n  SELECT\n    d.deployment_id,\n    d.environment,\n    d.created_at AS failed_at,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  LEFT JOIN pull_requests pr ON pr.number = dpr.pr_number\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'failure'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  cohort AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"Median MTTR (hours)\"\nFROM failure_deploys\nWHERE recovered_at IS NOT NULL\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Same proxy limitation** — deploy-gap, not actual service restoration time.\n- **Very sparse data per cohort** — splitting an already-sparse failure dataset by two cohorts means each bar may represent only 1–2 recovery events. Median of N=1 = that single value.\n- **Inconsistent cohort dimension** — this chart uses deployer login for cohort assignment; the lead time chart uses PR author. These compare different populations.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether Copilot helps teams recover faster or if recovery is driven by other factors.\n- The number of failures in each cohort (denominator not shown).",
-        "mode": "markdown"
+      "title": "📖 Copilot Seats Loaded — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 87,
+        "x": 0
       }
     },
     {
-      "title": "📖 Copilot Seats Loaded — Learning Guide",
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Last Successful Sync — Learning Guide\n\n### 📡 GitHub API Source\nInternal sync_jobs table (no GitHub API)\n\n### 🗄️ Database Table(s)\n`sync_jobs`\n\n### 📐 How It's Calculated\nMAX(finished_at) from sync_jobs where status='success'. Shows when the last complete sync run finished.\n\n### 🔍 SQL Query\n```sql\nSELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'\n```\n\n### ⚠️ Calculation Challenges\n- **'Successful' sync ≠ all data loaded** — job completes with 'success' while individual fetchers (e.g., Copilot seats) fail silently. Always check records_synced per resource.\n- **Timestamps in UTC** — finished_at stored in UTC; Grafana displays in browser timezone.\n- **sync_jobs is append-only** — each sync adds a row; table grows indefinitely.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether all resources were fetched (check records_synced column).\n- Failure reason if last job has non-'success' status."
+      },
       "id": 207,
       "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 99
-      },
       "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Copilot Seats Loaded\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n`copilot_seats`\n\n### 📐 How It's Calculated\nRow count of copilot_seats table. Used as a data health indicator alongside 'Last Successful Sync'.\n\n### 🔍 SQL Query\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```\n\n### ⚠️ Calculation Challenges\n- **Silent 403 failure** — if the sync server receives a 403 on the seats endpoint, it logs a warning and continues. The table stays at 0 rows. A 'successful' sync job ≠ seats data was loaded.\n- **TRUNCATE + INSERT every sync** — unlike PRs and deployments (incremental), copilot_seats is fully replaced on every sync. A 403 leaves it empty.\n- **Proxy for sync health** — use this alongside 'Last Successful Sync' to confirm data freshness; check server logs if this shows 0.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether seat data is accurate or stale.\n- Breakdown by team or repository.",
-        "mode": "markdown"
-      }
-    },
-    {
       "title": "📖 Last Successful Sync — Learning Guide",
-      "id": 208,
-      "type": "text",
       "gridPos": {
-        "h": 9,
-        "x": 0,
         "w": 24,
-        "y": 108
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Last Successful Sync\n\n### 📡 GitHub API Source\nInternal sync_jobs table (no GitHub API call)\n\n### 🗄️ Database Table(s)\n`sync_jobs`\n\n### 📐 How It's Calculated\nMAX(finished_at) from sync_jobs where status='success'. Shows when the last complete sync run finished.\n\n### 🔍 SQL Query\n```sql\nSELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'\n```\n\n### ⚠️ Calculation Challenges\n- **'Successful' sync ≠ all data loaded** — a sync job completes with status='success' while individual fetchers (e.g., copilot seats) fail silently. Always check records_synced per resource.\n- **Timestamps in UTC** — finished_at is stored in UTC. Grafana displays in browser timezone; a sync at 00:00 UTC appears as yesterday in UTC-5 timezones.\n- **sync_jobs is append-only** — each sync adds a row and the table grows indefinitely. No automatic pruning.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether all resources were successfully fetched (check records_synced column in the job record).\n- Failure reason if the last job has status other than 'success'.",
-        "mode": "markdown"
+        "h": 9,
+        "y": 96,
+        "x": 0
       }
     }
+  ],
+  "tags": [
+    "copilot",
+    "dora",
+    "edu"
   ]
 }

@@ -2,10 +2,6 @@
   "uid": "edu-change-failure-rate",
   "title": "🔥 Change Failure Rate [Edu] [v2]",
   "description": "DORA Pillar: Change Failure Rate — Measures the percentage of deployments that result in a degraded service. Elite teams keep CFR below 5%.",
-  "tags": [
-    "dora",
-    "edu"
-  ],
   "schemaVersion": 36,
   "version": 1,
   "refresh": "5m",
@@ -212,7 +208,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: GitHub Issues (label='incident') + Deployments. Co-occurrence metric — requires 'incident' label discipline."
+      "description": "Source: GitHub Issues (label='incident') + Deployments. Co-occurrence metric. Requires 'incident' label discipline."
     },
     {
       "id": 3,
@@ -274,7 +270,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: GitHub PRs (hotfix/bugfix/rollback labels) + bridge resolver. Different from CFR — measures fix deployments, not incident co-occurrence."
+      "description": "Source: GitHub PRs (hotfix/bugfix/rollback labels) + bridge resolver. Different from CFR — measures fix deployments."
     },
     {
       "id": 4,
@@ -335,7 +331,55 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: GitHub Issues API (label='incident'). No severity tiers. Only issues in this repository are counted."
+      "description": "Source: GitHub Issues API (label='incident'). No severity tiers. Only issues in this repository."
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Change Fail Rate (%) — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n`deployments`, `issues`\n\n### 📐 How It's Calculated\nPercentage of deployments that coincide with a GitHub Issue labeled 'incident'. Co-occurrence by time window, not causal link.\n\n### 🔍 SQL Query\n```sql\nWITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  ROUND(COUNT(DISTINCT df.deployment_id)::numeric /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100, 1) AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND ('$environment' = '__all__' OR d.environment = '$environment')\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **Label discipline required** — issues must be tagged 'incident'. Teams using PagerDuty/Jira show 0% even during real outages.\n- **Correlation, not causation** — joined by time window, not explicit deployment-incident linkage.\n- **All environments equally weighted** — dev and production deployments count the same.\n\n### 💡 What This Metric Doesn't Tell You\n- Severity or business impact of incidents.\n- Incidents tracked outside GitHub Issues."
+      },
+      "id": 200,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Change Fail Rate (%) — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 9,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Deployment Rework Rate (%) — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls?labels=hotfix,bugfix,rollback` + bridge resolver + Deployments\n\n### 🗄️ Database Table(s)\n`pull_requests`, `deployments`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\nPercentage of deployments linked to a PR labeled 'hotfix', 'bugfix', or 'rollback'. Alternative CFR signal via PR labels.\n\n### 🔍 SQL Query\n```sql\nWITH ranked AS (\n  SELECT\n    d.deployment_id,\n    d.created_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS next_deploy_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(\n  COUNT(CASE WHEN next_deploy_at - created_at < INTERVAL '48 hours' THEN 1 END)::numeric * 100.0\n  / NULLIF(COUNT(*), 0), 1\n) AS \"Rework Rate (%)\"\nFROM ranked\n```\n\n### ⚠️ Calculation Challenges\n- **Label discipline required** — teams must consistently label bug-fix PRs.\n- **Rework ≠ incident** — a bugfix may fix a minor issue that never caused an incident.\n- **Bridge resolver required** — deployments without linked PRs are excluded.\n\n### 💡 What This Metric Doesn't Tell You\n- Severity of the bugs being fixed.\n- Whether bugs were introduced by the same deployment or a previous one."
+      },
+      "id": 201,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Deployment Rework Rate (%) — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 18,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Total Incidents — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident`\n\n### 🗄️ Database Table(s)\n`issues`\n\n### 📐 How It's Calculated\nRaw count of GitHub Issues with the 'incident' label created in the selected time window.\n\n### 🔍 SQL Query\n```sql\nSELECT COUNT(*) AS \"Total Incidents\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\nAND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **GitHub Issues only** — incidents in PagerDuty, OpsGenie, Jira, or Slack are not counted.\n- **Single label, no severity** — all incidents count equally; P1 and P3 are indistinguishable without extra labels.\n- **No deduplication** — one incident causing multiple issues is counted multiple times.\n\n### 💡 What This Metric Doesn't Tell You\n- Incident severity or business impact.\n- Incidents tracked outside GitHub Issues."
+      },
+      "id": 202,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Total Incidents — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 27,
+        "x": 0
+      }
     },
     {
       "id": 5,
@@ -345,7 +389,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 36.0
       },
       "datasource": {
         "type": "postgres",
@@ -380,7 +424,7 @@
           "displayMode": "list"
         }
       },
-      "description": "Weekly CFR trend. Weeks with 0 deployments appear as gaps. Low-volume weeks produce extreme rate swings (1/1 = 100%)."
+      "description": "Weekly CFR trend. Zero-deployment weeks = gaps. Low-volume weeks produce extreme rate swings (1/1 = 100%)."
     },
     {
       "id": 6,
@@ -390,7 +434,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 36.0
       },
       "datasource": {
         "type": "postgres",
@@ -429,7 +473,39 @@
           "displayMode": "list"
         }
       },
-      "description": "Source: GitHub Issues (label='incident'). Raw count by created_at week. Retroactive labeling may undercount the most recent weeks."
+      "description": "Source: GitHub Issues (label='incident'). Raw count by created_at week. Retroactive labeling may undercount recent weeks."
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Change Fail Rate over Time — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n`deployments`, `issues`\n\n### 📐 How It's Calculated\nWeekly CFR trend: incident issues per week / deployments per week. Two CTEs joined by week bucket.\n\n### 🔍 SQL Query\n```sql\nWITH weekly_deploys AS (\n  SELECT\n    date_trunc('week', d.created_at) AS week,\n    d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nweekly_failures AS (\n  SELECT DISTINCT date_trunc('week', d.created_at) AS week, d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  wd.week AS time,\n  ROUND(COUNT(DISTINCT wf.deployment_id)::numeric / NULLIF(COUNT(DISTINCT wd.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM weekly_deploys wd\nLEFT JOIN weekly_failures wf ON wf.week = wd.week AND wf.deployment_id = wd.deployment_id\nGROUP BY 1\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Week alignment risk** — deployments and incidents bucketed separately; Monday incident may miss Friday deployment bucket.\n- **Division by zero → NULLIF** — weeks with no deployments are excluded (NULL), appearing as chart gaps.\n- **Low-volume amplification** — 1 deployment + 1 incident = 100% CFR (misleading for infrequent teams).\n\n### 💡 What This Metric Doesn't Tell You\n- Trend causality — a CFR increase may reflect better incident labeling, not more failures.\n- Whether CFR correlates with deployment frequency changes."
+      },
+      "id": 203,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Change Fail Rate over Time — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 44,
+        "x": 0
+      }
+    },
+    {
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 Incidents over Time — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident`\n\n### 🗄️ Database Table(s)\n`issues`\n\n### 📐 How It's Calculated\nWeekly count of issues labeled 'incident', bucketed by created_at week.\n\n### 🔍 SQL Query\n```sql\nSELECT\n  date_trunc('week', i.created_at) AS time,\n  COUNT(*) AS \"Incidents\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\nAND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Raw count, not rate** — 5 incidents during 20 deployments vs 5 incidents during 2 deployments look identical.\n- **Reopened issues retain original created_at** — a reopened incident doesn't appear as new in the reopen week.\n- **Retroactive labeling lag** — teams often add 'incident' label post-resolution; recent weeks appear underreported.\n\n### 💡 What This Metric Doesn't Tell You\n- Incident duration or resolution time.\n- Number of users or services affected."
+      },
+      "id": 204,
+      "type": "text",
+      "transparent": false,
+      "title": "📖 Incidents over Time — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 53,
+        "x": 0
+      }
     },
     {
       "id": 7,
@@ -439,7 +515,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 17
+        "y": 62.0
       },
       "datasource": {
         "type": "postgres",
@@ -468,7 +544,7 @@
           }
         ]
       },
-      "description": "Source: GitHub Issues (label='incident', state='open'). Open in GitHub ≠ active incident. May include issues open long after resolution."
+      "description": "Source: GitHub Issues (label='incident', state='open'). Open in GitHub ≠ active incident. May include issues open long post-resolution."
     },
     {
       "id": 8,
@@ -478,7 +554,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 17
+        "y": 62.0
       },
       "datasource": {
         "type": "postgres",
@@ -509,132 +585,43 @@
           "displayMode": "list"
         }
       },
-      "description": "⚠️ Cohort by deployer's seat status. Sparse incidents cause large swings. Observational only — no causal claim."
+      "description": "⚠️ Cohort by deployer's seat status. Sparse incidents cause large swings. Observational only."
     },
     {
-      "collapsed": false,
-      "title": "📚 Learning Guide — How This Dashboard Works",
-      "id": 200,
-      "type": "row",
-      "gridPos": {
-        "h": 1,
-        "x": 0,
-        "w": 24,
-        "y": 25.0
-      },
-      "panels": []
-    },
-    {
-      "title": "📖 Change Fail Rate (%) — Learning Guide",
-      "id": 201,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 26
-      },
-      "transparent": false,
       "options": {
-        "content": "## 📖 Learning Guide: Change Fail Rate (%)\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n`deployments`, `issues`\n\n### 📐 How It's Calculated\nPercentage of deployments that coincide with a GitHub Issue labeled 'incident' in the same time window. Co-occurrence, not causation.\n\n### 🔍 SQL Query\n```sql\nWITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  ROUND(COUNT(DISTINCT df.deployment_id)::numeric /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100, 1) AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND ('$environment' = '__all__' OR d.environment = '$environment')\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **Label discipline required** — issues must be tagged 'incident'. Teams using PagerDuty, Jira, or Slack show 0% CFR even during real outages.\n- **Correlation, not causation** — the query joins by time window, not by explicit deployment-incident linkage.\n- **All environments weighted equally** — dev and staging deployments count in the denominator alongside production.\n\n### 💡 What This Metric Doesn't Tell You\n- Severity or business impact of incidents.\n- Incidents tracked outside GitHub Issues.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 Deployment Rework Rate (%) — Learning Guide",
-      "id": 202,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 35
+        "mode": "markdown",
+        "content": "## 📖 Open Incidents — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident&state=open`\n\n### 🗄️ Database Table(s)\n`issues`\n\n### 📐 How It's Calculated\nTable of currently open GitHub Issues labeled 'incident', ordered by creation date.\n\n### 🔍 SQL Query\n```sql\nSELECT\n  i.number AS \"Issue #\",\n  i.title AS \"Title\",\n  i.user_login AS \"Reporter\",\n  i.created_at AS \"Created At\",\n  i.state AS \"State\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'\nORDER BY i.created_at DESC\nLIMIT 50\n```\n\n### ⚠️ Calculation Challenges\n- **'Open' in GitHub ≠ active incident** — may remain open as post-incident tracking artifact after service restored.\n- **Stale issues** — teams often forget to close incident issues; list may include issues resolved months ago.\n- **Sync lag** — issues opened since the last sync won't appear.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether any listed incidents are actively affecting users right now.\n- Assigned responder or current incident status."
       },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Deployment Rework Rate (%)\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n`GET /repos/{owner}/{repo}/pulls?labels=hotfix,bugfix,rollback` + bridge resolver + Deployments\n\n### 🗄️ Database Table(s)\n`pull_requests`, `deployments`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\nPercentage of deployments linked to a PR labeled 'hotfix', 'bugfix', or 'rollback'. An alternative CFR signal using PR labels instead of incident issues.\n\n### 🔍 SQL Query\n```sql\nWITH ranked AS (\n  SELECT\n    d.deployment_id,\n    d.created_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS next_deploy_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(\n  COUNT(CASE WHEN next_deploy_at - created_at < INTERVAL '48 hours' THEN 1 END)::numeric * 100.0\n  / NULLIF(COUNT(*), 0), 1\n) AS \"Rework Rate (%)\"\nFROM ranked\n```\n\n### ⚠️ Calculation Challenges\n- **Label discipline required** — same caveat as CFR. Teams must consistently label bug-fix PRs.\n- **Rework ≠ incident** — a bugfix PR may address a minor issue that never caused an incident. Rework rate and CFR measure different things.\n- **Bridge resolver required** — deployments without linked PRs are excluded from the rework calculation.\n\n### 💡 What This Metric Doesn't Tell You\n- Severity of the bugs being fixed.\n- Whether bugs were introduced by the same deployment or a previous one.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 Total Incidents — Learning Guide",
-      "id": 203,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 44
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Total Incidents\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident`\n\n### 🗄️ Database Table(s)\n`issues`\n\n### 📐 How It's Calculated\nRaw count of GitHub Issues with the 'incident' label created in the selected time window.\n\n### 🔍 SQL Query\n```sql\nSELECT COUNT(*) AS \"Total Incidents\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\nAND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```\n\n### ⚠️ Calculation Challenges\n- **GitHub Issues only** — incidents in PagerDuty, OpsGenie, Jira, or Slack are not counted.\n- **Single label, no severity** — all incidents count equally; P1 and P3 are indistinguishable without additional labels.\n- **No deduplication** — one incident causing multiple issues (e.g., ops + dev tracking) is counted multiple times.\n\n### 💡 What This Metric Doesn't Tell You\n- Incident severity or business impact.\n- Incidents tracked outside GitHub Issues.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 Change Fail Rate over Time — Learning Guide",
-      "id": 204,
-      "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 53
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Change Fail Rate over Time\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n`deployments`, `issues`\n\n### 📐 How It's Calculated\nWeekly CFR trend: incident issues per week / deployments per week. Uses two CTEs joined by week bucket.\n\n### 🔍 SQL Query\n```sql\nWITH weekly_deploys AS (\n  SELECT\n    date_trunc('week', d.created_at) AS week,\n    d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nweekly_failures AS (\n  SELECT DISTINCT date_trunc('week', d.created_at) AS week, d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  wd.week AS time,\n  ROUND(COUNT(DISTINCT wf.deployment_id)::numeric / NULLIF(COUNT(DISTINCT wd.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM weekly_deploys wd\nLEFT JOIN weekly_failures wf ON wf.week = wd.week AND wf.deployment_id = wd.deployment_id\nGROUP BY 1\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Week alignment risk** — deployments and incidents are bucketed separately; an incident opened on Monday after a Friday deployment may fall in different week buckets.\n- **Division by zero handled by NULLIF** — weeks with no deployments are excluded (NULL, not 0%), appearing as chart gaps.\n- **Low-volume amplification** — 1 deployment + 1 incident in one week = 100% CFR, which is statistically misleading.\n\n### 💡 What This Metric Doesn't Tell You\n- Trend causality — a CFR increase may reflect better incident labeling, not more failures.\n- Whether CFR correlates with deployment frequency changes.",
-        "mode": "markdown"
-      }
-    },
-    {
-      "title": "📖 Incidents over Time — Learning Guide",
       "id": 205,
       "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 62
-      },
       "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Incidents over Time\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident`\n\n### 🗄️ Database Table(s)\n`issues`\n\n### 📐 How It's Calculated\nWeekly count of issues labeled 'incident', bucketed by created_at week.\n\n### 🔍 SQL Query\n```sql\nSELECT\n  date_trunc('week', i.created_at) AS time,\n  COUNT(*) AS \"Incidents\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\nAND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Raw count, not rate** — 5 incidents during 20 deployments is very different from 5 incidents during 2 deployments, but this chart treats them the same.\n- **Reopened issues retain original created_at** — a reopened incident doesn't appear as a new event in the reopen week.\n- **Retroactive labeling lag** — teams often add the 'incident' label after resolution, making recent weeks appear underreported.\n\n### 💡 What This Metric Doesn't Tell You\n- Incident duration or resolution time.\n- Number of users or services affected.",
-        "mode": "markdown"
+      "title": "📖 Open Incidents — Learning Guide",
+      "gridPos": {
+        "w": 24,
+        "h": 9,
+        "y": 70,
+        "x": 0
       }
     },
     {
-      "title": "📖 Open Incidents — Learning Guide",
+      "options": {
+        "mode": "markdown",
+        "content": "## 📖 CFR: Copilot vs Non-Copilot — Learning Guide\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\nGitHub Issues (incident label) + Deployments API + Copilot seats\n\n### 🗄️ Database Table(s)\n`deployments`, `issues`, `copilot_seats`\n\n### 📐 How It's Calculated\nCompares change failure rate between deployers with active Copilot seats and those without.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\ndeploy_cohorts AS (\n  SELECT\n    d.deployment_id,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort\n  FROM deployments d\n  JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  JOIN pull_requests pr ON pr.number = dpr.pr_number\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nfailures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  dc.cohort AS \"Cohort\",\n  ROUND(COUNT(DISTINCT f.deployment_id)::numeric / NULLIF(COUNT(DISTINCT dc.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM deploy_cohorts dc\nLEFT JOIN failures f ON f.deployment_id = dc.deployment_id\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Attribution by deployer** — cohort uses creator_login, not the developer who wrote the failing code.\n- **Incident sparsity bias** — one extra incident can swing a cohort's CFR by 10–20 percentage points.\n- **Selection bias** — experienced engineers may have more Copilot seats and also deploy more carefully.\n\n### 💡 What This Metric Doesn't Tell You\n- Statistical significance of the CFR difference.\n- Causality — many confounders exist."
+      },
       "id": 206,
       "type": "text",
-      "gridPos": {
-        "h": 9,
-        "x": 0,
-        "w": 24,
-        "y": 71
-      },
       "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: Open Incidents\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n`GET /repos/{owner}/{repo}/issues?labels=incident&state=open`\n\n### 🗄️ Database Table(s)\n`issues`\n\n### 📐 How It's Calculated\nTable of currently open GitHub Issues labeled 'incident', ordered by creation date.\n\n### 🔍 SQL Query\n```sql\nSELECT\n  i.number AS \"Issue #\",\n  i.title AS \"Title\",\n  i.user_login AS \"Reporter\",\n  i.created_at AS \"Created At\",\n  i.state AS \"State\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'\nORDER BY i.created_at DESC\nLIMIT 50\n```\n\n### ⚠️ Calculation Challenges\n- **'Open' in GitHub ≠ active incident** — an issue may remain open as a post-incident tracking artifact after the service is restored.\n- **Stale issues** — teams often forget to close incident issues after resolution; a long list may include many resolved months ago.\n- **Sync lag** — issues opened since the last sync won't appear here.\n\n### 💡 What This Metric Doesn't Tell You\n- Whether any listed incidents are actively affecting users right now.\n- Assigned responder or current incident status.",
-        "mode": "markdown"
-      }
-    },
-    {
       "title": "📖 CFR: Copilot vs Non-Copilot — Learning Guide",
-      "id": 207,
-      "type": "text",
       "gridPos": {
-        "h": 9,
-        "x": 0,
         "w": 24,
-        "y": 80
-      },
-      "transparent": false,
-      "options": {
-        "content": "## 📖 Learning Guide: CFR: Copilot vs Non-Copilot\n\n### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\nGitHub Issues (incident label) + Deployments API + Copilot seats\n\n### 🗄️ Database Table(s)\n`deployments`, `issues`, `copilot_seats`\n\n### 📐 How It's Calculated\nCompares change failure rate between deployers with active Copilot seats and those without.\n\n### 🔍 SQL Query\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\ndeploy_cohorts AS (\n  SELECT\n    d.deployment_id,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort\n  FROM deployments d\n  JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  JOIN pull_requests pr ON pr.number = dpr.pr_number\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nfailures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  dc.cohort AS \"Cohort\",\n  ROUND(COUNT(DISTINCT f.deployment_id)::numeric / NULLIF(COUNT(DISTINCT dc.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM deploy_cohorts dc\nLEFT JOIN failures f ON f.deployment_id = dc.deployment_id\nGROUP BY 1\n```\n\n### ⚠️ Calculation Challenges\n- **Attribution by deployer** — cohort uses creator_login (who triggered the deployment), not the developer who wrote the failing code.\n- **Incident sparsity bias** — with few incidents, one extra incident can swing a cohort's CFR by 10–20 percentage points.\n- **Selection bias** — experienced engineers may have more Copilot seats and also deploy more carefully, independently of Copilot.\n\n### 💡 What This Metric Doesn't Tell You\n- Statistical significance of the CFR difference.\n- Causality — many confounders exist between Copilot users and non-users.",
-        "mode": "markdown"
+        "h": 9,
+        "y": 79,
+        "x": 0
       }
     }
+  ],
+  "tags": [
+    "dora",
+    "edu"
   ]
 }
