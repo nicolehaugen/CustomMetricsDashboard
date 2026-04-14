@@ -211,14 +211,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (`src/sync/bridge-resolver.ts`) | Tables: `deployments`, `pull_requests`, `deployment_pull_requests`"
     },
     {
+      "id": 200,
+      "type": "row",
+      "title": "Change Lead Time (median hours) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 250,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (`src/sync/bridge-resolver.ts`)\n\n### 🗄️ Database Table(s)\n\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nMedian of `(deployment.created_at - pr.merged_at)` in hours for PRs linked via `deployment_pull_requests`. Bridge resolver strategies: `direct_sha` (deployment SHA = PR merge_commit_sha) and `squash_fallback` (deployment SHA = PR head_sha). Unlinked PRs are excluded entirely.\n\n### 🔍 SQL Query\n\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      }
+    },
+    {
+      "id": 300,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 3,
       "type": "stat",
       "title": "PR Cycle Time (median hours)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 17
+        "x": 0,
+        "y": 24
       },
       "datasource": {
         "type": "postgres",
@@ -273,14 +319,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls?state=closed` | Tables: `pull_requests`"
     },
     {
+      "id": 201,
+      "type": "row",
+      "title": "PR Cycle Time (median hours) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 251,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 29
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls?state=closed`\n\n### 🗄️ Database Table(s)\n\n`pull_requests`\n\n### 📐 How It's Calculated\n\nMedian of `(merged_at - created_at)` in hours for merged pull requests. Measures wall-clock time including nights, weekends, and bank holidays. Draft PRs opened weeks before active review artificially inflate this metric.\n\n### 🔍 SQL Query\n\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    },
+    {
+      "id": 301,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 4,
       "type": "stat",
       "title": "P90 Lead Time (hours)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 17
+        "x": 0,
+        "y": 31
       },
       "datasource": {
         "type": "postgres",
@@ -335,66 +427,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls` + bridge resolver + `GET /repos/{owner}/{repo}/deployments` | Tables: `deployments`, `pull_requests`, `deployment_pull_requests`"
     },
     {
-      "id": 200,
-      "type": "row",
-      "title": "Change Lead Time (median hours) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 250,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 22
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (`src/sync/bridge-resolver.ts`)\n\n### 🗄️ Database Table(s)\n\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nMedian of `(deployment.created_at - pr.merged_at)` in hours for PRs linked via `deployment_pull_requests`. Bridge resolver strategies: `direct_sha` (deployment SHA = PR merge_commit_sha) and `squash_fallback` (deployment SHA = PR head_sha). Unlinked PRs are excluded entirely.\n\n### 🔍 SQL Query\n\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 21
-      }
-    },
-    {
-      "id": 201,
-      "type": "row",
-      "title": "PR Cycle Time (median hours) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 251,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 23
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls?state=closed`\n\n### 🗄️ Database Table(s)\n\n`pull_requests`\n\n### 📐 How It's Calculated\n\nMedian of `(merged_at - created_at)` in hours for merged pull requests. Measures wall-clock time including nights, weekends, and bank holidays. Draft PRs opened weeks before active review artificially inflate this metric.\n\n### 🔍 SQL Query\n\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nWHERE pr.merged_at IS NOT NULL\n  AND pr.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 22
-      }
-    },
-    {
       "id": 202,
       "type": "row",
       "title": "P90 Lead Time (hours) - Learning Guide",
@@ -409,7 +441,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 36
           },
           "options": {
             "mode": "markdown",
@@ -421,7 +453,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 35
+      }
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -432,7 +480,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24.0
+        "y": 38
       },
       "datasource": {
         "type": "postgres",
@@ -470,14 +518,60 @@
       "description": "Source: Bridge resolver + `GET /repos/{owner}/{repo}/pulls` + `GET /repos/{owner}/{repo}/deployments` | Tables: `deployments`, `pull_requests`, `deployment_pull_requests`"
     },
     {
+      "id": 203,
+      "type": "row",
+      "title": "Change Lead Time over Time - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 253,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 47
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\nBridge resolver + `GET /repos/{owner}/{repo}/pulls` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nWeekly P50 and P90 of lead time, bucketed by the deployment week (`date_trunc('week', d.created_at)`). A PR merged in week 3 but deployed in week 5 appears in week 5's bucket. Sparse weeks (few linked PRs) produce unstable percentiles.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P50 (hours)\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P90 (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      }
+    },
+    {
+      "id": 303,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 6,
       "type": "timeseries",
       "title": "PR Cycle Time over Time",
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 24.0
+        "x": 0,
+        "y": 49
       },
       "datasource": {
         "type": "postgres",
@@ -515,36 +609,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls?state=closed` | Tables: `pull_requests`"
     },
     {
-      "id": 203,
-      "type": "row",
-      "title": "Change Lead Time over Time - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 253,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 33
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\nBridge resolver + `GET /repos/{owner}/{repo}/pulls` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `pull_requests`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nWeekly P50 and P90 of lead time, bucketed by the deployment week (`date_trunc('week', d.created_at)`). A PR merged in week 3 but deployed in week 5 appears in week 5's bucket. Sparse weeks (few linked PRs) produce unstable percentiles.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P50 (hours)\",\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  ) AS \"Lead Time P90 (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 32
-      }
-    },
-    {
       "id": 204,
       "type": "row",
       "title": "PR Cycle Time over Time - Learning Guide",
@@ -559,7 +623,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 34
+            "y": 58
           },
           "options": {
             "mode": "markdown",
@@ -571,7 +635,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 57
+      }
+    },
+    {
+      "id": 304,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -582,7 +662,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 34.0
+        "y": 60
       },
       "datasource": {
         "type": "postgres",
@@ -614,14 +694,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls` + bridge resolver | Tables: `pull_requests`, `deployment_pull_requests`, `deployments`"
     },
     {
+      "id": 205,
+      "type": "row",
+      "title": "Slowest PRs by Lead Time - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 255,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 69
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + bridge resolver\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `deployment_pull_requests`, `deployments`\n\n### 📐 How It's Calculated\n\nTop PRs sorted by longest `(deployment.created_at - pr.merged_at)`. A PR linked to multiple deployments (staging + production) appears once per deployment. Only bridge-resolver-linked PRs are shown — unlinked PRs are absent.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  ROUND(EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time (hours)\" DESC\nLIMIT 20\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 68
+      }
+    },
+    {
+      "id": 305,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 8,
       "type": "barchart",
       "title": "Lead Time: Copilot vs Non-Copilot",
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 34.0
+        "x": 0,
+        "y": 71
       },
       "datasource": {
         "type": "postgres",
@@ -655,36 +781,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls` + bridge resolver + `GET /orgs/{org}/copilot/seats` | Tables: `pull_requests`, `copilot_seats`, `deployment_pull_requests`, `deployments`"
     },
     {
-      "id": 205,
-      "type": "row",
-      "title": "Slowest PRs by Lead Time - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 255,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 43
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + bridge resolver\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `deployment_pull_requests`, `deployments`\n\n### 📐 How It's Calculated\n\nTop PRs sorted by longest `(deployment.created_at - pr.merged_at)`. A PR linked to multiple deployments (staging + production) appears once per deployment. Only bridge-resolver-linked PRs are shown — unlinked PRs are absent.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  pr.merged_at AS \"Merged At\",\n  d.created_at AS \"Deployed At\",\n  ROUND(EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY \"Lead Time (hours)\" DESC\nLIMIT 20\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 42
-      }
-    },
-    {
       "id": 206,
       "type": "row",
       "title": "Lead Time: Copilot vs Non-Copilot - Learning Guide",
@@ -699,7 +795,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 44
+            "y": 80
           },
           "options": {
             "mode": "markdown",
@@ -711,7 +807,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 79
+      }
+    },
+    {
+      "id": 306,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 80
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     }
   ],

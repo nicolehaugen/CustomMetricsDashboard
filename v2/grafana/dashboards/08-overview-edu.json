@@ -188,14 +188,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
     },
     {
+      "id": 200,
+      "type": "row",
+      "title": "Deployment Frequency - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 250,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nCounts distinct successful deployments divided by the number of weeks in the selected time window. Only deployments made via the GitHub Deployments API are counted — external CI/CD tools not integrated with this API are invisible.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(DISTINCT d.deployment_id)::float / 4 AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      }
+    },
+    {
+      "id": 300,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 3,
       "type": "stat",
       "title": "Lead Time (median hours)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 17
+        "x": 0,
+        "y": 24
       },
       "datasource": {
         "type": "postgres",
@@ -250,14 +296,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (`src/sync/bridge-resolver.ts`) | Tables: `pull_requests`, `deployments`, `deployment_pull_requests`"
     },
     {
+      "id": 201,
+      "type": "row",
+      "title": "Lead Time (median hours) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 251,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 29
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (`src/sync/bridge-resolver.ts`)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `deployments`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nMedian hours from PR merge to first successful deployment, linked via bridge resolver SHA-matching. PRs whose merge_commit_sha (or head_sha for squash merges) does not match any deployment SHA are excluded from the calculation.\n\n### 🔍 SQL Query\n\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND pr.merged_at IS NOT NULL\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    },
+    {
+      "id": 301,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 4,
       "type": "stat",
       "title": "Change Fail Rate",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 17
+        "x": 0,
+        "y": 31
       },
       "datasource": {
         "type": "postgres",
@@ -312,14 +404,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments` | Tables: `deployments`, `issues`"
     },
     {
+      "id": 202,
+      "type": "row",
+      "title": "Change Fail Rate - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 252,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 36
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `issues`\n\n### 📐 How It's Calculated\n\nPercentage of deployments that co-occur with a GitHub Issue labeled 'incident' in the same time window. Co-occurrence is by time bucket, not an explicit causal link. Requires consistent use of the 'incident' label — incidents in PagerDuty, Jira, or Slack are invisible.\n\n### 🔍 SQL Query\n\n```sql\nWITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.created_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  COUNT(DISTINCT df.deployment_id)::float /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100 AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      }
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 5,
       "type": "stat",
       "title": "MTTR (median)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 18,
-        "y": 17
+        "x": 0,
+        "y": 38
       },
       "datasource": {
         "type": "postgres",
@@ -374,96 +512,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
     },
     {
-      "id": 200,
-      "type": "row",
-      "title": "Deployment Frequency - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 250,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 22
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nCounts distinct successful deployments divided by the number of weeks in the selected time window. Only deployments made via the GitHub Deployments API are counted — external CI/CD tools not integrated with this API are invisible.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(DISTINCT d.deployment_id)::float / 4 AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 21
-      }
-    },
-    {
-      "id": 201,
-      "type": "row",
-      "title": "Lead Time (median hours) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 251,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 23
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` (merged) + `GET /repos/{owner}/{repo}/deployments` + bridge resolver (`src/sync/bridge-resolver.ts`)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `deployments`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nMedian hours from PR merge to first successful deployment, linked via bridge resolver SHA-matching. PRs whose merge_commit_sha (or head_sha for squash merges) does not match any deployment SHA are excluded from the calculation.\n\n### 🔍 SQL Query\n\n```sql\nSELECT PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND pr.merged_at IS NOT NULL\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 22
-      }
-    },
-    {
-      "id": 202,
-      "type": "row",
-      "title": "Change Fail Rate - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 252,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 24
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `issues`\n\n### 📐 How It's Calculated\n\nPercentage of deployments that co-occur with a GitHub Issue labeled 'incident' in the same time window. Co-occurrence is by time bucket, not an explicit causal link. Requires consistent use of the 'incident' label — incidents in PagerDuty, Jira, or Slack are invisible.\n\n### 🔍 SQL Query\n\n```sql\nWITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.created_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  COUNT(DISTINCT df.deployment_id)::float /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100 AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND d.created_at >= NOW() - INTERVAL '28 days'\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 23
-      }
-    },
-    {
       "id": 203,
       "type": "row",
       "title": "MTTR (median) - Learning Guide",
@@ -478,7 +526,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 43
           },
           "options": {
             "mode": "markdown",
@@ -490,7 +538,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 42
+      }
+    },
+    {
+      "id": 303,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -501,7 +565,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 25.0
+        "y": 45
       },
       "datasource": {
         "type": "postgres",
@@ -547,14 +611,60 @@
       "description": "Source: `GET /orgs/{org}/copilot/seats` | Tables: `copilot_seats`"
     },
     {
+      "id": 204,
+      "type": "row",
+      "title": "Active Copilot Seats - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 254,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 50
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of seats where `last_activity_at >= NOW() - INTERVAL '28 days'`. This window is **hardcoded** and does not respond to the Grafana time picker. A 403 error during sync silently leaves this table empty.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Active Seats\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      }
+    },
+    {
+      "id": 304,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 50
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 7,
       "type": "stat",
       "title": "Acceptance Rate (%)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 25.0
+        "x": 0,
+        "y": 52
       },
       "datasource": {
         "type": "postgres",
@@ -609,14 +719,60 @@
       "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
     },
     {
+      "id": 205,
+      "type": "row",
+      "title": "Acceptance Rate (%) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 255,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 57
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nRatio of accepted lines to suggested lines. The endpoint returns a `download_links` envelope (not inline JSON) — the sync server must fetch the signed S3 URL separately and parse each line as a distinct JSON object (NDJSON format).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COALESCE(ROUND(SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1), 0) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics WHERE day >= NOW()::date - 28\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      }
+    },
+    {
+      "id": 305,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 57
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 8,
       "type": "stat",
       "title": "Copilot PR Rate (%)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 25.0
+        "x": 0,
+        "y": 59
       },
       "datasource": {
         "type": "postgres",
@@ -671,14 +827,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API) | Tables: `pull_requests`, `copilot_seats`"
     },
     {
+      "id": 206,
+      "type": "row",
+      "title": "Copilot PR Rate (%) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 256,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 64
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nPercentage of merged PRs whose author has an active Copilot seat. ⚠️ **Proxy metric** — the GitHub API provides no per-PR or per-commit signal indicating Copilot was used. Active seat is the only available signal.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at >= NOW() - INTERVAL '28 days'\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 63
+      }
+    },
+    {
+      "id": 306,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 64
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 9,
       "type": "stat",
       "title": "Lines Accepted (28d)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 18,
-        "y": 25.0
+        "x": 0,
+        "y": 66
       },
       "datasource": {
         "type": "postgres",
@@ -724,96 +926,6 @@
       "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_added_sum` | Tables: `copilot_org_metrics`"
     },
     {
-      "id": 204,
-      "type": "row",
-      "title": "Active Copilot Seats - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 254,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 30
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of seats where `last_activity_at >= NOW() - INTERVAL '28 days'`. This window is **hardcoded** and does not respond to the Grafana time picker. A 403 error during sync silently leaves this table empty.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Active Seats\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 29
-      }
-    },
-    {
-      "id": 205,
-      "type": "row",
-      "title": "Acceptance Rate (%) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 255,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 31
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nRatio of accepted lines to suggested lines. The endpoint returns a `download_links` envelope (not inline JSON) — the sync server must fetch the signed S3 URL separately and parse each line as a distinct JSON object (NDJSON format).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COALESCE(ROUND(SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1), 0) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics WHERE day >= NOW()::date - 28\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 30
-      }
-    },
-    {
-      "id": 206,
-      "type": "row",
-      "title": "Copilot PR Rate (%) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 256,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 32
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nPercentage of merged PRs whose author has an active Copilot seat. ⚠️ **Proxy metric** — the GitHub API provides no per-PR or per-commit signal indicating Copilot was used. Active seat is the only available signal.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at >= NOW() - INTERVAL '28 days'\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 31
-      }
-    },
-    {
       "id": 207,
       "type": "row",
       "title": "Lines Accepted (28d) - Learning Guide",
@@ -828,7 +940,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 33
+            "y": 71
           },
           "options": {
             "mode": "markdown",
@@ -840,7 +952,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 70
+      }
+    },
+    {
+      "id": 307,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 71
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     }
   ],

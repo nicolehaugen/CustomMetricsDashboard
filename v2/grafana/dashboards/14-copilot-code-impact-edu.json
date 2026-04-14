@@ -179,14 +179,60 @@
       "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_added_sum` | Tables: `copilot_org_metrics`"
     },
     {
+      "id": 200,
+      "type": "row",
+      "title": "Lines Accepted (28d) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 250,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_added_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nSum of `loc_added_sum` across daily rows in the selected date range. 'Accepted' means kept at suggestion time — the developer may immediately delete accepted lines. Org-level aggregate only; no per-repo or per-team breakdown.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_added_sum) AS \"Lines Accepted (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      }
+    },
+    {
+      "id": 300,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 3,
       "type": "stat",
       "title": "Lines Suggested (28d)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 17
+        "x": 0,
+        "y": 24
       },
       "datasource": {
         "type": "postgres",
@@ -232,14 +278,60 @@
       "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
     },
     {
+      "id": 201,
+      "type": "row",
+      "title": "Lines Suggested (28d) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 251,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 29
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTotal lines Copilot suggested (accepted or rejected) in the selected date range. Same download_links → NDJSON fetch pattern as all Copilot Metrics Reports endpoints. Org-level aggregate only — no per-repository or per-team breakdown.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_suggested_to_add_sum) AS \"Lines Suggested (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    },
+    {
+      "id": 301,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 4,
       "type": "stat",
       "title": "Acceptance Rate (%)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 17
+        "x": 0,
+        "y": 31
       },
       "datasource": {
         "type": "postgres",
@@ -294,14 +386,60 @@
       "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
     },
     {
+      "id": 202,
+      "type": "row",
+      "title": "Acceptance Rate (%) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 252,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 36
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nRatio of accepted lines to suggested lines. The endpoint returns a `download_links` envelope (not inline JSON) — the sync server must fetch the signed S3 URL separately and parse each line as a distinct JSON object (NDJSON format).\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      }
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 5,
       "type": "stat",
       "title": "Copilot-Attributed PRs",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 18,
-        "y": 17
+        "x": 0,
+        "y": 38
       },
       "datasource": {
         "type": "postgres",
@@ -347,96 +485,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal in GitHub API) | Tables: `pull_requests`, `copilot_seats`"
     },
     {
-      "id": 200,
-      "type": "row",
-      "title": "Lines Accepted (28d) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 250,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 22
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_added_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nSum of `loc_added_sum` across daily rows in the selected date range. 'Accepted' means kept at suggestion time — the developer may immediately delete accepted lines. Org-level aggregate only; no per-repo or per-team breakdown.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_added_sum) AS \"Lines Accepted (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 21
-      }
-    },
-    {
-      "id": 201,
-      "type": "row",
-      "title": "Lines Suggested (28d) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 251,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 23
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTotal lines Copilot suggested (accepted or rejected) in the selected date range. Same download_links → NDJSON fetch pattern as all Copilot Metrics Reports endpoints. Org-level aggregate only — no per-repository or per-team breakdown.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_suggested_to_add_sum) AS \"Lines Suggested (28d)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 22
-      }
-    },
-    {
-      "id": 202,
-      "type": "row",
-      "title": "Acceptance Rate (%) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 252,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 24
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (API version 2026-03-10) → NDJSON → `loc_added_sum / loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nRatio of accepted lines to suggested lines. The endpoint returns a `download_links` envelope (not inline JSON) — the sync server must fetch the signed S3 URL separately and parse each line as a distinct JSON object (NDJSON format).\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  SUM(loc_added_sum)::numeric / NULLIF(SUM(loc_suggested_to_add_sum), 0) * 100, 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 23
-      }
-    },
-    {
       "id": 203,
       "type": "row",
       "title": "Copilot-Attributed PRs - Learning Guide",
@@ -451,7 +499,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 43
           },
           "options": {
             "mode": "markdown",
@@ -463,7 +511,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 42
+      }
+    },
+    {
+      "id": 303,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -474,7 +538,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 25.0
+        "y": 45
       },
       "datasource": {
         "type": "postgres",
@@ -512,14 +576,60 @@
       "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → daily rows | Tables: `copilot_org_metrics`"
     },
     {
+      "id": 204,
+      "type": "row",
+      "title": "Lines Accepted vs Suggested over Time - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 254,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 54
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → daily rows\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTime series showing both `loc_suggested_to_add_sum` and `loc_added_sum` per day. Coverage is limited to the last 28 days (rolling window from today). The current calendar day may be incomplete if the sync ran before end of day.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  day AS time,\n  loc_suggested_to_add_sum AS \"Lines Suggested\",\n  loc_added_sum AS \"Lines Added\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      }
+    },
+    {
+      "id": 304,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 7,
       "type": "timeseries",
       "title": "Acceptance Rate Trend",
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 25.0
+        "x": 0,
+        "y": 56
       },
       "datasource": {
         "type": "postgres",
@@ -557,36 +667,6 @@
       "description": "Source: Copilot Metrics Reports API → `totals_by_language` JSONB array → `loc_added_sum / loc_suggested_to_add_sum` | Tables: `copilot_org_metrics`"
     },
     {
-      "id": 204,
-      "type": "row",
-      "title": "Lines Accepted vs Suggested over Time - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 254,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 34
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` → daily rows\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTime series showing both `loc_suggested_to_add_sum` and `loc_added_sum` per day. Coverage is limited to the last 28 days (rolling window from today). The current calendar day may be incomplete if the sync ran before end of day.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  day AS time,\n  loc_suggested_to_add_sum AS \"Lines Suggested\",\n  loc_added_sum AS \"Lines Added\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 33
-      }
-    },
-    {
       "id": 205,
       "type": "row",
       "title": "Acceptance Rate Trend - Learning Guide",
@@ -601,7 +681,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 35
+            "y": 65
           },
           "options": {
             "mode": "markdown",
@@ -613,7 +693,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 64
+      }
+    },
+    {
+      "id": 305,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 65
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -624,7 +720,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 35.0
+        "y": 67
       },
       "datasource": {
         "type": "postgres",
@@ -679,14 +775,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API) | Tables: `pull_requests`, `copilot_seats`"
     },
     {
+      "id": 206,
+      "type": "row",
+      "title": "Copilot PR Rate (%) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 256,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 72
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nPercentage of merged PRs whose author has an active Copilot seat. ⚠️ **Proxy metric** — the GitHub API provides no per-PR or per-commit signal indicating Copilot was used. Active seat is the only available signal.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 71
+      }
+    },
+    {
+      "id": 306,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 72
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 9,
       "type": "table",
       "title": "Top 10 by Lines Added (Copilot Users)",
       "gridPos": {
         "h": 8,
         "w": 18,
-        "x": 6,
-        "y": 35.0
+        "x": 0,
+        "y": 74
       },
       "datasource": {
         "type": "postgres",
@@ -718,36 +860,6 @@
       "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` (2026-03-10) → per-user NDJSON | Tables: `copilot_user_metrics`"
     },
     {
-      "id": 206,
-      "type": "row",
-      "title": "Copilot PR Rate (%) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 256,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 44
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls` + `GET /orgs/{org}/copilot/seats` (proxy — no per-PR Copilot signal exists in GitHub API)\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nPercentage of merged PRs whose author has an active Copilot seat. ⚠️ **Proxy metric** — the GitHub API provides no per-PR or per-commit signal indicating Copilot was used. Active seat is the only available signal.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN cu.assignee_id IS NOT NULL THEN pr.id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT pr.id), 0), 1\n) AS \"Copilot PR Rate (%)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 43
-      }
-    },
-    {
       "id": 207,
       "type": "row",
       "title": "Top 10 by Lines Added (Copilot Users) - Learning Guide",
@@ -762,7 +874,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 45
+            "y": 83
           },
           "options": {
             "mode": "markdown",
@@ -774,7 +886,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 82
+      }
+    },
+    {
+      "id": 307,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 83
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -785,7 +913,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 45.0
+        "y": 85
       },
       "datasource": {
         "type": "postgres",
@@ -839,14 +967,60 @@
       "description": "Source: `GET /orgs/{org}/copilot/seats` | Tables: `copilot_seats`"
     },
     {
+      "id": 208,
+      "type": "row",
+      "title": "Copilot Seats Loaded - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 258,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 90
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRow count of `copilot_seats` table — a data health indicator. If 0, the last sync did not load seat data (check server logs for a silent 403). The table is fully replaced on every sync (TRUNCATE + INSERT), unlike PRs and deployments (incremental).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 89
+      }
+    },
+    {
+      "id": 308,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 90
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 12,
       "type": "stat",
       "title": "Last Successful Sync",
       "gridPos": {
         "h": 4,
         "w": 12,
-        "x": 12,
-        "y": 45.0
+        "x": 0,
+        "y": 92
       },
       "datasource": {
         "type": "postgres",
@@ -896,36 +1070,6 @@
       "description": "Source: Internal `sync_jobs` table (no GitHub API call) | Tables: `sync_jobs`"
     },
     {
-      "id": 208,
-      "type": "row",
-      "title": "Copilot Seats Loaded - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 258,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 50
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRow count of `copilot_seats` table — a data health indicator. If 0, the last sync did not load seat data (check server logs for a silent 403). The table is fully replaced on every sync (TRUNCATE + INSERT), unlike PRs and deployments (incremental).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 49
-      }
-    },
-    {
       "id": 209,
       "type": "row",
       "title": "Last Successful Sync - Learning Guide",
@@ -940,7 +1084,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 51
+            "y": 97
           },
           "options": {
             "mode": "markdown",
@@ -952,7 +1096,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 96
+      }
+    },
+    {
+      "id": 309,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 97
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     }
   ],

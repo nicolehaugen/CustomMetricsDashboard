@@ -179,14 +179,60 @@
       "description": "Source: `GET /orgs/{org}/copilot/seats` | Tables: `copilot_seats`"
     },
     {
+      "id": 200,
+      "type": "row",
+      "title": "Total Seats - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 250,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nTotal count of all rows in `copilot_seats` at sync time. Point-in-time snapshot — no historical data. Multiple GitHub orgs require separate API calls. A 403 during sync → table empty with no error surfaced to dashboards.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Total Seats\" FROM copilot_seats\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      }
+    },
+    {
+      "id": 300,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 3,
       "type": "stat",
       "title": "Active Seats (28d)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 17
+        "x": 0,
+        "y": 24
       },
       "datasource": {
         "type": "postgres",
@@ -232,14 +278,60 @@
       "description": "Source: `GET /orgs/{org}/copilot/seats` → `last_activity_at` field | Tables: `copilot_seats`"
     },
     {
+      "id": 201,
+      "type": "row",
+      "title": "Active Seats (28d) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 251,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 29
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats` → `last_activity_at` field\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of seats where `last_activity_at >= NOW() - INTERVAL '28 days'`. Any Copilot interaction qualifies as 'active' — including rejected suggestions. The 28-day window is hardcoded (always relative to now), not aligned to the Grafana time picker.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Active Seats (28d)\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    },
+    {
+      "id": 301,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 4,
       "type": "stat",
       "title": "Seat Utilization Rate (%)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 17
+        "x": 0,
+        "y": 31
       },
       "datasource": {
         "type": "postgres",
@@ -294,14 +386,60 @@
       "description": "Source: `GET /orgs/{org}/copilot/seats` | Tables: `copilot_seats`"
     },
     {
+      "id": 202,
+      "type": "row",
+      "title": "Seat Utilization Rate (%) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 252,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 36
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRatio of active seats to total seats using `COUNT(*) FILTER (WHERE ...)` syntax. The numerator uses a rolling `NOW()-28d` window; the denominator uses the current total. Newly provisioned seats appear in the denominator immediately, before any activity.\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  COUNT(*) FILTER (WHERE last_activity_at >= NOW() - INTERVAL '28 days')::numeric * 100.0 / NULLIF(COUNT(*), 0), 1\n) AS \"Seat Utilization Rate (%)\" FROM copilot_seats\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      }
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 5,
       "type": "stat",
       "title": "Inactive Seats (>14d)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 18,
-        "y": 17
+        "x": 0,
+        "y": 38
       },
       "datasource": {
         "type": "postgres",
@@ -355,96 +493,6 @@
       "description": "Source: `GET /orgs/{org}/copilot/seats` | Tables: `copilot_seats`"
     },
     {
-      "id": 200,
-      "type": "row",
-      "title": "Total Seats - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 250,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 22
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nTotal count of all rows in `copilot_seats` at sync time. Point-in-time snapshot — no historical data. Multiple GitHub orgs require separate API calls. A 403 during sync → table empty with no error surfaced to dashboards.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Total Seats\" FROM copilot_seats\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 21
-      }
-    },
-    {
-      "id": 201,
-      "type": "row",
-      "title": "Active Seats (28d) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 251,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 23
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats` → `last_activity_at` field\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nCount of seats where `last_activity_at >= NOW() - INTERVAL '28 days'`. Any Copilot interaction qualifies as 'active' — including rejected suggestions. The 28-day window is hardcoded (always relative to now), not aligned to the Grafana time picker.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Active Seats (28d)\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 22
-      }
-    },
-    {
-      "id": 202,
-      "type": "row",
-      "title": "Seat Utilization Rate (%) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 252,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 24
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRatio of active seats to total seats using `COUNT(*) FILTER (WHERE ...)` syntax. The numerator uses a rolling `NOW()-28d` window; the denominator uses the current total. Newly provisioned seats appear in the denominator immediately, before any activity.\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  COUNT(*) FILTER (WHERE last_activity_at >= NOW() - INTERVAL '28 days')::numeric * 100.0 / NULLIF(COUNT(*), 0), 1\n) AS \"Seat Utilization Rate (%)\" FROM copilot_seats\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 23
-      }
-    },
-    {
       "id": 203,
       "type": "row",
       "title": "Inactive Seats (>14d) - Learning Guide",
@@ -459,7 +507,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 43
           },
           "options": {
             "mode": "markdown",
@@ -471,7 +519,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 42
+      }
+    },
+    {
+      "id": 303,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -482,7 +546,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 25.0
+        "y": 45
       },
       "datasource": {
         "type": "postgres",
@@ -520,14 +584,60 @@
       "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `daily_active_users` field | Tables: `copilot_org_metrics`"
     },
     {
+      "id": 204,
+      "type": "row",
+      "title": "Daily Active Users - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 254,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 54
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `daily_active_users` field\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTime series of `daily_active_users` from the org-level 28-day report. **Two-step fetch required:** (1) call the API endpoint to get `download_links`, (2) fetch the signed S3 URL WITHOUT auth headers, (3) parse each line as a separate JSON object (NDJSON). Only covers the last 28 days from today.\n\n### 🔍 SQL Query\n\n```sql\nSELECT day AS time, daily_active_users AS \"Daily Active\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      }
+    },
+    {
+      "id": 304,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 7,
       "type": "barchart",
       "title": "Last Active Editor Distribution",
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 25.0
+        "x": 0,
+        "y": 56
       },
       "datasource": {
         "type": "postgres",
@@ -561,36 +671,6 @@
       "description": "Source: `GET /orgs/{org}/copilot/seats` → `last_activity_editor` field | Tables: `copilot_seats`"
     },
     {
-      "id": 204,
-      "type": "row",
-      "title": "Daily Active Users - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 254,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 34
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-metrics)\n\nCopilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10) → NDJSON → `daily_active_users` field\n\n### 🗄️ Database Table(s)\n\n`copilot_org_metrics`\n\n### 📐 How It's Calculated\n\nTime series of `daily_active_users` from the org-level 28-day report. **Two-step fetch required:** (1) call the API endpoint to get `download_links`, (2) fetch the signed S3 URL WITHOUT auth headers, (3) parse each line as a separate JSON object (NDJSON). Only covers the last 28 days from today.\n\n### 🔍 SQL Query\n\n```sql\nSELECT day AS time, daily_active_users AS \"Daily Active\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 33
-      }
-    },
-    {
       "id": 205,
       "type": "row",
       "title": "Last Active Editor Distribution - Learning Guide",
@@ -605,7 +685,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 35
+            "y": 65
           },
           "options": {
             "mode": "markdown",
@@ -617,7 +697,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 64
+      }
+    },
+    {
+      "id": 305,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 65
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -628,7 +724,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 35.0
+        "y": 67
       },
       "datasource": {
         "type": "postgres",
@@ -674,7 +770,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 44
+            "y": 76
           },
           "options": {
             "mode": "markdown",
@@ -686,7 +782,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 75
+      }
+    },
+    {
+      "id": 306,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 76
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -697,7 +809,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 44.0
+        "y": 78
       },
       "datasource": {
         "type": "postgres",
@@ -751,14 +863,60 @@
       "description": "Source: `GET /orgs/{org}/copilot/seats` | Tables: `copilot_seats`"
     },
     {
+      "id": 207,
+      "type": "row",
+      "title": "Copilot Seats Loaded - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 257,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 83
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRow count of `copilot_seats` table — a data health indicator. If 0, the last sync did not load seat data (check server logs for a silent 403). The table is fully replaced on every sync (TRUNCATE + INSERT), unlike PRs and deployments (incremental).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 82
+      }
+    },
+    {
+      "id": 307,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 83
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 11,
       "type": "stat",
       "title": "Last Successful Sync",
       "gridPos": {
         "h": 4,
         "w": 12,
-        "x": 12,
-        "y": 44.0
+        "x": 0,
+        "y": 85
       },
       "datasource": {
         "type": "postgres",
@@ -808,36 +966,6 @@
       "description": "Source: Internal `sync_jobs` table (no GitHub API call) | Tables: `sync_jobs`"
     },
     {
-      "id": 207,
-      "type": "row",
-      "title": "Copilot Seats Loaded - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 257,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 49
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-user-management)\n\n`GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`copilot_seats`\n\n### 📐 How It's Calculated\n\nRow count of `copilot_seats` table — a data health indicator. If 0, the last sync did not load seat data (check server logs for a silent 403). The table is fully replaced on every sync (TRUNCATE + INSERT), unlike PRs and deployments (incremental).\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 48
-      }
-    },
-    {
       "id": 208,
       "type": "row",
       "title": "Last Successful Sync - Learning Guide",
@@ -852,7 +980,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 50
+            "y": 90
           },
           "options": {
             "mode": "markdown",
@@ -864,7 +992,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 89
+      }
+    },
+    {
+      "id": 308,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 90
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     }
   ],

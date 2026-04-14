@@ -211,14 +211,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments` | Tables: `deployments`, `issues`"
     },
     {
+      "id": 200,
+      "type": "row",
+      "title": "Change Fail Rate (%) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 250,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `issues`\n\n### 📐 How It's Calculated\n\nPercentage of deployments that co-occur with an issue labeled 'incident'. Joined by time window — not a causal link between a specific deployment and incident. Requires consistent use of the 'incident' label across the team.\n\n### 🔍 SQL Query\n\n```sql\nWITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  ROUND(COUNT(DISTINCT df.deployment_id)::numeric /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100, 1) AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND ('$environment' = '__all__' OR d.environment = '$environment')\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      }
+    },
+    {
+      "id": 300,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 3,
       "type": "stat",
       "title": "Deployment Rework Rate (%)",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 17
+        "x": 0,
+        "y": 24
       },
       "datasource": {
         "type": "postgres",
@@ -273,14 +319,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/pulls?labels=hotfix,bugfix,rollback` + bridge resolver + deployments | Tables: `pull_requests`, `deployments`, `deployment_pull_requests`"
     },
     {
+      "id": 201,
+      "type": "row",
+      "title": "Deployment Rework Rate (%) - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 251,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 29
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls?labels=hotfix,bugfix,rollback` + bridge resolver + deployments\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `deployments`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nPercentage of deployments linked to a PR labeled 'hotfix', 'bugfix', or 'rollback'. Alternative CFR signal via PR labels. Requires label discipline and bridge-resolver linkage — unlabeled or unlinked PRs are excluded.\n\n### 🔍 SQL Query\n\n```sql\nWITH ranked AS (\n  SELECT\n    d.deployment_id,\n    d.created_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS next_deploy_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(\n  COUNT(CASE WHEN next_deploy_at - created_at < INTERVAL '48 hours' THEN 1 END)::numeric * 100.0\n  / NULLIF(COUNT(*), 0), 1\n) AS \"Rework Rate (%)\"\nFROM ranked\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    },
+    {
+      "id": 301,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 4,
       "type": "stat",
       "title": "Total Incidents",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 17
+        "x": 0,
+        "y": 31
       },
       "datasource": {
         "type": "postgres",
@@ -334,66 +426,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/issues?labels=incident` | Tables: `issues`"
     },
     {
-      "id": 200,
-      "type": "row",
-      "title": "Change Fail Rate (%) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 250,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 22
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `issues`\n\n### 📐 How It's Calculated\n\nPercentage of deployments that co-occur with an issue labeled 'incident'. Joined by time window — not a causal link between a specific deployment and incident. Requires consistent use of the 'incident' label across the team.\n\n### 🔍 SQL Query\n\n```sql\nWITH deploy_failures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  ROUND(COUNT(DISTINCT df.deployment_id)::numeric /\n  NULLIF(COUNT(DISTINCT d.deployment_id), 0) * 100, 1) AS \"Change Fail Rate (%)\"\nFROM deployments d\nLEFT JOIN deploy_failures df ON df.deployment_id = d.deployment_id\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\nAND ('$environment' = '__all__' OR d.environment = '$environment')\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 21
-      }
-    },
-    {
-      "id": 201,
-      "type": "row",
-      "title": "Deployment Rework Rate (%) - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 251,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 23
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/pulls/pulls)\n\n`GET /repos/{owner}/{repo}/pulls?labels=hotfix,bugfix,rollback` + bridge resolver + deployments\n\n### 🗄️ Database Table(s)\n\n`pull_requests`, `deployments`, `deployment_pull_requests`\n\n### 📐 How It's Calculated\n\nPercentage of deployments linked to a PR labeled 'hotfix', 'bugfix', or 'rollback'. Alternative CFR signal via PR labels. Requires label discipline and bridge-resolver linkage — unlabeled or unlinked PRs are excluded.\n\n### 🔍 SQL Query\n\n```sql\nWITH ranked AS (\n  SELECT\n    d.deployment_id,\n    d.created_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS next_deploy_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(\n  COUNT(CASE WHEN next_deploy_at - created_at < INTERVAL '48 hours' THEN 1 END)::numeric * 100.0\n  / NULLIF(COUNT(*), 0), 1\n) AS \"Rework Rate (%)\"\nFROM ranked\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 22
-      }
-    },
-    {
       "id": 202,
       "type": "row",
       "title": "Total Incidents - Learning Guide",
@@ -408,7 +440,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 36
           },
           "options": {
             "mode": "markdown",
@@ -420,7 +452,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 35
+      }
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -431,7 +479,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24.0
+        "y": 38
       },
       "datasource": {
         "type": "postgres",
@@ -469,14 +517,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments` | Tables: `deployments`, `issues`"
     },
     {
+      "id": 203,
+      "type": "row",
+      "title": "Change Fail Rate over Time - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 253,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 47
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `issues`\n\n### 📐 How It's Calculated\n\nWeekly CFR trend: incident issues per week divided by deployments per week (two CTEs joined by week bucket). Weeks with zero deployments are NULL gaps. Low-volume weeks (1 deployment + 1 incident = 100% CFR) amplify the metric.\n\n### 🔍 SQL Query\n\n```sql\nWITH weekly_deploys AS (\n  SELECT\n    date_trunc('week', d.created_at) AS week,\n    d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nweekly_failures AS (\n  SELECT DISTINCT date_trunc('week', d.created_at) AS week, d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  wd.week AS time,\n  ROUND(COUNT(DISTINCT wf.deployment_id)::numeric / NULLIF(COUNT(DISTINCT wd.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM weekly_deploys wd\nLEFT JOIN weekly_failures wf ON wf.week = wd.week AND wf.deployment_id = wd.deployment_id\nGROUP BY 1\nORDER BY 1\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      }
+    },
+    {
+      "id": 303,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 6,
       "type": "timeseries",
       "title": "Incidents over Time",
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 24.0
+        "x": 0,
+        "y": 49
       },
       "datasource": {
         "type": "postgres",
@@ -518,36 +612,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/issues?labels=incident` | Tables: `issues`"
     },
     {
-      "id": 203,
-      "type": "row",
-      "title": "Change Fail Rate over Time - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 253,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 33
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident` + `GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `issues`\n\n### 📐 How It's Calculated\n\nWeekly CFR trend: incident issues per week divided by deployments per week (two CTEs joined by week bucket). Weeks with zero deployments are NULL gaps. Low-volume weeks (1 deployment + 1 incident = 100% CFR) amplify the metric.\n\n### 🔍 SQL Query\n\n```sql\nWITH weekly_deploys AS (\n  SELECT\n    date_trunc('week', d.created_at) AS week,\n    d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nweekly_failures AS (\n  SELECT DISTINCT date_trunc('week', d.created_at) AS week, d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  wd.week AS time,\n  ROUND(COUNT(DISTINCT wf.deployment_id)::numeric / NULLIF(COUNT(DISTINCT wd.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM weekly_deploys wd\nLEFT JOIN weekly_failures wf ON wf.week = wd.week AND wf.deployment_id = wd.deployment_id\nGROUP BY 1\nORDER BY 1\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 32
-      }
-    },
-    {
       "id": 204,
       "type": "row",
       "title": "Incidents over Time - Learning Guide",
@@ -562,7 +626,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 34
+            "y": 58
           },
           "options": {
             "mode": "markdown",
@@ -574,7 +638,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 57
+      }
+    },
+    {
+      "id": 304,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -585,7 +665,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 34.0
+        "y": 60
       },
       "datasource": {
         "type": "postgres",
@@ -617,14 +697,60 @@
       "description": "Source: `GET /repos/{owner}/{repo}/issues?labels=incident&state=open` | Tables: `issues`"
     },
     {
+      "id": 205,
+      "type": "row",
+      "title": "Open Incidents - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 255,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 69
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident&state=open`\n\n### 🗄️ Database Table(s)\n\n`issues`\n\n### 📐 How It's Calculated\n\nTable of currently open GitHub Issues labeled 'incident'. 'Open in GitHub' does not mean the incident is still active — issues are often left open as post-mortem artifacts after service is restored.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  i.number AS \"Issue #\",\n  i.title AS \"Title\",\n  i.user_login AS \"Reporter\",\n  i.created_at AS \"Created At\",\n  i.state AS \"State\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'\nORDER BY i.created_at DESC\nLIMIT 50\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 68
+      }
+    },
+    {
+      "id": 305,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "id": 8,
       "type": "barchart",
       "title": "CFR: Copilot vs Non-Copilot",
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 34.0
+        "x": 0,
+        "y": 71
       },
       "datasource": {
         "type": "postgres",
@@ -658,36 +784,6 @@
       "description": "Source: GitHub Issues (incident label) + Deployments API + `GET /orgs/{org}/copilot/seats` | Tables: `deployments`, `issues`, `copilot_seats`"
     },
     {
-      "id": 205,
-      "type": "row",
-      "title": "Open Incidents - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 255,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 43
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/issues/issues)\n\n`GET /repos/{owner}/{repo}/issues?labels=incident&state=open`\n\n### 🗄️ Database Table(s)\n\n`issues`\n\n### 📐 How It's Calculated\n\nTable of currently open GitHub Issues labeled 'incident'. 'Open in GitHub' does not mean the incident is still active — issues are often left open as post-mortem artifacts after service is restored.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  i.number AS \"Issue #\",\n  i.title AS \"Title\",\n  i.user_login AS \"Reporter\",\n  i.created_at AS \"Created At\",\n  i.state AS \"State\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'\nORDER BY i.created_at DESC\nLIMIT 50\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 42
-      }
-    },
-    {
       "id": 206,
       "type": "row",
       "title": "CFR: Copilot vs Non-Copilot - Learning Guide",
@@ -702,7 +798,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 44
+            "y": 80
           },
           "options": {
             "mode": "markdown",
@@ -714,7 +810,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 79
+      }
+    },
+    {
+      "id": 306,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 80
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     }
   ],

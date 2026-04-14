@@ -181,6 +181,52 @@
       "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
     },
     {
+      "id": 200,
+      "type": "row",
+      "title": "Deployment Frequency - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 250,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nCounts distinct successful deployments divided by the number of weeks in the selected time window. Only deployments made via the GitHub Deployments API are counted — external CI/CD tools not integrated with this API are invisible.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(DISTINCT d.deployment_id)::float / GREATEST(1, EXTRACT(DAY FROM ($__timeTo()::timestamptz - $__timeFrom()::timestamptz)) / 7.0) AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\nAND ds.state = 'success'\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      }
+    },
+    {
+      "id": 300,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "datasource": {
         "type": "postgres",
         "uid": "PostgreSQL"
@@ -212,8 +258,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 17
+        "x": 0,
+        "y": 24
       },
       "id": 5,
       "options": {
@@ -243,36 +289,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
     },
     {
-      "id": 200,
-      "type": "row",
-      "title": "Deployment Frequency - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 250,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 22
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nCounts distinct successful deployments divided by the number of weeks in the selected time window. Only deployments made via the GitHub Deployments API are counted — external CI/CD tools not integrated with this API are invisible.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(DISTINCT d.deployment_id)::float / GREATEST(1, EXTRACT(DAY FROM ($__timeTo()::timestamptz - $__timeFrom()::timestamptz)) / 7.0) AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\nAND ds.state = 'success'\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 21
-      }
-    },
-    {
       "id": 201,
       "type": "row",
       "title": "Deployment Success Rate - Learning Guide",
@@ -287,7 +303,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 29
           },
           "options": {
             "mode": "markdown",
@@ -299,7 +315,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 28
+      }
+    },
+    {
+      "id": 301,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -321,7 +353,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 23.0
+        "y": 31
       },
       "id": 3,
       "options": {
@@ -348,6 +380,52 @@
       "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
     },
     {
+      "id": 202,
+      "type": "row",
+      "title": "Deployments per Week - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 252,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 40
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nTime series bucketed by `date_trunc('week', created_at)`. Weeks with zero deployments appear as gaps in the chart (no zero-fill). Timestamp is `created_at` (when deployment was requested), not when it completed.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      }
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "datasource": {
         "type": "postgres",
         "uid": "PostgreSQL"
@@ -361,8 +439,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 23.0
+        "x": 0,
+        "y": 42
       },
       "id": 4,
       "options": {
@@ -389,36 +467,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/deployments` | Tables: `deployments`, `deployment_statuses`"
     },
     {
-      "id": 202,
-      "type": "row",
-      "title": "Deployments per Week - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 252,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 32
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nTime series bucketed by `date_trunc('week', created_at)`. Weeks with zero deployments appear as gaps in the chart (no zero-fill). Timestamp is `created_at` (when deployment was requested), not when it completed.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 31
-      }
-    },
-    {
       "id": 203,
       "type": "row",
       "title": "Deployments by Environment - Learning Guide",
@@ -433,7 +481,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 33
+            "y": 51
           },
           "options": {
             "mode": "markdown",
@@ -445,7 +493,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 50
+      }
+    },
+    {
+      "id": 303,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -471,7 +535,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 33.0
+        "y": 53
       },
       "id": 6,
       "options": {
@@ -498,6 +562,52 @@
       "description": "Source: `GET /repos/{owner}/{repo}/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
     },
     {
+      "id": 204,
+      "type": "row",
+      "title": "Failed Deployments Timeline - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 254,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 62
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nWeekly count of deployments where any status row has `state='failure'`. Note: the API distinguishes 'failure' (ran but failed) from 'error' (couldn't start) — this query captures only 'failure'. Failed-then-retried deployments appear in both failure and success timelines.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Failed Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'failure'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 61
+      }
+    },
+    {
+      "id": 304,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 62
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
       "datasource": {
         "type": "postgres",
         "uid": "PostgreSQL"
@@ -509,8 +619,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 33.0
+        "x": 0,
+        "y": 64
       },
       "id": 7,
       "options": {
@@ -537,36 +647,6 @@
       "description": "Source: `GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses` | Tables: `deployments`, `deployment_statuses`"
     },
     {
-      "id": 204,
-      "type": "row",
-      "title": "Failed Deployments Timeline - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 254,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 42
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nWeekly count of deployments where any status row has `state='failure'`. Note: the API distinguishes 'failure' (ran but failed) from 'error' (couldn't start) — this query captures only 'failure'. Failed-then-retried deployments appear in both failure and success timelines.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Failed Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'failure'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 41
-      }
-    },
-    {
       "id": 205,
       "type": "row",
       "title": "Recent Deployments - Learning Guide",
@@ -581,7 +661,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 43
+            "y": 73
           },
           "options": {
             "mode": "markdown",
@@ -593,7 +673,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 72
+      }
+    },
+    {
+      "id": 305,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 73
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     },
     {
@@ -611,7 +707,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 43.0
+        "y": 75
       },
       "id": 8,
       "options": {
@@ -652,7 +748,7 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 52
+            "y": 84
           },
           "options": {
             "mode": "markdown",
@@ -664,7 +760,23 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 83
+      }
+    },
+    {
+      "id": 306,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 84
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
       }
     }
   ],
