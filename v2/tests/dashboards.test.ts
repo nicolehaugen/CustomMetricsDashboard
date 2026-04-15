@@ -69,6 +69,27 @@ describe.each(ALL_DASHBOARDS)('%s — common structure', (filename) => {
     expect(steps.length).toBeGreaterThan(0);
   });
 
+  it('data source banner uses fields="/.*/  " so text values are displayed', () => {
+    dashboard = loadDashboard(filename);
+    const banner = dashboard.panels[0];
+    const fields = banner.options?.reduceOptions?.fields ?? '';
+    expect(fields).toBe('/.*/');
+  });
+
+  it('data source banner has amber mapping for seed data and green mapping for live data', () => {
+    dashboard = loadDashboard(filename);
+    const banner = dashboard.panels[0];
+    const mappings: any[] = banner.fieldConfig?.defaults?.mappings ?? [];
+    const seedMapping = mappings.find((m: any) =>
+      m.type === 'regex' && m.options?.pattern?.includes('Seed Data')
+    );
+    const liveMapping = mappings.find((m: any) =>
+      m.type === 'regex' && m.options?.pattern?.includes('📡')
+    );
+    expect(seedMapping?.options?.result?.color, 'seed mapping should be amber').toBe('#FA6400');
+    expect(liveMapping?.options?.result?.color, 'live mapping should be green').toBe('#73BF69');
+  });
+
   it('second panel is a text/markdown panel (dashboard description)', () => {
     dashboard = loadDashboard(filename);
     expect(dashboard.panels[1].type).toBe('text');
