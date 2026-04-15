@@ -106,16 +106,35 @@ Key points to remember without the agent:
 
 ### Dashboard validation (Playwright)
 
-> **⚠️ This section applies only to GitHub cloud agent sessions.**
+When making changes to dashboard JSON, Grafana SQL, or seed data, always capture **before** and **after** screenshots. Screenshots are stored in `v2/screenshots/` and should be committed to the PR so reviewers can visually verify the impact.
 
-**Playwright MCP is configured** — use it directly for any dashboard validation. Do NOT write Node.js scripts or install `@playwright/cli` separately. Grafana runs at **http://localhost:3004** (admin/admin).
+#### Cloud agent sessions (Playwright MCP available)
 
-When making changes to dashboard JSON, Grafana SQL, or seed data, run the dashboard and use Playwright to take screenshots of both the **before** and **after** states, then commit them to the PR. Specifically:
+**Playwright MCP is configured** — use it directly. Do NOT write Node.js scripts or install `@playwright/cli` separately.
 
-1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and take a screenshot of the current state.
-2. **Make** the dashboard/SQL/seed changes.
-3. **After** applying changes — reload the dashboard and take a new screenshot showing the updated state.
-4. **Commit** both the before and after screenshots to the PR so reviewers can visually verify the impact.
+1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and save the screenshot as `v2/screenshots/before-<dashboard-slug>.png`.
+2. **Make** the changes.
+3. **After** applying changes — reload and save `v2/screenshots/after-<dashboard-slug>.png`.
+4. Commit both to the PR.
+
+#### Local agent sessions (no Playwright MCP)
+
+Use the Playwright CLI directly (from the repo root or `v2/`):
+
+```bash
+# Before making changes — capture current state
+npx playwright screenshot "http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk" v2/screenshots/before-<name>.png
+
+# After applying changes — capture updated state
+npx playwright screenshot "http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk" v2/screenshots/after-<name>.png
+```
+
+Dashboard UIDs come from the `"uid"` field in `v2/grafana/dashboards/*.json`. Pass credentials in the URL (`admin:admin@`). Use `?kiosk` to hide the nav bar for cleaner screenshots.
+
+**Post-implementation: always prompt the user** using `ask_user` to offer visual validation before finishing:
+- Ask whether they want the docker-compose stack started so they can validate changes at **http://localhost:3004**.
+- If yes: run `docker-compose up -d` from `v2/` (add `--build` if TypeScript source files were changed). If the database is empty, run `npm run seed`. Confirm Grafana is reachable, then let the user know they can open http://localhost:3004.
+- If no: proceed to commit.
 
 **Grafana 11 table selectors:** Table cells render as `role="cell"` (not `role="gridcell"`). Use `[role="row"]:has([role="cell"])` for data row selectors. Do not use `waitForLoadState('networkidle')` — the WebSocket connection keeps it from resolving. Use `waitForLoadState('load')` + `waitForTimeout(3000)` instead.
 
