@@ -6,3 +6,5 @@ data/raw/**
 *.js.map
 screenshots/**
 !screenshots/.gitkeep
+!screenshots/before-*.png
+!screenshots/after-*.png
