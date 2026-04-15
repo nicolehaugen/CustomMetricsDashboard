@@ -23,24 +23,12 @@ const ALL_DASHBOARDS = [
   '15-dora-vs-copilot-edu.json',
 ];
 
-const DORA_PILLAR_DASHBOARDS = [
-  '01-deployment-frequency.json',
-  '02-lead-time.json',
-  '03-change-failure-rate.json',
-  '04-mean-time-to-recovery.json',
-  '09-deployment-frequency-edu.json',
-  '10-lead-time-edu.json',
-  '11-change-failure-rate-edu.json',
-  '12-mean-time-to-recovery-edu.json',
-];
-const COPILOT_DASHBOARDS = [
-  '05-copilot-adoption.json',
-  '06-copilot-code-impact.json',
-  '07-dora-vs-copilot.json',
-  '13-copilot-adoption-edu.json',
-  '14-copilot-code-impact-edu.json',
-  '15-dora-vs-copilot-edu.json',
-];
+const DORA_PILLAR_DASHBOARDS = ALL_DASHBOARDS.filter(
+  f => (loadDashboard(f).tags ?? []).includes('dora')
+);
+const COPILOT_DASHBOARDS = ALL_DASHBOARDS.filter(
+  f => (loadDashboard(f).tags ?? []).includes('copilot')
+);
 
 function loadDashboard(filename: string): any {
   const content = readFileSync(join(dashboardDir, filename), 'utf-8');

@@ -22,6 +22,10 @@ export const config = {
   },
   port: parseInt(process.env.PORT ?? '3001', 10),
   dataMode: (process.env.DATA_MODE ?? 'live') as 'live' | 'seed' | 'demo',
-  dataSourceLabel: process.env.DATA_SOURCE_LABEL ?? `${process.env.GITHUB_ORG ?? ''}/${process.env.GITHUB_REPO ?? ''}`,
+  dataSourceLabel: process.env.DATA_SOURCE_LABEL ?? (
+    process.env.GITHUB_ORG && process.env.GITHUB_REPO
+      ? `${process.env.GITHUB_ORG}/${process.env.GITHUB_REPO}`
+      : ''
+  ),
   dataSourceUrl: process.env.DATA_SOURCE_URL ?? null,
 };
