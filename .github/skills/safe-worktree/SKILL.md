@@ -1,6 +1,6 @@
 ---
 name: safe-worktree
-description: "**WORKFLOW SKILL** — Creates an isolated Git worktree from origin/<default> before any code changes. Fetches remote first to avoid inheriting unpushed local commits. WHEN: \"start any coding task\", \"before making code changes\", \"beginning implementation\", \"autopilot session start\", \"create worktree for task\". INVOKES: git fetch, git worktree add. FOR SINGLE OPERATIONS: use git worktree add directly if already on a clean isolated worktree."
+description: "**WORKFLOW SKILL** — MANDATORY first step: creates an isolated Git worktree from origin/<default> before any file edits. Fetches remote to avoid inheriting unpushed commits. WHEN: \"implement feature\", \"fix bug\", \"resolve issue\", \"assigned task\", \"start coding\", \"begin development\", \"create branch\", \"make code changes\". INVOKES: git fetch, git worktree add. FOR SINGLE OPERATIONS: use git worktree add directly if already isolated."
 ---
 
 # Safe Worktree
