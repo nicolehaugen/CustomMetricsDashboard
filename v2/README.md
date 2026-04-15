@@ -143,8 +143,9 @@ npm run seed
 
 # Option B: Trigger a live sync (requires valid .env)
 response=$(curl -s -X POST http://localhost:3003/api/sync)
-echo "$response"   # includes the returned jobId
-curl http://localhost:3003/api/sync/status/<jobId>   # replace <jobId> with the returned value
+echo "$response"
+jobId=$(echo "$response" | jq -r '.jobId')
+curl "http://localhost:3003/api/sync/status/$jobId"
 ```
 
 ### 3. Copilot panels show "No data" after sync
