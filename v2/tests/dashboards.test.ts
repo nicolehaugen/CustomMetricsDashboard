@@ -13,10 +13,34 @@ const ALL_DASHBOARDS = [
   '05-copilot-adoption.json',
   '06-copilot-code-impact.json',
   '07-dora-vs-copilot.json',
+  '08-overview-edu.json',
+  '09-deployment-frequency-edu.json',
+  '10-lead-time-edu.json',
+  '11-change-failure-rate-edu.json',
+  '12-mean-time-to-recovery-edu.json',
+  '13-copilot-adoption-edu.json',
+  '14-copilot-code-impact-edu.json',
+  '15-dora-vs-copilot-edu.json',
 ];
 
-const DORA_PILLAR_DASHBOARDS = ALL_DASHBOARDS.slice(1, 5);
-const COPILOT_DASHBOARDS = ALL_DASHBOARDS.slice(5);
+const DORA_PILLAR_DASHBOARDS = [
+  '01-deployment-frequency.json',
+  '02-lead-time.json',
+  '03-change-failure-rate.json',
+  '04-mean-time-to-recovery.json',
+  '09-deployment-frequency-edu.json',
+  '10-lead-time-edu.json',
+  '11-change-failure-rate-edu.json',
+  '12-mean-time-to-recovery-edu.json',
+];
+const COPILOT_DASHBOARDS = [
+  '05-copilot-adoption.json',
+  '06-copilot-code-impact.json',
+  '07-dora-vs-copilot.json',
+  '13-copilot-adoption-edu.json',
+  '14-copilot-code-impact-edu.json',
+  '15-dora-vs-copilot-edu.json',
+];
 
 function loadDashboard(filename: string): any {
   const content = readFileSync(join(dashboardDir, filename), 'utf-8');
@@ -24,7 +48,7 @@ function loadDashboard(filename: string): any {
 }
 
 describe('dashboard files exist', () => {
-  it('all 8 dashboard files are present', () => {
+  it('all 16 dashboard files are present', () => {
     const existing = readdirSync(dashboardDir);
     for (const filename of ALL_DASHBOARDS) {
       expect(existing).toContain(filename);
@@ -119,7 +143,7 @@ describe('Copilot dashboards', () => {
 });
 
 describe('cross-dashboard uniqueness', () => {
-  it('all UIDs are unique across all 8 dashboards', () => {
+  it('all UIDs are unique across all 16 dashboards', () => {
     const uids = ALL_DASHBOARDS.map(f => loadDashboard(f).uid);
     const unique = new Set(uids);
     expect(unique.size).toBe(uids.length);

@@ -69,6 +69,13 @@ describe('config', () => {
     expect(config.dataMode).toBe('seed');
   });
 
+  it('DATA_SOURCE_LABEL defaults to GITHUB_ORG/GITHUB_REPO when not set', async () => {
+    setRequiredEnv();
+    delete process.env.DATA_SOURCE_LABEL;
+    const { config } = await import('../src/config');
+    expect(config.dataSourceLabel).toBe('test-org/test-repo');
+  });
+
   it('DATA_SOURCE_LABEL is read from env', async () => {
     setRequiredEnv();
     process.env.DATA_SOURCE_LABEL = 'my-org/my-repo';

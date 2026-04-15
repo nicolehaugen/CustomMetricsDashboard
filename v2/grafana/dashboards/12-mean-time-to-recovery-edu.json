@@ -62,7 +62,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '📡 Live Data — ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '🎮 Demo Environment — ' || COALESCE(source_label, '')\n    ELSE '❓ Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT COALESCE(\n  (SELECT\n    CASE mode\n      WHEN 'live' THEN '📡 Live Data' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      WHEN 'seed' THEN '🌱 Synthetic Seed Data' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      WHEN 'demo' THEN '🎮 Demo Environment' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      ELSE '❓ Unknown Mode'\n    END\n  FROM data_mode ORDER BY updated_at DESC LIMIT 1),\n  '⚙️ Awaiting first sync…'\n) AS \"Data Source\"",
           "format": "table"
         }
       ],
@@ -84,7 +84,7 @@
               "options": {
                 "pattern": "Seed Data",
                 "result": {
-                  "color": "#FA6400",
+                  "color": "#FF9830",
                   "index": 1
                 }
               }
@@ -238,7 +238,8 @@
         "w": 24,
         "x": 0,
         "y": 21
-      }
+      },
+      "description": "Learning guide section: MTTR (median)"
     },
     {
       "id": 300,
@@ -254,7 +255,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Learning guide content"
     },
     {
       "id": 3,
@@ -346,7 +348,8 @@
         "w": 24,
         "x": 0,
         "y": 28
-      }
+      },
+      "description": "Learning guide section: P90 MTTR (hours)"
     },
     {
       "id": 301,
@@ -362,7 +365,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Learning guide content"
     },
     {
       "id": 4,
@@ -453,7 +457,8 @@
         "w": 24,
         "x": 0,
         "y": 35
-      }
+      },
+      "description": "Learning guide section: Incidents Still Open"
     },
     {
       "id": 302,
@@ -469,7 +474,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Learning guide content"
     },
     {
       "id": 5,
@@ -544,7 +550,8 @@
         "w": 24,
         "x": 0,
         "y": 46
-      }
+      },
+      "description": "Learning guide section: MTTR over Time"
     },
     {
       "id": 303,
@@ -560,7 +567,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Learning guide content"
     },
     {
       "id": 6,
@@ -635,7 +643,8 @@
         "w": 24,
         "x": 0,
         "y": 57
-      }
+      },
+      "description": "Learning guide section: Incident Resolution Time"
     },
     {
       "id": 304,
@@ -651,7 +660,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Learning guide content"
     },
     {
       "id": 7,
@@ -720,7 +730,8 @@
         "w": 24,
         "x": 0,
         "y": 68
-      }
+      },
+      "description": "Learning guide section: Recent Failures with Recovery Time"
     },
     {
       "id": 305,
@@ -736,7 +747,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Learning guide content"
     }
   ],
   "tags": [
