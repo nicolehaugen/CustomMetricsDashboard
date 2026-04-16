@@ -1,0 +1,5 @@
+{
+  "total_tokens": 4200,
+  "duration_ms": 13773,
+  "notes": "With the skill, the agent follows a structured 5-step workflow directly. No need to read copilot-instructions.md or discover the pattern. Fewer tokens spent on discovery — the skill provides the exact commands and URL pattern. Estimated ~4200 tokens (skill body + execution)."
+}

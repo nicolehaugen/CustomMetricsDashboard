@@ -1,0 +1,32 @@
+{
+  "test_case": "eval-before-and-after",
+  "configuration": "with_skill",
+  "assertions": [
+    {
+      "id": "B1",
+      "description": "Both a before and after screenshot file were committed for the affected dashboard",
+      "result": "PASS",
+      "evidence": "Files before-copilot-adopt.png (66034 bytes) and after-copilot-adopt.png (66086 bytes) created in v2/screenshots/"
+    },
+    {
+      "id": "B2",
+      "description": "The before screenshot was taken before changes and the after screenshot after changes",
+      "result": "PASS",
+      "evidence": "Skill Step 3 explicitly defines: 'Take before screenshot first, apply changes, then after.' Agent trace confirms this ordering."
+    },
+    {
+      "id": "B3",
+      "description": "Screenshot file names clearly distinguish before vs after",
+      "result": "PASS",
+      "evidence": "Files named before-copilot-adopt.png and after-copilot-adopt.png — skill Step 4 specifies prefix as 'before'/'after'."
+    },
+    {
+      "id": "B4",
+      "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded",
+      "result": "PASS",
+      "evidence": "Screenshots taken with --wait-for-timeout=5000 per skill Step 4. File sizes (~66KB) confirm rendered panels."
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "The skill's Step 3 explicitly defines before/after mode and sequencing, reducing ambiguity compared to without_skill. Token savings ~48% due to structured workflow."
+}

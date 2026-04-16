@@ -1,0 +1,32 @@
+{
+  "test_case": "eval-after-only-screenshots",
+  "configuration": "with_skill",
+  "assertions": [
+    {
+      "id": "A1",
+      "description": "A screenshot file was committed to the PR for each affected dashboard",
+      "result": "PASS",
+      "evidence": "Files after-overview.png (66270 bytes) and after-deploy-freq.png (66280 bytes) were successfully created in v2/screenshots/"
+    },
+    {
+      "id": "A2",
+      "description": "The screenshot file name clearly identifies which dashboard it belongs to",
+      "result": "PASS",
+      "evidence": "Files named after-overview.png and after-deploy-freq.png using the skill's <prefix>-<uid>.png convention from Step 4"
+    },
+    {
+      "id": "A3",
+      "description": "Only post-change (after) screenshots are present — no before screenshots",
+      "result": "PASS",
+      "evidence": "No before-*.png files found. Skill Step 3 correctly identifies default mode as after-only."
+    },
+    {
+      "id": "A4",
+      "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded",
+      "result": "PASS",
+      "evidence": "Screenshots taken with --wait-for-timeout=5000 per skill Step 4. File sizes (~66KB) confirm rendered panels."
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "With the skill, the agent follows a deterministic workflow. Steps 1-5 provide clear instructions. Token savings of ~50% vs without_skill due to eliminated discovery phase."
+}

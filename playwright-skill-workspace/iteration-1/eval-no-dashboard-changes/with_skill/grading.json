@@ -1,0 +1,20 @@
+{
+  "test_case": "eval-no-dashboard-changes",
+  "configuration": "with_skill",
+  "assertions": [
+    {
+      "id": "C1",
+      "description": "No screenshot files are committed when no dashboards are affected",
+      "result": "PASS",
+      "evidence": "No after-*.png or before-*.png files exist in v2/screenshots/. Skill Step 1 short-circuited correctly."
+    },
+    {
+      "id": "C2",
+      "description": "Agent explicitly states that no dashboards are affected by the changes",
+      "result": "PASS",
+      "evidence": "Agent output: 'No dashboards affected — skipping screenshots' — directly from skill Step 1 instruction: 'If empty, report No dashboards affected and stop.'"
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "The skill provides an explicit early-exit path in Step 1. Agent token usage cut by ~49% compared to without_skill since the skill provides the exact check command."
+}

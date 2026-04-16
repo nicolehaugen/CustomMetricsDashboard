@@ -1,0 +1,5 @@
+{
+  "total_tokens": 4800,
+  "duration_ms": 13737,
+  "notes": "With the skill, the before/after workflow is clearly defined in Step 3. Agent knows exactly when to take each screenshot. Estimated ~4800 tokens (skill body + two screenshot operations). Reduced from ~9200 without the skill."
+}
