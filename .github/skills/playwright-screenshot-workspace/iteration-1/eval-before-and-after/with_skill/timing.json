@@ -1,5 +1,0 @@
-{
-  "total_tokens": 11000,
-  "duration_ms": 75000,
-  "notes": "With the skill active, the agent correctly identified the before-and-after trigger from the user prompt, executed the git stash workflow to capture the pre-change state, then restored changes and captured the post-change state. The stash/pop cycle was clean."
-}

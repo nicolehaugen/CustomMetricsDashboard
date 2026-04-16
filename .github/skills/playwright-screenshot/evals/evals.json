@@ -1,11 +1,16 @@
 {
   "skill": "playwright-screenshot",
   "version": "1.0.0",
+  "eval_strategy": {
+    "with_skill": "Manual walk-through of the skill's procedure steps in a single agent session with a live docker-compose stack (Grafana + PostgreSQL + seeded data). The agent follows the SKILL.md instructions and verifies each assertion against actual command output, file existence, and Playwright browser snapshots.",
+    "without_skill": "NOT_RUN in this PR. Requires a separate PR/agent session where the playwright-screenshot skill is not loaded. The agent receives the same test prompts and the results are recorded independently. A two-PR approach is recommended: (1) this PR runs with_skill evals, (2) a second PR runs without_skill evals on a branch without the skill file, (3) results are merged into a combined benchmark.",
+    "infrastructure": "Docker compose stack: postgres:16-alpine + grafana/grafana:11.0.0. Database seeded via npm run seed. Grafana at http://localhost:3004. Screenshots captured via Playwright MCP browser tools."
+  },
   "test_cases": [
     {
       "id": "eval-after-only-screenshots",
       "name": "Default behavior — after-only screenshots",
-      "description": "Simulate a PR where one or more dashboard JSON files were modified. Invoke the agent without explicitly requesting before/after. Expect it to take post-change screenshots of only the affected dashboards and commit them to the PR.",
+      "description": "A PR with one or more dashboard JSON files modified. The agent is asked to screenshot affected dashboards without explicitly requesting before/after. Expect post-change screenshots of only the affected dashboards committed to the PR.",
       "prompt": "I've modified the overview and deployment frequency dashboards. Please take screenshots of the affected dashboards for this PR.",
       "input_context": {
         "modified_files": [
@@ -53,8 +58,7 @@
           "check": "visual_inspection",
           "criteria": "Screenshot shows rendered panels with data or 'No data' messages, not a blank page or loading spinners"
         }
-      ],
-      "simulation_note": "Full simulation requires a running docker-compose stack with Grafana and seeded database. In a CI-only eval, verify the skill logic by checking that git diff detection and URL construction are correct for the given modified files."
+      ]
     },
     {
       "id": "eval-before-and-after",
@@ -100,13 +104,12 @@
           "check": "git_status",
           "expected": "clean working tree after commit"
         }
-      ],
-      "simulation_note": "Before-and-after mode requires git stash/pop and Grafana restart. Full validation needs the docker-compose stack. The key behavioral check is that the stash cycle preserves all working changes."
+      ]
     },
     {
       "id": "eval-no-dashboard-changes",
       "name": "Edge case — no dashboard changes in PR",
-      "description": "Simulate a PR that only modifies TypeScript source files with no dashboard JSON changes. Expect the agent to recognize no dashboards are affected and skip screenshots.",
+      "description": "A PR that only modifies TypeScript source files with no dashboard JSON changes. Expect the agent to recognize no dashboards are affected and skip screenshots.",
       "prompt": "Take screenshots of any dashboards affected by my PR changes.",
       "input_context": {
         "modified_files": [
@@ -137,8 +140,7 @@
           "check": "git_log",
           "expected": "No new commit with 'screenshot' in message"
         }
-      ],
-      "simulation_note": "This test case can be validated without docker-compose since the skill should exit early after detecting no dashboard files in the diff."
+      ]
     }
   ]
 }

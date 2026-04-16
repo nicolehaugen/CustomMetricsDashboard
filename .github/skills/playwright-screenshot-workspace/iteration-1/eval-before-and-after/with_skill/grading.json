@@ -1,31 +1,37 @@
 {
+  "test_id": "eval-before-and-after",
+  "config": "with_skill",
+  "run_method": "Manual execution of skill's before-and-after procedure in this agent session with live Grafana (docker compose + seeded DB). Used file swap + Grafana restart instead of git stash (because the change was already committed).",
   "assertions": [
     {
       "id": "B1",
       "description": "Both a before and after screenshot are present for the affected dashboard",
       "result": "PASS",
-      "evidence": "Agent created v2/screenshots/before-05-copilot-adoption.png and v2/screenshots/after-05-copilot-adoption.png."
+      "evidence": "Both files exist in outputs/: before-00-overview.png (210290 bytes) and after-00-overview.png (210256 bytes)."
     },
     {
       "id": "B2",
       "description": "Before screenshot was taken from the pre-change state (git stash was used)",
-      "result": "PASS",
-      "evidence": "Agent ran git stash push before taking before screenshot, then git stash pop to restore changes before taking after screenshot. Git log confirms the stash cycle."
+      "result": "PASS_WITH_CAVEAT",
+      "evidence": "Pre-change file was restored from origin/master via git show, then Grafana was restarted to pick up the old JSON. Playwright browser_snapshot confirmed the dashboard loaded with panels and data. However, since this eval's change was a cosmetic annotation (not a visual query change), the before and after screenshots are visually identical — there is no observable visual difference in the rendered panels. A more meaningful visual diff would require a change that affects panel layout or SQL queries."
     },
     {
       "id": "B3",
       "description": "Screenshots are committed to the PR",
-      "result": "PASS",
-      "evidence": "Agent committed both screenshots with message 'chore: add dashboard screenshots for visual review' and used report_progress to push."
+      "result": "DEFERRED",
+      "evidence": "Screenshots exist in the workspace outputs/ directory and will be committed via report_progress. This assertion will be fully satisfied after the commit."
     },
     {
       "id": "B4",
-      "description": "After stash/unstash cycle, working tree is clean",
+      "description": "After stash/unstash cycle, working tree is clean (no lost changes)",
       "result": "PASS",
-      "evidence": "git status shows clean working tree after the commit. No changes were lost during the stash cycle."
+      "evidence": "git diff --stat HEAD -- v2/grafana/dashboards/00-overview.json returns empty output. The post-change file was correctly restored after the before screenshot was taken."
     }
   ],
-  "pass_count": 4,
+  "pass_count": 2,
+  "caveat_count": 1,
+  "deferred_count": 1,
   "fail_count": 0,
-  "pass_rate": 1.0
+  "pass_rate": 0.75,
+  "notes": "The before-and-after flow works mechanically: swap file → restart Grafana → screenshot → restore → restart → screenshot. The limitation discovered during this eval is that cosmetic JSON changes (annotations) don't produce a visually different dashboard. A real eval of this flow should use a change that visibly affects panels (e.g., changing a panel title or SQL query). The skill's stash-based flow was adapted to a file-swap approach since the change was already committed; the git stash path should be tested separately with uncommitted changes."
 }

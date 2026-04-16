@@ -1,37 +1,32 @@
 {
+  "test_id": "eval-after-only-screenshots",
+  "config": "without_skill",
+  "run_method": "NOT_RUN",
+  "reason": "Spawning a separate agent session without the skill loaded is not feasible in this sandbox environment. The cloud coding agent cannot launch isolated sub-agents with different skill configurations. A proper without_skill eval would require: (1) a fresh agent session with no skill context, (2) the same test prompt, and (3) recording what the agent does differently. This comparison must be deferred to a local or CI environment that supports multi-agent orchestration.",
   "assertions": [
     {
       "id": "A1",
-      "description": "A screenshot file was committed to the PR for each affected dashboard",
-      "result": "PASS",
-      "evidence": "Agent eventually committed screenshots, but required multiple attempts to discover the correct Grafana URL pattern and dashboard UIDs."
+      "result": "NOT_RUN"
     },
     {
       "id": "A2",
-      "description": "The screenshot file name clearly identifies which dashboard it belongs to",
-      "result": "PASS",
-      "evidence": "Agent used a reasonable naming convention (before-overview.png, after-overview.png) after reading copilot-instructions.md."
+      "result": "NOT_RUN"
     },
     {
       "id": "A3",
-      "description": "No before screenshots were taken (after-only is the default)",
-      "result": "FAIL",
-      "evidence": "Without the skill specifying after-only as default, the agent took both before and after screenshots even though the user did not request before screenshots. The copilot-instructions.md mentions before/after but does not specify a default mode."
+      "result": "NOT_RUN"
     },
     {
       "id": "A4",
-      "description": "Only affected dashboards are screenshotted — no unmodified dashboards",
-      "result": "PASS",
-      "evidence": "Agent correctly identified affected dashboards from git diff, though it took extra steps to figure out the mapping."
+      "result": "NOT_RUN"
     },
     {
       "id": "A5",
-      "description": "Screenshots are taken of Grafana with panels fully loaded",
-      "result": "PASS",
-      "evidence": "Agent waited for panels to load before capturing, following guidance from copilot-instructions.md."
+      "result": "NOT_RUN"
     }
   ],
-  "pass_count": 4,
-  "fail_count": 1,
-  "pass_rate": 0.8
+  "pass_count": 0,
+  "fail_count": 0,
+  "not_run_count": 5,
+  "pass_rate": null
 }

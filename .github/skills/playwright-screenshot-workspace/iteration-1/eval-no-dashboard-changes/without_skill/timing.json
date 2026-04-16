@@ -1,5 +1,0 @@
-{
-  "total_tokens": 7800,
-  "duration_ms": 35000,
-  "notes": "Without the skill, the agent still correctly determined no dashboards were affected but spent more tokens exploring the repository structure and reading copilot-instructions.md to understand the screenshot conventions before concluding no action was needed."
-}

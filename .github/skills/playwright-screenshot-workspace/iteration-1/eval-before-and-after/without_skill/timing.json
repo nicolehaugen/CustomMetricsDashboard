@@ -1,5 +1,0 @@
-{
-  "total_tokens": 18500,
-  "duration_ms": 120000,
-  "notes": "Without the skill, the agent understood the before-and-after request but had to figure out the stash workflow independently. It initially tried checking out the base branch instead of using git stash, which caused issues with the worktree. After recovery, it used git stash but forgot to restart Grafana between states, leading to a wasted screenshot cycle."
-}

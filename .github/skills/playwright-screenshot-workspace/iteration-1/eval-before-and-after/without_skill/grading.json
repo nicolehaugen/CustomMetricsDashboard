@@ -1,31 +1,16 @@
 {
+  "test_id": "eval-before-and-after",
+  "config": "without_skill",
+  "run_method": "NOT_RUN",
+  "reason": "Spawning a separate agent session without the skill loaded is not feasible in this sandbox environment. The cloud coding agent cannot launch isolated sub-agents with different skill configurations. A proper without_skill eval would require: (1) a fresh agent session with no skill context, (2) the same test prompt, and (3) recording what the agent does differently. This comparison must be deferred to a local or CI environment that supports multi-agent orchestration.",
   "assertions": [
-    {
-      "id": "B1",
-      "description": "Both a before and after screenshot are present for the affected dashboard",
-      "result": "PASS",
-      "evidence": "After recovery from initial misstep, agent created both before and after screenshots."
-    },
-    {
-      "id": "B2",
-      "description": "Before screenshot was taken from the pre-change state",
-      "result": "FAIL",
-      "evidence": "Agent initially forgot to restart Grafana after stashing changes, so the first 'before' screenshot still showed the post-change dashboard JSON (Grafana had it cached). Had to redo the before screenshot after restarting Grafana."
-    },
-    {
-      "id": "B3",
-      "description": "Screenshots are committed to the PR",
-      "result": "PASS",
-      "evidence": "Screenshots were eventually committed and pushed."
-    },
-    {
-      "id": "B4",
-      "description": "After stash/unstash cycle, working tree is clean",
-      "result": "PASS",
-      "evidence": "Working tree was clean after final commit, though the agent initially had trouble with the stash cycle."
-    }
+    { "id": "B1", "result": "NOT_RUN" },
+    { "id": "B2", "result": "NOT_RUN" },
+    { "id": "B3", "result": "NOT_RUN" },
+    { "id": "B4", "result": "NOT_RUN" }
   ],
-  "pass_count": 3,
-  "fail_count": 1,
-  "pass_rate": 0.75
+  "pass_count": 0,
+  "fail_count": 0,
+  "not_run_count": 4,
+  "pass_rate": null
 }

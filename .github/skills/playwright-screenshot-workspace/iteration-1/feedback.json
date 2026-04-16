@@ -4,23 +4,26 @@
   "feedback": [
     {
       "test_id": "eval-after-only-screenshots",
-      "with_skill": [],
-      "without_skill": [
-        "Agent took before screenshots by default when the user only asked for dashboard screenshots — the skill's after-only default is a clear improvement."
-      ]
+      "with_skill": [
+        "The eval only modified one dashboard (00-overview.json) but the test case design calls for two modified dashboards. The second dashboard (01-deployment-frequency) was not changed, so A4 expected_count of 2 doesn't match the actual 1 file produced. The assertion still passed because the skill correctly screenshotted only the affected dashboard — the test case input_context should be updated to match the actual eval setup."
+      ],
+      "without_skill": ["NOT_RUN"]
     },
     {
       "test_id": "eval-before-and-after",
-      "with_skill": [],
-      "without_skill": [
-        "Agent forgot to restart Grafana after git stash, leading to a stale before screenshot. The skill prevents this by explicitly documenting the restart step."
-      ]
+      "with_skill": [
+        "The cosmetic annotation change does not produce a visually different dashboard. A better eval would modify a panel title or SQL query to create an observable before/after difference.",
+        "The skill's git stash flow could not be tested directly because the change was already committed. The file-swap approach is functionally equivalent but doesn't validate the exact stash/pop sequence."
+      ],
+      "without_skill": ["NOT_RUN"]
     },
     {
       "test_id": "eval-no-dashboard-changes",
-      "with_skill": [],
-      "without_skill": []
+      "with_skill": [
+        "This test was only validated indirectly. A proper eval requires a separate branch with no dashboard changes, which conflicts with the need for dashboard changes in tests 1 and 2."
+      ],
+      "without_skill": ["NOT_RUN"]
     }
   ],
-  "overall_feedback": "All three test cases pass with the skill active and no human review issues were found. The skill is clear, actionable, and prevents common mistakes (wrong default mode, stale Grafana cache). No iteration-2 is needed."
+  "overall_feedback": "The with_skill evaluation produced real artifacts (actual PNG screenshots from a live Grafana instance) and honest grading. Key gaps: (1) without_skill comparison is completely missing — requires a second PR, (2) the before/after test used a change too cosmetic to produce a visual diff, (3) the no-dashboard test was indirect. These are documented honestly rather than papered over. A second iteration should address the visual-change gap; the without_skill comparison needs a separate agent session."
 }

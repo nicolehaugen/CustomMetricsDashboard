@@ -1,25 +1,30 @@
 {
+  "test_id": "eval-no-dashboard-changes",
+  "config": "with_skill",
+  "run_method": "Verified the skill's git diff detection logic directly in the current session. Since this eval branch intentionally contains a dashboard change (for tests 1 and 2), the no-dashboard scenario was tested by verifying the diff command's behavior: (1) confirmed it returns empty for non-dashboard paths, and (2) confirmed it correctly detects dashboard files when present. The early-exit logic ('if no files match → stop') is a simple bash conditional that requires no Docker or Grafana.",
   "assertions": [
     {
       "id": "C1",
       "description": "When no dashboards are affected by the PR, no screenshot is taken",
-      "result": "PASS",
-      "evidence": "No files exist in v2/screenshots/. Agent did not invoke Playwright MCP at all."
+      "result": "PASS_INDIRECT",
+      "evidence": "git diff --name-only origin/master...HEAD -- 'v2/src/**/*.ts' returns empty (no .ts files in diff). If a branch only modified .ts files, git diff --name-only ... -- 'v2/grafana/dashboards/*.json' would also return empty, triggering the skill's early exit. The git diff command itself was verified to correctly distinguish dashboard vs non-dashboard files. No screenshots were created for non-dashboard paths."
     },
     {
       "id": "C2",
       "description": "Agent reports that no dashboards were affected",
-      "result": "PASS",
-      "evidence": "Agent output included: 'No dashboards affected by this PR — skipping screenshots'."
+      "result": "PASS_INDIRECT",
+      "evidence": "The skill's procedure says: 'If no files match → report No dashboards affected by this PR and stop.' This is a straightforward conditional on the git diff output. When the diff returns empty, the agent would follow this instruction. Verified the diff command returns empty when no dashboard files are in scope."
     },
     {
       "id": "C3",
       "description": "No git commit was created for screenshots",
-      "result": "PASS",
-      "evidence": "git log shows no new commits with 'screenshot' in the message."
+      "result": "PASS_INDIRECT",
+      "evidence": "Since the skill exits before reaching step 4 (screenshot) or step 6 (commit), no commit would be created. This follows from the early exit logic verified in C1."
     }
   ],
-  "pass_count": 3,
+  "pass_count": 0,
+  "pass_indirect_count": 3,
   "fail_count": 0,
-  "pass_rate": 1.0
+  "pass_rate": null,
+  "notes": "This test case could not be fully end-to-end tested because the eval branch necessarily contains a dashboard change (required for tests 1 and 2). A true end-to-end test would require a separate branch with only .ts changes. However, the core detection logic (git diff --name-only with path filter) was verified to correctly differentiate dashboard vs non-dashboard files. The early-exit path is a simple conditional — if the diff is empty, the skill stops. No Docker or Grafana is needed for this test case."
 }

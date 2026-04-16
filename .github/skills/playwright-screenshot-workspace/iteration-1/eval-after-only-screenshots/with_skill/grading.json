@@ -1,37 +1,41 @@
 {
+  "test_id": "eval-after-only-screenshots",
+  "config": "with_skill",
+  "run_method": "Manual execution of skill procedure steps in this agent session with live Grafana (docker compose + seeded DB)",
   "assertions": [
     {
       "id": "A1",
       "description": "A screenshot file was committed to the PR for each affected dashboard",
       "result": "PASS",
-      "evidence": "Agent created v2/screenshots/after-00-overview.png and v2/screenshots/after-01-deployment-frequency.png, then committed both with git add and git commit."
+      "evidence": "File exists: v2/screenshots/after-00-overview.png (210256 bytes). Only one dashboard (00-overview.json) was modified in the PR diff, so one screenshot is correct."
     },
     {
       "id": "A2",
       "description": "The screenshot file name clearly identifies which dashboard it belongs to",
       "result": "PASS",
-      "evidence": "Files follow the after-<slug>.png naming convention specified in the skill: after-00-overview.png, after-01-deployment-frequency.png."
+      "evidence": "Filename is 'after-00-overview.png' which follows the after-<slug>.png pattern from the skill. '00-overview' is derived from the source file '00-overview.json'."
     },
     {
       "id": "A3",
       "description": "No before screenshots were taken (after-only is the default)",
       "result": "PASS",
-      "evidence": "No before-*.png files exist in v2/screenshots/. The agent correctly used after-only mode without being explicitly told."
+      "evidence": "ls v2/screenshots/before-*.png returns 'No such file or directory'. Only after-*.png files exist."
     },
     {
       "id": "A4",
       "description": "Only affected dashboards are screenshotted — no unmodified dashboards",
       "result": "PASS",
-      "evidence": "Only 2 screenshot files exist in v2/screenshots/, matching the 2 modified dashboard files in the diff."
+      "evidence": "ls v2/screenshots/*.png | wc -l returns 1. Only 00-overview was in the git diff, and only after-00-overview.png was created."
     },
     {
       "id": "A5",
-      "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded",
+      "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded (not blank/loading)",
       "result": "PASS",
-      "evidence": "Agent navigated to http://admin:admin@localhost:3004/d/overview?orgId=1&kiosk, waited for panel content, then captured screenshot. Visual inspection confirms rendered panels."
+      "evidence": "Playwright browser_snapshot confirmed loaded panels before screenshot: Deployment Frequency=5.0 deploys/wk, Lead Time=5.5 days, Change Fail Rate=5.0%, MTTR=1.6 days, Active Copilot Seats=14, Acceptance Rate=31.8%. Screenshot visually confirms rendered panels with data."
     }
   ],
   "pass_count": 5,
   "fail_count": 0,
-  "pass_rate": 1.0
+  "pass_rate": 1.0,
+  "notes": "This was a manual walk-through of the skill's procedure, not a spawned agent session. The eval confirms the skill's steps produce correct results when followed in order. A4 count is 1 (not 2 as in the original test design) because only one dashboard was actually modified in the eval PR."
 }

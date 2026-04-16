@@ -1,25 +1,15 @@
 {
+  "test_id": "eval-no-dashboard-changes",
+  "config": "without_skill",
+  "run_method": "NOT_RUN",
+  "reason": "Spawning a separate agent session without the skill loaded is not feasible in this sandbox environment. The cloud coding agent cannot launch isolated sub-agents with different skill configurations.",
   "assertions": [
-    {
-      "id": "C1",
-      "description": "When no dashboards are affected by the PR, no screenshot is taken",
-      "result": "PASS",
-      "evidence": "No screenshot files were created. Agent correctly identified that only .ts files were modified."
-    },
-    {
-      "id": "C2",
-      "description": "Agent reports that no dashboards were affected",
-      "result": "PASS",
-      "evidence": "Agent output included a message indicating no dashboard JSON files were in the diff."
-    },
-    {
-      "id": "C3",
-      "description": "No git commit was created for screenshots",
-      "result": "PASS",
-      "evidence": "No new commits related to screenshots in git log."
-    }
+    { "id": "C1", "result": "NOT_RUN" },
+    { "id": "C2", "result": "NOT_RUN" },
+    { "id": "C3", "result": "NOT_RUN" }
   ],
-  "pass_count": 3,
+  "pass_count": 0,
   "fail_count": 0,
-  "pass_rate": 1.0
+  "not_run_count": 3,
+  "pass_rate": null
 }
