@@ -1,0 +1,14 @@
+{
+  "test_case_id": "eval-no-dashboard-changes",
+  "configuration": "with_skill",
+  "start_timestamp": "2026-04-16T19:27:11.792Z",
+  "end_timestamp": "2026-04-16T19:27:24.746Z",
+  "duration_ms": 12954,
+  "total_tokens": null,
+  "commands_executed": [
+    "Skill Step 1: git diff --name-only origin/master...HEAD -- v2/grafana/dashboards/",
+    "Result: empty (no dashboard files changed)"
+  ],
+  "output_files": [],
+  "notes": "With the skill present, the agent followed SKILL.md Step 1 precisely: ran git diff to check for dashboard JSON file changes, found none, and per the skill's instruction ('If no dashboard JSON files are in the diff, inform the user that no dashboards were affected and skip screenshot capture') correctly skipped all screenshot steps. Agent output: 'No dashboard JSON files were modified in this PR. Only src/sync/orchestrator.ts was changed. No screenshots needed.'"
+}

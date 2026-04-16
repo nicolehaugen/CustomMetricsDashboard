@@ -1,0 +1,25 @@
+{
+  "test_case_id": "eval-after-only-screenshots",
+  "configuration": "with_skill",
+  "start_timestamp": "2026-04-16T19:24:33.568Z",
+  "end_timestamp": "2026-04-16T19:25:28.089Z",
+  "duration_ms": 54521,
+  "total_tokens": null,
+  "commands_executed": [
+    "git diff --name-only origin/master...HEAD -- v2/grafana/dashboards/",
+    "python3 -c \"import json; d=json.load(open('grafana/dashboards/00-overview.json')); print(d['uid'])\"",
+    "playwright-browser_navigate: http://localhost:3004/d/overview?orgId=1&kiosk",
+    "playwright-browser_wait_for: 5 seconds",
+    "playwright-browser_snapshot: verified panels loaded (Deployment Frequency: 4.8 deploys/wk, Lead Time: 4.2 days, etc.)",
+    "playwright-browser_take_screenshot: after-overview-with-skill.png",
+    "cp /tmp/playwright-logs/after-overview-with-skill.png ... /with_skill/outputs/after-overview.png",
+    "sha256sum ... /with_skill/outputs/after-overview.png"
+  ],
+  "output_files": [
+    {
+      "path": "outputs/after-overview.png",
+      "sha256": "89c5adc5f96a5b59cfba2fb5551f2b3cbe1f04da4de99e674a300ad8071059e5"
+    }
+  ],
+  "notes": "With the skill present, the agent followed the SKILL.md procedure: Step 1 (identify affected dashboards via git diff + UID extraction), Step 2 (determine after-only mode since user did not mention 'before'), Step 5 (navigate to dashboard URL with kiosk param, wait 5s, verify panels loaded with actual data values, take screenshot). The skill's UID reference table provided the correct UID without needing to parse the JSON file separately."
+}

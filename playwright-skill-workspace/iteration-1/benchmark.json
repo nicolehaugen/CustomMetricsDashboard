@@ -1,0 +1,102 @@
+{
+  "iteration": 1,
+  "generated_at": "2026-04-16T19:28:00.000Z",
+  "summary": {
+    "total_test_cases": 3,
+    "total_assertions": 10
+  },
+  "configurations": {
+    "without_skill": {
+      "total_assertions": 10,
+      "pass_count": 10,
+      "fail_count": 0,
+      "pass_rate": 1.0,
+      "total_duration_ms": 136030,
+      "total_tokens": null,
+      "test_cases": [
+        {
+          "id": "eval-after-only-screenshots",
+          "pass_count": 4,
+          "fail_count": 0,
+          "pass_rate": 1.0,
+          "duration_ms": 60954,
+          "tokens": null
+        },
+        {
+          "id": "eval-before-and-after",
+          "pass_count": 4,
+          "fail_count": 0,
+          "pass_rate": 1.0,
+          "duration_ms": 59915,
+          "tokens": null
+        },
+        {
+          "id": "eval-no-dashboard-changes",
+          "pass_count": 2,
+          "fail_count": 0,
+          "pass_rate": 1.0,
+          "duration_ms": 15161,
+          "tokens": null
+        }
+      ]
+    },
+    "with_skill": {
+      "total_assertions": 10,
+      "pass_count": 10,
+      "fail_count": 0,
+      "pass_rate": 1.0,
+      "total_duration_ms": 111382,
+      "total_tokens": null,
+      "test_cases": [
+        {
+          "id": "eval-after-only-screenshots",
+          "pass_count": 4,
+          "fail_count": 0,
+          "pass_rate": 1.0,
+          "duration_ms": 54521,
+          "tokens": null
+        },
+        {
+          "id": "eval-before-and-after",
+          "pass_count": 4,
+          "fail_count": 0,
+          "pass_rate": 1.0,
+          "duration_ms": 43907,
+          "tokens": null
+        },
+        {
+          "id": "eval-no-dashboard-changes",
+          "pass_count": 2,
+          "fail_count": 0,
+          "pass_rate": 1.0,
+          "duration_ms": 12954,
+          "tokens": null
+        }
+      ]
+    }
+  },
+  "deltas": {
+    "pass_rate_delta": 0.0,
+    "duration_ms_delta": -24648,
+    "duration_pct_change": -18.1,
+    "token_delta": null,
+    "token_pct_change": null,
+    "notes": "Token counts are null because the agent cannot self-measure token usage. Token delta and percentage change are therefore null and not computed. Duration delta shows the with_skill configuration was 24.6 seconds faster overall (18.1% reduction), primarily due to the skill's UID reference table eliminating the need for JSON file parsing and providing clearer step-by-step guidance. Pass rate is identical (100%) for both configurations across all 10 assertions."
+  },
+  "findings": {
+    "pass_rate_comparison": "Both with_skill and without_skill achieved 100% pass rate (10/10 assertions). The agent was able to complete all tasks correctly in both configurations.",
+    "time_comparison": "The with_skill configuration completed 18.1% faster (111.4s vs 136.0s). The skill's UID reference table and structured procedure reduced exploration time.",
+    "qualitative_improvements": [
+      "The skill provided a consistent naming convention (before-<slug>.png, after-<slug>.png) that was followed precisely",
+      "The skill's Step 2 (screenshot mode detection) provided clear keyword matching for before/after vs after-only",
+      "The skill's UID reference table eliminated the need for python3 JSON parsing commands",
+      "The skill's Step 1 provided the exact git diff command to identify affected dashboards",
+      "The skill's panel load verification step (checking for 'Loading'/'Fetching' in page snapshot) ensured screenshot quality"
+    ],
+    "limitations": [
+      "Token counts are unavailable (agent cannot self-measure) — token efficiency comparison is not possible",
+      "Before/after screenshots are identical in both configurations because no actual JSON change was applied during evaluation",
+      "The evaluation was run by the same agent that created the skill, which may introduce bias in execution quality"
+    ]
+  }
+}

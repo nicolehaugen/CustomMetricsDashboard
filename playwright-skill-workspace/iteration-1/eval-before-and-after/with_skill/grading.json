@@ -1,0 +1,34 @@
+{
+  "test_case_id": "eval-before-and-after",
+  "configuration": "with_skill",
+  "assertions": [
+    {
+      "id": "B1",
+      "description": "When before-and-after is requested, both a pre-change and post-change screenshot are present",
+      "result": "PASS",
+      "evidence": "Two files exist: outputs/before-deployment-frequency.png and outputs/after-deployment-frequency.png."
+    },
+    {
+      "id": "B2",
+      "description": "The screenshot file names clearly identify which dashboard they belong to and whether they are before or after",
+      "result": "PASS",
+      "evidence": "Files follow the skill's naming convention: 'before-deployment-frequency.png' and 'after-deployment-frequency.png'. The slug 'deployment-frequency' matches the SKILL.md UID reference table for 01-deployment-frequency.json."
+    },
+    {
+      "id": "B3",
+      "description": "Exactly two screenshots per affected dashboard (one before, one after)",
+      "result": "PASS",
+      "evidence": "Exactly two files in outputs/: before-deployment-frequency.png and after-deployment-frequency.png."
+    },
+    {
+      "id": "B4",
+      "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded (not blank/loading)",
+      "result": "PASS",
+      "evidence": "Page snapshot confirmed loaded panels before each screenshot: Deployment Frequency: 4.8 deploys/wk, Deployment Success Rate: 86.4%, charts for Deployments by Environment and Deployments per Week fully rendered. The skill's Step 3 and Step 5 both require verifying panels are loaded before screenshotting."
+    }
+  ],
+  "pass_count": 4,
+  "fail_count": 0,
+  "pass_rate": 1.0,
+  "notes": "Screenshots are identical (same sha256) because no actual JSON change was applied during the evaluation. In a real workflow, the skill's Step 4 would apply the change and restart Grafana, producing visually different before/after screenshots."
+}

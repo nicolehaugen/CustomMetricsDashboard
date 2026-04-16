@@ -1,0 +1,32 @@
+{
+  "test_case_id": "eval-before-and-after",
+  "configuration": "with_skill",
+  "start_timestamp": "2026-04-16T19:25:57.574Z",
+  "end_timestamp": "2026-04-16T19:26:41.481Z",
+  "duration_ms": 43907,
+  "total_tokens": null,
+  "commands_executed": [
+    "Skill Step 1: Identified affected dashboard from user prompt + SKILL.md UID reference table: deploy-freq / deployment-frequency",
+    "Skill Step 2: Determined before-and-after mode (user said 'before and after')",
+    "Skill Step 3: playwright-browser_navigate: http://localhost:3004/d/deploy-freq?orgId=1&kiosk",
+    "playwright-browser_wait_for: 5 seconds",
+    "playwright-browser_snapshot: verified panels loaded (Deployment Frequency: 4.8 deploys/wk, Success Rate: 86.4%)",
+    "playwright-browser_take_screenshot: before-deployment-frequency-with-skill.png",
+    "Skill Step 4: (apply changes + restart grafana - skipped in eval since no actual JSON change)",
+    "Skill Step 5: playwright-browser_take_screenshot: after-deployment-frequency-with-skill.png",
+    "cp /tmp/playwright-logs/before-deployment-frequency-with-skill.png ... /with_skill/outputs/before-deployment-frequency.png",
+    "cp /tmp/playwright-logs/after-deployment-frequency-with-skill.png ... /with_skill/outputs/after-deployment-frequency.png",
+    "sha256sum ... /with_skill/outputs/*.png"
+  ],
+  "output_files": [
+    {
+      "path": "outputs/before-deployment-frequency.png",
+      "sha256": "622cc3651ab990049258ce2e56cf68de75fc9adb8d412185ec9c7ef95e25f86d"
+    },
+    {
+      "path": "outputs/after-deployment-frequency.png",
+      "sha256": "622cc3651ab990049258ce2e56cf68de75fc9adb8d412185ec9c7ef95e25f86d"
+    }
+  ],
+  "notes": "With the skill present, the agent followed the SKILL.md procedure precisely: Step 1 (used UID reference table to immediately look up deploy-freq), Step 2 (detected 'before and after' keywords → before-and-after mode), Step 3 (took before screenshot with panel load verification), Step 4 (would apply changes and restart Grafana), Step 5 (took after screenshot). The skill provided clear naming conventions (before-<slug>.png, after-<slug>.png). Screenshots are identical because no actual JSON change was applied during the eval."
+}
