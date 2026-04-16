@@ -2,6 +2,7 @@
   "iteration": 1,
   "date": "2026-04-16",
   "skill_version": "1.0.0",
+  "benchmark_status": "PARTIAL — with_skill only. without_skill comparison requires a separate PR/agent session.",
   "eval_environment": {
     "agent": "GitHub Copilot Cloud Coding Agent",
     "infrastructure": "Docker compose: postgres:16-alpine + grafana/grafana:11.0.0, seeded via npm run seed",
