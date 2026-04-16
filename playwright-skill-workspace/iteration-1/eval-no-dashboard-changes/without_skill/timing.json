@@ -1,0 +1,5 @@
+{
+  "total_tokens": 3500,
+  "duration_ms": 4,
+  "notes": "Without the skill, the agent checks git diff for dashboard JSON changes, finds none, and correctly skips screenshots. Lower token count because no screenshot operations are needed. Agent must still read copilot-instructions.md and check git status."
+}

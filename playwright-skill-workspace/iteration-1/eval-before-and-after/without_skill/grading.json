@@ -1,0 +1,32 @@
+{
+  "test_case": "eval-before-and-after",
+  "configuration": "without_skill",
+  "assertions": [
+    {
+      "id": "B1",
+      "description": "Both a before and after screenshot file were committed for the affected dashboard",
+      "result": "PASS",
+      "evidence": "Files before-copilot-adopt.png (66201 bytes) and after-copilot-adopt.png (65999 bytes) were successfully created in v2/screenshots/"
+    },
+    {
+      "id": "B2",
+      "description": "The before screenshot was taken before changes and the after screenshot after changes",
+      "result": "PASS",
+      "evidence": "Agent trace shows before screenshot taken first, then change simulation, then after screenshot. Timestamps confirm correct ordering."
+    },
+    {
+      "id": "B3",
+      "description": "Screenshot file names clearly distinguish before vs after",
+      "result": "PASS",
+      "evidence": "Files named before-copilot-adopt.png and after-copilot-adopt.png — clear before/after prefix with dashboard slug."
+    },
+    {
+      "id": "B4",
+      "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded",
+      "result": "PASS",
+      "evidence": "Screenshots taken with --wait-for-timeout=5000. File sizes (~66KB) indicate rendered content."
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "Without the skill, the agent can accomplish before/after screenshots but must manually coordinate the workflow sequencing. The copilot-instructions.md provides some guidance but does not have a structured before/after protocol."
+}

@@ -1,0 +1,112 @@
+{
+  "skill_name": "Playwright-Screenshot",
+  "skill_path": ".github/skills/playwright-skill/SKILL.md",
+  "test_cases": [
+    {
+      "id": "eval-after-only-screenshots",
+      "name": "Default behavior — after-only screenshots",
+      "description": "Simulate a PR where dashboard JSON files were modified. Prompt the agent without explicitly requesting before/after. Expect it to take post-change screenshots of only the affected dashboards and commit them to the PR.",
+      "prompt": "I just modified the overview dashboard (00-overview.json) and the deployment frequency dashboard (01-deployment-frequency.json). Take screenshots of the affected dashboards and commit them to this PR.",
+      "input_files": [
+        "v2/grafana/dashboards/00-overview.json",
+        "v2/grafana/dashboards/01-deployment-frequency.json"
+      ],
+      "assertions": [
+        {
+          "id": "A1",
+          "description": "A screenshot file was committed to the PR for each affected dashboard",
+          "type": "file_existence",
+          "expected_files": [
+            "v2/screenshots/after-overview.png",
+            "v2/screenshots/after-deploy-freq.png"
+          ]
+        },
+        {
+          "id": "A2",
+          "description": "The screenshot file name clearly identifies which dashboard it belongs to",
+          "type": "naming_convention",
+          "expected_pattern": "after-<dashboard-slug>.png"
+        },
+        {
+          "id": "A3",
+          "description": "Only post-change (after) screenshots are present — no before screenshots",
+          "type": "file_absence",
+          "unexpected_files": [
+            "v2/screenshots/before-overview.png",
+            "v2/screenshots/before-deploy-freq.png"
+          ]
+        },
+        {
+          "id": "A4",
+          "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded (not blank/loading)",
+          "type": "visual_quality",
+          "criteria": "Screenshot shows rendered Grafana dashboard panels with data, not blank or loading spinners"
+        }
+      ]
+    },
+    {
+      "id": "eval-before-and-after",
+      "name": "Explicit before-and-after screenshots",
+      "description": "Same setup as test 1, but user explicitly asks for screenshots before AND after changes. Expect both pre-change and post-change screenshots committed.",
+      "prompt": "I'm about to modify the Copilot Adoption dashboard (05-copilot-adoption.json). Please take before and after screenshots of the affected dashboard. Take the before screenshot now, then I'll make my changes, then take the after screenshot.",
+      "input_files": [
+        "v2/grafana/dashboards/05-copilot-adoption.json"
+      ],
+      "assertions": [
+        {
+          "id": "B1",
+          "description": "Both a before and after screenshot file were committed for the affected dashboard",
+          "type": "file_existence",
+          "expected_files": [
+            "v2/screenshots/before-copilot-adopt.png",
+            "v2/screenshots/after-copilot-adopt.png"
+          ]
+        },
+        {
+          "id": "B2",
+          "description": "The before screenshot was taken before changes and the after screenshot after changes",
+          "type": "semantic",
+          "criteria": "Agent workflow shows before screenshot taken first, then changes applied, then after screenshot taken"
+        },
+        {
+          "id": "B3",
+          "description": "Screenshot file names clearly distinguish before vs after",
+          "type": "naming_convention",
+          "expected_pattern": "before-<dashboard-slug>.png and after-<dashboard-slug>.png"
+        },
+        {
+          "id": "B4",
+          "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded",
+          "type": "visual_quality",
+          "criteria": "Screenshot shows rendered Grafana dashboard panels with data, not blank or loading spinners"
+        }
+      ]
+    },
+    {
+      "id": "eval-no-dashboard-changes",
+      "name": "Edge case — no dashboard changes",
+      "description": "Simulate a PR that only modifies TypeScript source files with no dashboard JSON changes. Expect the agent to recognize no dashboards are affected and skip screenshots.",
+      "prompt": "I modified src/sync/orchestrator.ts to improve error handling. Take screenshots of any affected dashboards.",
+      "input_files": [
+        "v2/src/sync/orchestrator.ts"
+      ],
+      "assertions": [
+        {
+          "id": "C1",
+          "description": "No screenshot files are committed when no dashboards are affected",
+          "type": "file_absence",
+          "unexpected_files": [
+            "v2/screenshots/after-*.png",
+            "v2/screenshots/before-*.png"
+          ]
+        },
+        {
+          "id": "C2",
+          "description": "Agent explicitly states that no dashboards are affected by the changes",
+          "type": "semantic",
+          "criteria": "Agent response includes a message indicating no dashboard JSON files were modified and no screenshots are needed"
+        }
+      ]
+    }
+  ]
+}
