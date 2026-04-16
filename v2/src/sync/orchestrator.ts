@@ -40,10 +40,11 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
   const recordCounts: Record<string, number> = {};
 
   // ── 1. Set data_mode banner ──────────────────────────────────────────────
+  const sourceLabel = config.dataSourceLabel || `${org}/${repo}`;
   await pool.query('DELETE FROM data_mode');
   await pool.query(
     `INSERT INTO data_mode (mode, source_label, source_url) VALUES ($1, $2, $3)`,
-    [config.dataMode, config.dataSourceLabel, config.dataSourceUrl ?? null]
+    [config.dataMode, sourceLabel, config.dataSourceUrl ?? null]
   );
 
   // ── 2. Copilot Seats (TRUNCATE + INSERT) ─────────────────────────────────

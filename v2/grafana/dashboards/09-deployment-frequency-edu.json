@@ -6,7 +6,7 @@
   "refresh": "5m",
   "timepicker": {},
   "version": 1,
-  "title": "\ud83d\ude80 Deployment Frequency [Edu] [v2]",
+  "title": "🚀 Deployment Frequency [Edu] [v2]",
   "schemaVersion": 36,
   "uid": "edu-deployment-frequency",
   "panels": [
@@ -14,7 +14,7 @@
       "id": 9,
       "type": "stat",
       "title": "",
-      "description": "Data mode banner \u2014 shows whether this dashboard displays live GitHub data (green), synthetic seed data (amber), or demo data (blue).",
+      "description": "Data mode banner \u2014 shows whether this dashboard displays live GitHub data (green) or synthetic seed data (amber).",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -32,7 +32,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '\ud83d\udce1 Live Data \u2014 ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '\ud83c\udf31 Synthetic Seed Data \u2014 ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '\ud83c\udfae Demo Environment \u2014 ' || COALESCE(source_label, '')\n    ELSE '\u2753 Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '\ud83c\udf31 Synthetic Seed Data'\n    ELSE '\ud83d\udce1 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
           "format": "table"
         }
       ],
@@ -42,7 +42,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": ".*Live Data.*",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -52,20 +52,10 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Seed Data",
+                "pattern": ".*Seed Data.*",
                 "result": {
-                  "color": "#FA6400",
+                  "color": "#FF9830",
                   "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo Environment",
-                "result": {
-                  "color": "#5794F2",
-                  "index": 2
                 }
               }
             }
@@ -90,7 +80,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
@@ -110,13 +100,13 @@
       },
       "id": 1,
       "options": {
-        "content": "# \ud83d\ude80 Deployment Frequency\n\n**DORA Pillar: Throughput**\n\n## What it Measures\nDeployment Frequency measures how often your organisation successfully deploys code to production. It is one of the two DORA *throughput* metrics and reflects the pace at which your team delivers value to users.\n\n## Why it Matters\nHigher deployment frequency indicates a mature, well-automated CI/CD pipeline and a team that delivers small, incremental changes. Elite-performing teams deploy on demand (multiple times per day), while low performers deploy less than once per month.\n\n## How to Interpret\n| Performance Level | Frequency | What it Means |\n|---|---|---|\n| \ud83d\udfe2 Elite | Multiple deploys/day (>7/wk) | On-demand delivery, small batch sizes |\n| \ud83d\udfe1 High | 1\u20137 deploys/week | Regular cadence, good automation |\n| \ud83d\udfe0 Medium | 1\u20134 deploys/month (<1/wk) | Larger batches, some manual steps |\n| \ud83d\udd34 Low | <1 deploy/month (<0.25/wk) | Infrequent releases, high risk per deploy |",
+        "content": "# 🚀 Deployment Frequency\n\n**DORA Pillar: Throughput**\n\n## What it Measures\nDeployment Frequency measures how often your organisation successfully deploys code to production. It is one of the two DORA *throughput* metrics and reflects the pace at which your team delivers value to users.\n\n## Why it Matters\nHigher deployment frequency indicates a mature, well-automated CI/CD pipeline and a team that delivers small, incremental changes. Elite-performing teams deploy on demand (multiple times per day), while low performers deploy less than once per month.\n\n## How to Interpret\n| Performance Level | Frequency | What it Means |\n|---|---|---|\n| 🟢 Elite | Multiple deploys/day (>7/wk) | On-demand delivery, small batch sizes |\n| 🟡 High | 1–7 deploys/week | Regular cadence, good automation |\n| 🟠 Medium | 1–4 deploys/month (<1/wk) | Larger batches, some manual steps |\n| 🔴 Low | <1 deploy/month (<0.25/wk) | Infrequent releases, high risk per deploy |",
         "mode": "markdown"
       },
       "title": "",
       "type": "text",
       "transparent": true,
-      "description": "Deployment Frequency \u2014 DORA throughput pillar. Performance tiers and action guidance."
+      "description": "Deployment Frequency — DORA throughput pillar. Performance tiers and action guidance."
     },
     {
       "datasource": {
@@ -199,7 +189,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### \ud83d\udcd0 How It's Calculated\n\nCounts distinct successful deployments divided by the number of weeks in the selected time window.\n### \u26a0\ufe0f Calculation Challenges\n\n- **GitHub-native only** \u2014 deployments via ArgoCD, Jenkins, or other tools not integrated with the GitHub Deployments API are invisible to this metric.\n- **Environment field is free-text** \u2014 'production', 'prod', and 'PROD' count as separate environments unless normalized.\n- **Success state is caller-set** \u2014 the deployer marks a deployment 'success'; GitHub does not independently verify it.\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Whether deployed code is actually healthy in production.\n- Deployments that bypassed the GitHub Deployments API entirely.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT COUNT(DISTINCT d.deployment_id)::float / GREATEST(1, EXTRACT(DAY FROM ($__timeTo()::timestamptz - $__timeFrom()::timestamptz)) / 7.0) AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\nAND ds.state = 'success'\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nCounts distinct successful deployments divided by the number of weeks in the selected time window.\n### ⚠️ Calculation Challenges\n\n- **GitHub-native only** — deployments via ArgoCD, Jenkins, or other tools not integrated with the GitHub Deployments API are invisible to this metric.\n- **Environment field is free-text** — 'production', 'prod', and 'PROD' count as separate environments unless normalized.\n- **Success state is caller-set** — the deployer marks a deployment 'success'; GitHub does not independently verify it.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether deployed code is actually healthy in production.\n- Deployments that bypassed the GitHub Deployments API entirely.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(DISTINCT d.deployment_id)::float / GREATEST(1, EXTRACT(DAY FROM ($__timeTo()::timestamptz - $__timeFrom()::timestamptz)) / 7.0) AS \"Deployments/Week\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\nAND ds.state = 'success'\nAND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
           }
         }
       ],
@@ -208,7 +198,8 @@
         "w": 24,
         "x": 0,
         "y": 21
-      }
+      },
+      "description": "Learning guide section for Deployment Frequency."
     },
     {
       "id": 300,
@@ -224,7 +215,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "datasource": {
@@ -307,7 +299,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### \ud83d\udcd0 How It's Calculated\n\nRatio of deployments with at least one 'success' status to total deployments. Uses NULLIF to prevent division by zero.\n### \u26a0\ufe0f Calculation Challenges\n\n- **State is caller-set** \u2014 the deployer marks the deployment state; it is not independently verified by GitHub.\n- **Deployments with no status rows** \u2014 a deployment created but never given a status ('pending') is in the denominator but never the numerator, deflating success rate.\n- **Multiple status rows per deployment** \u2014 the query counts distinct deployment IDs with state='success', not individual status rows.\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Post-deployment health or application availability.\n- Partial failures (deploy succeeded but a feature flag is off, etc.).\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN ds.state = 'success' THEN d.deployment_id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT d.deployment_id), 0), 1\n) AS \"Success Rate (%)\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nRatio of deployments with at least one 'success' status to total deployments. Uses NULLIF to prevent division by zero.\n### ⚠️ Calculation Challenges\n\n- **State is caller-set** — the deployer marks the deployment state; it is not independently verified by GitHub.\n- **Deployments with no status rows** — a deployment created but never given a status ('pending') is in the denominator but never the numerator, deflating success rate.\n- **Multiple status rows per deployment** — the query counts distinct deployment IDs with state='success', not individual status rows.\n### 💡 What This Metric Doesn't Tell You\n\n- Post-deployment health or application availability.\n- Partial failures (deploy succeeded but a feature flag is off, etc.).\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  COUNT(DISTINCT CASE WHEN ds.state = 'success' THEN d.deployment_id END)::numeric * 100.0\n  / NULLIF(COUNT(DISTINCT d.deployment_id), 0), 1\n) AS \"Success Rate (%)\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
           }
         }
       ],
@@ -316,7 +308,8 @@
         "w": 24,
         "x": 0,
         "y": 28
-      }
+      },
+      "description": "Learning guide section for Deployment Success Rate."
     },
     {
       "id": 301,
@@ -332,7 +325,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "datasource": {
@@ -398,7 +392,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### \ud83d\udcd0 How It's Calculated\n\nTime series bucketed by week using date_trunc('week', created_at). Counts distinct successful deployment IDs per week.\n### \u26a0\ufe0f Calculation Challenges\n\n- **date_trunc('week') starts on Monday** \u2014 a deployment on Sunday falls into the previous week bucket, which can misalign with sprint reporting.\n- **created_at, not finished_at** \u2014 timestamps reflect deployment creation, not completion or marking as successful.\n- **Zero-deployment weeks are gaps** \u2014 Grafana shows a line gap for weeks with no deployments (no zero-fill in the SQL result set).\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Deployment duration or rollback rates.\n- Whether deploys targeted production or lower environments.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nTime series bucketed by week using date_trunc('week', created_at). Counts distinct successful deployment IDs per week.\n### ⚠️ Calculation Challenges\n\n- **date_trunc('week') starts on Monday** — a deployment on Sunday falls into the previous week bucket, which can misalign with sprint reporting.\n- **created_at, not finished_at** — timestamps reflect deployment creation, not completion or marking as successful.\n- **Zero-deployment weeks are gaps** — Grafana shows a line gap for weeks with no deployments (no zero-fill in the SQL result set).\n### 💡 What This Metric Doesn't Tell You\n\n- Deployment duration or rollback rates.\n- Whether deploys targeted production or lower environments.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
           }
         }
       ],
@@ -407,7 +401,8 @@
         "w": 24,
         "x": 0,
         "y": 39
-      }
+      },
+      "description": "Learning guide section for Deployments per Week."
     },
     {
       "id": 302,
@@ -423,7 +418,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "datasource": {
@@ -485,7 +481,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### \ud83d\udcd0 How It's Calculated\n\nBar chart grouped by the environment field from the deployments table, filtered to successful deployments in the time window.\n### \u26a0\ufe0f Calculation Challenges\n\n- **Free-text environment names** \u2014 'production', 'prod', 'PROD', and 'Production' are four separate environments with no canonical mapping.\n- **No environment hierarchy** \u2014 staging and production are treated equally; there is no parent-child relationship.\n- **Only GitHub-native deploys** \u2014 external CD tools without GitHub Deployment API integration are absent.\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Which environments are production-equivalent.\n- Traffic or criticality weighting of each environment.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT\n  d.environment AS \"Environment\",\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 2 DESC\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nBar chart grouped by the environment field from the deployments table, filtered to successful deployments in the time window.\n### ⚠️ Calculation Challenges\n\n- **Free-text environment names** — 'production', 'prod', 'PROD', and 'Production' are four separate environments with no canonical mapping.\n- **No environment hierarchy** — staging and production are treated equally; there is no parent-child relationship.\n- **Only GitHub-native deploys** — external CD tools without GitHub Deployment API integration are absent.\n### 💡 What This Metric Doesn't Tell You\n\n- Which environments are production-equivalent.\n- Traffic or criticality weighting of each environment.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  d.environment AS \"Environment\",\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 2 DESC\n```"
           }
         }
       ],
@@ -494,7 +490,8 @@
         "w": 24,
         "x": 0,
         "y": 50
-      }
+      },
+      "description": "Learning guide section for Deployments by Environment."
     },
     {
       "id": 303,
@@ -510,7 +507,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "datasource": {
@@ -580,7 +578,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### \ud83d\udcd0 How It's Calculated\n\nWeekly count of deployments where any status row has state='failure'.\n### \u26a0\ufe0f Calculation Challenges\n\n- **'failure' vs 'error'** \u2014 the API distinguishes 'failure' (deploy ran but failed) from 'error' (deploy couldn't start). This query only captures 'failure'.\n- **Retry artifacts** \u2014 a failed-then-retried deployment appears in both failure and success counts.\n- **No root cause** \u2014 the API captures the state transition only; failure reason must be retrieved from CI logs separately.\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Why deployments failed.\n- Which service or component caused the failure.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Failed Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'failure'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nWeekly count of deployments where any status row has state='failure'.\n### ⚠️ Calculation Challenges\n\n- **'failure' vs 'error'** — the API distinguishes 'failure' (deploy ran but failed) from 'error' (deploy couldn't start). This query only captures 'failure'.\n- **Retry artifacts** — a failed-then-retried deployment appears in both failure and success counts.\n- **No root cause** — the API captures the state transition only; failure reason must be retrieved from CI logs separately.\n### 💡 What This Metric Doesn't Tell You\n\n- Why deployments failed.\n- Which service or component caused the failure.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  COUNT(DISTINCT d.deployment_id) AS \"Failed Deployments\"\nFROM deployments d\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'failure'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
           }
         }
       ],
@@ -589,7 +587,8 @@
         "w": 24,
         "x": 0,
         "y": 61
-      }
+      },
+      "description": "Learning guide section for Failed Deployments Timeline."
     },
     {
       "id": 304,
@@ -605,7 +604,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "datasource": {
@@ -665,7 +665,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### \ud83d\udcd0 How It's Calculated\n\nTable showing raw deployment records with their latest status. Uses LEFT JOIN so deployments with no status are still shown.\n### \u26a0\ufe0f Calculation Challenges\n\n- **LEFT JOIN shows only latest status** \u2014 if a deployment has multiple status transitions, only the most-recent row is visible in the join.\n- **SHA is the raw 40-char commit SHA** \u2014 no branch name or PR link is included in this view; bridge resolver data is not joined here.\n- **creator_login is the API caller** \u2014 this is whoever triggered the deployment via the API (often a bot), not necessarily the developer whose code is deployed.\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Which PR or branch was deployed.\n- Whether a deployment was a rollback or a new feature.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT\n  d.sha,\n  d.environment,\n  ds.state AS status,\n  d.creator_login,\n  d.created_at\nFROM deployments d\nLEFT JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY d.created_at DESC\nLIMIT 50\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `/deployments/{id}/statuses`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_statuses`\n\n### 📐 How It's Calculated\n\nTable showing raw deployment records with their latest status. Uses LEFT JOIN so deployments with no status are still shown.\n### ⚠️ Calculation Challenges\n\n- **LEFT JOIN shows only latest status** — if a deployment has multiple status transitions, only the most-recent row is visible in the join.\n- **SHA is the raw 40-char commit SHA** — no branch name or PR link is included in this view; bridge resolver data is not joined here.\n- **creator_login is the API caller** — this is whoever triggered the deployment via the API (often a bot), not necessarily the developer whose code is deployed.\n### 💡 What This Metric Doesn't Tell You\n\n- Which PR or branch was deployed.\n- Whether a deployment was a rollback or a new feature.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  d.sha,\n  d.environment,\n  ds.state AS status,\n  d.creator_login,\n  d.created_at\nFROM deployments d\nLEFT JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY d.created_at DESC\nLIMIT 50\n```"
           }
         }
       ],
@@ -674,7 +674,8 @@
         "w": 24,
         "x": 0,
         "y": 72
-      }
+      },
+      "description": "Learning guide section for Recent Deployments."
     },
     {
       "id": 305,
@@ -690,7 +691,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "datasource": {
@@ -752,7 +754,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /orgs/{org}/copilot/seats`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`deployments`, `deployment_pull_requests`, `pull_requests`, `deployment_statuses`, `copilot_seats`\n\n### \ud83d\udcd0 How It's Calculated\n\nSplits weekly deployments by whether the linked PR's author (`user_id`) has an active Copilot seat. Each deployment is joined to its source PR via `deployment_pull_requests`, and then to `copilot_seats` via `pr.user_id = cu.assignee_id`. Built with a WITH copilot_users CTE.\n### \u26a0\ufe0f Calculation Challenges\n\n- **Attribution by PR author, not deployer** \u2014 cohort split uses the PR author's `user_id`, not `creator_login` (who triggered the deployment API). Deployments without a linked PR are excluded entirely.\n- **Fixed 28-day seat window** \u2014 the CTE uses NOW()-28d regardless of your Grafana time range. Historical comparisons always use the current seat roster.\n- **Correlation only** \u2014 teams using Copilot may differ in many ways from those who don't.\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Whether Copilot was used in any specific deployment.\n- Causality between Copilot adoption and deployment frequency.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1\n```"
+            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/deployments/deployments)\n\n`GET /repos/{owner}/{repo}/deployments` + `GET /orgs/{org}/copilot/seats`\n\n### 🗄️ Database Table(s)\n\n`deployments`, `deployment_pull_requests`, `pull_requests`, `deployment_statuses`, `copilot_seats`\n\n### 📐 How It's Calculated\n\nSplits weekly deployments by whether the linked PR's author (`user_id`) has an active Copilot seat. Each deployment is joined to its source PR via `deployment_pull_requests`, and then to `copilot_seats` via `pr.user_id = cu.assignee_id`. Built with a WITH copilot_users CTE.\n### ⚠️ Calculation Challenges\n\n- **Attribution by PR author, not deployer** — cohort split uses the PR author's `user_id`, not `creator_login` (who triggered the deployment API). Deployments without a linked PR are excluded entirely.\n- **Fixed 28-day seat window** — the CTE uses NOW()-28d regardless of your Grafana time range. Historical comparisons always use the current seat roster.\n- **Correlation only** — teams using Copilot may differ in many ways from those who don't.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether Copilot was used in any specific deployment.\n- Causality between Copilot adoption and deployment frequency.\n\n### 🔍 SQL Query\n\n```sql\nWITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', d.created_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  COUNT(DISTINCT d.deployment_id) AS \"Deployments\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE ('$environment' = '__all__' OR d.environment = '$environment')\n  AND ds.state = 'success'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1\n```"
           }
         }
       ],
@@ -761,7 +763,8 @@
         "w": 24,
         "x": 0,
         "y": 83
-      }
+      },
+      "description": "Learning guide section for Deployment Frequency: Copilot vs Non-Copilot."
     },
     {
       "id": 306,
@@ -777,7 +780,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     }
   ],
   "templating": {
@@ -806,7 +810,7 @@
       }
     ]
   },
-  "description": "DORA Pillar: Deployment Frequency \u2014 Measures how often code is successfully deployed. Elite teams deploy multiple times per day.",
+  "description": "DORA Pillar: Deployment Frequency — Measures how often code is successfully deployed. Elite teams deploy multiple times per day.",
   "tags": [
     "dora",
     "edu"

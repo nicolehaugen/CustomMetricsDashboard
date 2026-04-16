@@ -21,7 +21,7 @@
       "id": 10,
       "type": "stat",
       "title": "",
-      "description": "Data mode banner — shows whether this dashboard displays live GitHub data (green), synthetic seed data (amber), or demo data (blue).",
+      "description": "Data mode banner — shows whether this dashboard displays live GitHub data (green) or synthetic seed data (amber).",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -39,7 +39,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '📡 Live Data — ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '🎮 Demo Environment — ' || COALESCE(source_label, '')\n    ELSE '❓ Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '🌱 Synthetic Seed Data'\n    ELSE '📡 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
           "format": "table"
         }
       ],
@@ -49,7 +49,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": ".*Live Data.*",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -59,20 +59,10 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Seed Data",
+                "pattern": ".*Seed Data.*",
                 "result": {
-                  "color": "#FA6400",
+                  "color": "#FF9830",
                   "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo Environment",
-                "result": {
-                  "color": "#5794F2",
-                  "index": 2
                 }
               }
             }
@@ -97,7 +87,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
@@ -206,7 +196,8 @@
         "w": 24,
         "x": 0,
         "y": 21
-      }
+      },
+      "description": "Learning guide section for Lines Accepted (28d)."
     },
     {
       "id": 300,
@@ -222,7 +213,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 3,
@@ -305,7 +297,8 @@
         "w": 24,
         "x": 0,
         "y": 28
-      }
+      },
+      "description": "Learning guide section for Lines Suggested (28d)."
     },
     {
       "id": 301,
@@ -321,7 +314,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 4,
@@ -413,7 +407,8 @@
         "w": 24,
         "x": 0,
         "y": 35
-      }
+      },
+      "description": "Learning guide section for Acceptance Rate (%)."
     },
     {
       "id": 302,
@@ -429,7 +424,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 5,
@@ -512,7 +508,8 @@
         "w": 24,
         "x": 0,
         "y": 42
-      }
+      },
+      "description": "Learning guide section for Copilot-Attributed PRs."
     },
     {
       "id": 303,
@@ -528,7 +525,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 6,
@@ -603,7 +601,8 @@
         "w": 24,
         "x": 0,
         "y": 53
-      }
+      },
+      "description": "Learning guide section for Lines Accepted vs Suggested over Time."
     },
     {
       "id": 304,
@@ -619,7 +618,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 7,
@@ -694,7 +694,8 @@
         "w": 24,
         "x": 0,
         "y": 64
-      }
+      },
+      "description": "Learning guide section for Acceptance Rate Trend."
     },
     {
       "id": 305,
@@ -710,7 +711,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 8,
@@ -802,7 +804,8 @@
         "w": 24,
         "x": 0,
         "y": 71
-      }
+      },
+      "description": "Learning guide section for Copilot PR Rate (%)."
     },
     {
       "id": 306,
@@ -818,7 +821,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 9,
@@ -887,7 +891,8 @@
         "w": 24,
         "x": 0,
         "y": 82
-      }
+      },
+      "description": "Learning guide section for Top 10 by Lines Added (Copilot Users)."
     },
     {
       "id": 307,
@@ -903,7 +908,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 11,
@@ -994,7 +1000,8 @@
         "w": 24,
         "x": 0,
         "y": 89
-      }
+      },
+      "description": "Learning guide section for Copilot Seats Loaded."
     },
     {
       "id": 308,
@@ -1010,7 +1017,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 12,
@@ -1097,7 +1105,8 @@
         "w": 24,
         "x": 0,
         "y": 96
-      }
+      },
+      "description": "Learning guide section for Last Successful Sync."
     },
     {
       "id": 309,
@@ -1113,7 +1122,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     }
   ],
   "tags": [
