@@ -42,7 +42,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(\n  (SELECT\n    CASE mode\n      WHEN 'live' THEN '📡 Live Data' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      WHEN 'seed' THEN '🌱 Synthetic Seed Data' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      WHEN 'demo' THEN '🎮 Demo Environment' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      ELSE '❓ Unknown Mode'\n    END\n  FROM data_mode ORDER BY updated_at DESC LIMIT 1),\n  '⚙️ Awaiting first sync…'\n) AS \"Data Source\"",
+          "rawSql": "SELECT COALESCE(\n  (SELECT\n    CASE mode\n      WHEN 'live' THEN '📡 Live Data' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      WHEN 'seed' THEN '🌱 Synthetic Seed Data' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      WHEN 'demo' THEN '🎮 Demo Environment' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      ELSE '❓ Unknown Mode'\n    END\n  FROM data_mode ORDER BY updated_at DESC LIMIT 1),\n  '⚙️ Awaiting first sync…'\n) AS \"Data Source\"\nFROM (SELECT 1) dummy",
           "format": "table"
         }
       ],
@@ -52,7 +52,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": ".*Live Data.*",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -62,7 +62,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Seed Data",
+                "pattern": ".*Seed Data.*",
                 "result": {
                   "color": "#FF9830",
                   "index": 1
@@ -72,7 +72,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Demo Environment",
+                "pattern": ".*Demo Environment.*",
                 "result": {
                   "color": "#5794F2",
                   "index": 2
@@ -100,7 +100,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
