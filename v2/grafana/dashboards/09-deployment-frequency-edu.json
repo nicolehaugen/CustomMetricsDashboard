@@ -14,7 +14,7 @@
       "id": 9,
       "type": "stat",
       "title": "",
-      "description": "Data mode banner \u2014 shows whether this dashboard displays live GitHub data (green), synthetic seed data (amber), or demo data (blue).",
+      "description": "Data mode banner \u2014 shows whether this dashboard displays live GitHub data (green) or synthetic seed data (amber).",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -32,7 +32,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '\ud83d\udce1 Live Data \u2014 ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '\ud83c\udf31 Synthetic Seed Data \u2014 ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '\ud83c\udfae Demo Environment \u2014 ' || COALESCE(source_label, '')\n    ELSE '\u2753 Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '\ud83c\udf31 Synthetic Seed Data'\n    ELSE '\ud83d\udce1 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
           "format": "table"
         }
       ],
@@ -59,16 +59,6 @@
                 }
               }
             },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo Environment",
-                "result": {
-                  "color": "#5794F2",
-                  "index": 2
-                }
-              }
-            }
           ],
           "thresholds": {
             "mode": "absolute",

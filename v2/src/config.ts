@@ -21,7 +21,7 @@ export const config = {
     password: requireEnv('PG_PASSWORD'),
   },
   port: parseInt(process.env.PORT ?? '3001', 10),
-  dataMode: (process.env.DATA_MODE ?? 'live') as 'live' | 'seed' | 'demo',
+  dataMode: (process.env.DATA_MODE ?? 'live') as 'live' | 'seeded',
   dataSourceLabel: process.env.DATA_SOURCE_LABEL ?? '',
   dataSourceUrl: process.env.DATA_SOURCE_URL ?? null,
 };

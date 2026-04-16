@@ -62,11 +62,11 @@ describe('config', () => {
     expect(config.dataMode).toBe('live');
   });
 
-  it('DATA_MODE can be set to "seed"', async () => {
+  it('DATA_MODE can be set to "seeded"', async () => {
     setRequiredEnv();
-    process.env.DATA_MODE = 'seed';
+    process.env.DATA_MODE = 'seeded';
     const { config } = await import('../src/config');
-    expect(config.dataMode).toBe('seed');
+    expect(config.dataMode).toBe('seeded');
   });
 
   it('DATA_SOURCE_LABEL is read from env', async () => {
