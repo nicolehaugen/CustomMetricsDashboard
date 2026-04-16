@@ -1,0 +1,23 @@
+{
+  "test_case_id": "eval-after-only-screenshots",
+  "configuration": "without_skill",
+  "start_timestamp": "2026-04-16T19:17:39.610Z",
+  "end_timestamp": "2026-04-16T19:18:40.564Z",
+  "duration_ms": 60954,
+  "total_tokens": null,
+  "commands_executed": [
+    "python3 -c \"import json; d=json.load(open('grafana/dashboards/00-overview.json')); print(d['uid'])\"",
+    "playwright-browser_navigate: http://localhost:3004/d/overview?orgId=1&kiosk",
+    "playwright-browser_wait_for: 5 seconds",
+    "playwright-browser_take_screenshot: after-overview.png",
+    "cp /tmp/playwright-logs/after-overview.png playwright-skill-workspace/iteration-1/eval-after-only-screenshots/without_skill/outputs/after-overview.png",
+    "sha256sum playwright-skill-workspace/iteration-1/eval-after-only-screenshots/without_skill/outputs/after-overview.png"
+  ],
+  "output_files": [
+    {
+      "path": "outputs/after-overview.png",
+      "sha256": "70b358d5db82e0bcf3229c43659a7780c9e054117179386986e1e7c53df4860e"
+    }
+  ],
+  "notes": "Without a skill, the agent manually identified the affected dashboard UID from the JSON file, navigated to Grafana, waited for panels to load, and took a screenshot. The agent correctly identified only the overview dashboard as affected. Only a post-change screenshot was taken since the user did not request before/after."
+}

@@ -1,0 +1,33 @@
+{
+  "test_case_id": "eval-after-only-screenshots",
+  "configuration": "without_skill",
+  "assertions": [
+    {
+      "id": "A1",
+      "description": "A screenshot file was committed to the PR for each affected dashboard",
+      "result": "PASS",
+      "evidence": "File outputs/after-overview.png exists with sha256 70b358d5db82e0bcf3229c43659a7780c9e054117179386986e1e7c53df4860e. The overview dashboard was the only affected dashboard and one screenshot was produced."
+    },
+    {
+      "id": "A2",
+      "description": "The screenshot file name clearly identifies which dashboard it belongs to",
+      "result": "PASS",
+      "evidence": "File is named 'after-overview.png' which clearly identifies the overview dashboard."
+    },
+    {
+      "id": "A3",
+      "description": "Only after-change screenshots are present (no before screenshots) since user did not request before/after",
+      "result": "PASS",
+      "evidence": "Only one file exists in outputs/: after-overview.png. No before-*.png files present."
+    },
+    {
+      "id": "A4",
+      "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded (not blank/loading)",
+      "result": "PASS",
+      "evidence": "Screenshot shows the Engineering Overview dashboard with all stat panels loaded (Deployment Frequency: 4.8 deploys/wk, Lead Time: 4.2 days, Change Fail Rate: 26.3%, MTTR: 1.2 weeks, Active Copilot Seats: 14, Acceptance Rate: 32.3%, Copilot PR Rate: 70.9%, Lines Accepted: 24422). Panels are fully rendered with colored backgrounds, not blank or showing loading states."
+    }
+  ],
+  "pass_count": 4,
+  "fail_count": 0,
+  "pass_rate": 1.0
+}

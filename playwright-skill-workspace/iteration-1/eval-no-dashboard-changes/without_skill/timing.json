@@ -1,0 +1,13 @@
+{
+  "test_case_id": "eval-no-dashboard-changes",
+  "configuration": "without_skill",
+  "start_timestamp": "2026-04-16T19:20:45.034Z",
+  "end_timestamp": "2026-04-16T19:21:00.195Z",
+  "duration_ms": 15161,
+  "total_tokens": null,
+  "commands_executed": [
+    "git diff --name-only HEAD~1 -- v2/grafana/dashboards/"
+  ],
+  "output_files": [],
+  "notes": "Without a skill, the agent checked git diff for dashboard file changes, found none (only src/sync/orchestrator.ts was modified), and correctly determined no screenshots were needed. The agent stated: 'The file src/sync/orchestrator.ts is a TypeScript source file, not a dashboard JSON file. No dashboard files were modified in this change.'"
+}

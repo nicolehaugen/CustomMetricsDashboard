@@ -1,0 +1,21 @@
+{
+  "test_case_id": "eval-no-dashboard-changes",
+  "configuration": "without_skill",
+  "assertions": [
+    {
+      "id": "C1",
+      "description": "When no dashboards are affected by the PR, no screenshot is taken",
+      "result": "PASS",
+      "evidence": "The outputs/ directory contains no files. No screenshots were taken."
+    },
+    {
+      "id": "C2",
+      "description": "The agent explicitly states that no dashboards were affected and no screenshots are needed",
+      "result": "PASS",
+      "evidence": "Agent output stated: 'The file src/sync/orchestrator.ts is a TypeScript source file, not a dashboard JSON file. No dashboard files were modified in this change.'"
+    }
+  ],
+  "pass_count": 2,
+  "fail_count": 0,
+  "pass_rate": 1.0
+}

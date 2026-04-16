@@ -1,0 +1,29 @@
+{
+  "test_case_id": "eval-before-and-after",
+  "configuration": "without_skill",
+  "start_timestamp": "2026-04-16T19:19:14.970Z",
+  "end_timestamp": "2026-04-16T19:20:14.885Z",
+  "duration_ms": 59915,
+  "total_tokens": null,
+  "commands_executed": [
+    "python3 -c \"import json; d=json.load(open('grafana/dashboards/01-deployment-frequency.json')); print(d['uid'])\"",
+    "playwright-browser_navigate: http://localhost:3004/d/deploy-freq?orgId=1&kiosk",
+    "playwright-browser_wait_for: 5 seconds",
+    "playwright-browser_take_screenshot: before-deployment-frequency.png",
+    "playwright-browser_take_screenshot: after-deployment-frequency.png",
+    "cp /tmp/playwright-logs/before-deployment-frequency.png ... /without_skill/outputs/before-deployment-frequency.png",
+    "cp /tmp/playwright-logs/after-deployment-frequency.png ... /without_skill/outputs/after-deployment-frequency.png",
+    "sha256sum ... /without_skill/outputs/*.png"
+  ],
+  "output_files": [
+    {
+      "path": "outputs/before-deployment-frequency.png",
+      "sha256": "deed309d75eb382260ff9263486eae340cb6795f0c31cef3fb080707b04e33b2"
+    },
+    {
+      "path": "outputs/after-deployment-frequency.png",
+      "sha256": "deed309d75eb382260ff9263486eae340cb6795f0c31cef3fb080707b04e33b2"
+    }
+  ],
+  "notes": "Without a skill, the agent manually identified the dashboard UID, navigated to Grafana, and took before/after screenshots. Limitation: since Grafana auto-provisions dashboards from JSON on startup, the before and after screenshots are identical (no actual JSON change was applied and Grafana was not restarted). The agent correctly identified the need for both before and after screenshots based on the user prompt."
+}
