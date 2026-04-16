@@ -1,5 +1,6 @@
 {
-  "total_tokens": 4800,
-  "duration_ms": 13737,
-  "notes": "With the skill, the before/after workflow is clearly defined in Step 3. Agent knows exactly when to take each screenshot. Estimated ~4800 tokens (skill body + two screenshot operations). Reduced from ~9200 without the skill."
+  "total_tokens": null,
+  "duration_ms": null,
+  "methodology": "manual_simulation",
+  "notes": "NOT a real agent run. Commands were executed manually by the evaluator following the skill's before/after workflow. Token counts and agent-level duration cannot be measured from within a Copilot agent session."
 }

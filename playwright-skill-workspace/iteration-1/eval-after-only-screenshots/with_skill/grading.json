@@ -1,32 +1,34 @@
 {
   "test_case": "eval-after-only-screenshots",
   "configuration": "with_skill",
+  "methodology": "manual_command_execution",
+  "methodology_notes": "Commands from the skill's SKILL.md were executed manually by the evaluator, NOT by a separate agent instance with the skill loaded. This validates the skill's commands produce correct outputs.",
   "assertions": [
     {
       "id": "A1",
       "description": "A screenshot file was committed to the PR for each affected dashboard",
-      "result": "PASS",
-      "evidence": "Files after-overview.png (66270 bytes) and after-deploy-freq.png (66280 bytes) were successfully created in v2/screenshots/"
+      "result": "PARTIAL",
+      "evidence": "Files after-overview.png (66270 bytes) and after-deploy-freq.png (66280 bytes) were created locally. The git commit step was NOT executed."
     },
     {
       "id": "A2",
       "description": "The screenshot file name clearly identifies which dashboard it belongs to",
       "result": "PASS",
-      "evidence": "Files named after-overview.png and after-deploy-freq.png using the skill's <prefix>-<uid>.png convention from Step 4"
+      "evidence": "Files named after-overview.png and after-deploy-freq.png using the skill's <prefix>-<uid>.png convention."
     },
     {
       "id": "A3",
       "description": "Only post-change (after) screenshots are present — no before screenshots",
       "result": "PASS",
-      "evidence": "No before-*.png files found. Skill Step 3 correctly identifies default mode as after-only."
+      "evidence": "No before-*.png files found."
     },
     {
       "id": "A4",
       "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded",
-      "result": "PASS",
-      "evidence": "Screenshots taken with --wait-for-timeout=5000 per skill Step 4. File sizes (~66KB) confirm rendered panels."
+      "result": "INCONCLUSIVE",
+      "evidence": "Screenshots were taken from a real Grafana instance. Similar file sizes across different dashboards may indicate Grafana served identical pages. Visual inspection was not performed."
     }
   ],
-  "pass_rate": 1.0,
-  "notes": "With the skill, the agent follows a deterministic workflow. Steps 1-5 provide clear instructions. Token savings of ~50% vs without_skill due to eliminated discovery phase."
+  "pass_rate": null,
+  "notes": "Manual command execution, not an agent run. The with_skill vs without_skill comparison is not meaningful since both used the same manual process — the evaluator already knew which commands to run."
 }

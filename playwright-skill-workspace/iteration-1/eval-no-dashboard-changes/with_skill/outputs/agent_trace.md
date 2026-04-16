@@ -1,18 +1,17 @@
-# With-Skill Agent Trace: eval-no-dashboard-changes
+# Agent Trace: eval-no-dashboard-changes (with_skill)
+
+## ⚠️ Methodology Limitation
+This was NOT an actual agent run with the skill loaded. The evaluator manually ran the skill's Step 1 command.
 
 ## Prompt
 "I modified src/sync/orchestrator.ts to improve error handling. Take screenshots of any affected dashboards."
 
-## Skill Used
-`.github/skills/playwright-skill/SKILL.md` — Playwright-Screenshot
+## What Was Actually Executed
+1. Ran the skill's Step 1 check: `git diff --name-only` for dashboard JSON
+2. No dashboard files found → stopped per skill instruction
 
-## Agent Behavior (with skill)
-1. **Step 1 (Detect):** Runs `git diff --name-only` for dashboard JSON files
-2. **Result:** No dashboard files in diff
-3. **Step 1 exit:** "No dashboards affected" — stops immediately per skill instructions
-
-## Files Produced
-None (correct behavior)
+## What Was NOT Executed
+- No separate agent instance was spawned with the skill loaded
 
 ## Result
-All assertions pass. Skill Step 1 provides a clear early-exit path.
+No screenshots taken (correct behavior for this edge case).

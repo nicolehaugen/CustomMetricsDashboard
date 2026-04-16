@@ -1,32 +1,34 @@
 {
   "test_case": "eval-after-only-screenshots",
   "configuration": "without_skill",
+  "methodology": "manual_command_execution",
+  "methodology_notes": "Commands were executed manually by the evaluator (a Copilot agent session), NOT by a separate agent instance. This tests that the skill's commands produce correct outputs, not that an agent would follow this exact workflow.",
   "assertions": [
     {
       "id": "A1",
       "description": "A screenshot file was committed to the PR for each affected dashboard",
-      "result": "PASS",
-      "evidence": "Files after-overview.png (66004 bytes) and after-deploy-freq.png (66145 bytes) were successfully created in v2/screenshots/"
+      "result": "PARTIAL",
+      "evidence": "Files after-overview.png (66004 bytes) and after-deploy-freq.png (66145 bytes) were created in v2/screenshots/. However, the git commit step was NOT executed — files were only created locally."
     },
     {
       "id": "A2",
       "description": "The screenshot file name clearly identifies which dashboard it belongs to",
       "result": "PASS",
-      "evidence": "Files named after-overview.png and after-deploy-freq.png — clearly map to the overview and deployment frequency dashboards using the dashboard UID slug"
+      "evidence": "Files named after-overview.png and after-deploy-freq.png — maps to dashboard UIDs."
     },
     {
       "id": "A3",
       "description": "Only post-change (after) screenshots are present — no before screenshots",
       "result": "PASS",
-      "evidence": "No before-*.png files exist in the outputs directory. Only after-overview.png and after-deploy-freq.png are present."
+      "evidence": "No before-*.png files exist in the outputs directory."
     },
     {
       "id": "A4",
       "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded",
-      "result": "PASS",
-      "evidence": "Screenshots taken with --wait-for-timeout=5000 to allow panels to load. File sizes (66KB each) indicate rendered content, not blank pages (which would be ~5-10KB)."
+      "result": "INCONCLUSIVE",
+      "evidence": "Screenshots were taken from a real Grafana instance (docker-compose stack with seeded data). File sizes (~66KB) suggest rendered content. However, similar file sizes across different dashboards may indicate Grafana served login/error pages rather than distinct dashboard content. Visual inspection was not performed."
     }
   ],
-  "pass_rate": 1.0,
-  "notes": "Without the skill, the agent can accomplish this task using copilot-instructions.md guidance, but requires reading and parsing multiple sources to determine the workflow, dashboard UIDs, URL patterns, and screenshot conventions."
+  "pass_rate": null,
+  "notes": "This was a manual command execution, not an agent run. Pass rate is not meaningful for comparing with/without skill since both configurations used the same manual process."
 }

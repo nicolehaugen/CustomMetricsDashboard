@@ -1,32 +1,34 @@
 {
   "test_case": "eval-before-and-after",
   "configuration": "with_skill",
+  "methodology": "manual_command_execution",
+  "methodology_notes": "Commands from the skill's SKILL.md were executed manually by the evaluator, NOT by a separate agent instance.",
   "assertions": [
     {
       "id": "B1",
       "description": "Both a before and after screenshot file were committed for the affected dashboard",
-      "result": "PASS",
-      "evidence": "Files before-copilot-adopt.png (66034 bytes) and after-copilot-adopt.png (66086 bytes) created in v2/screenshots/"
+      "result": "PARTIAL",
+      "evidence": "Files before-copilot-adopt.png (66034 bytes) and after-copilot-adopt.png (66086 bytes) were created locally. The git commit step was NOT executed."
     },
     {
       "id": "B2",
       "description": "The before screenshot was taken before changes and the after screenshot after changes",
-      "result": "PASS",
-      "evidence": "Skill Step 3 explicitly defines: 'Take before screenshot first, apply changes, then after.' Agent trace confirms this ordering."
+      "result": "INCONCLUSIVE",
+      "evidence": "Commands were run in sequence, but no actual dashboard change was made between screenshots."
     },
     {
       "id": "B3",
       "description": "Screenshot file names clearly distinguish before vs after",
       "result": "PASS",
-      "evidence": "Files named before-copilot-adopt.png and after-copilot-adopt.png — skill Step 4 specifies prefix as 'before'/'after'."
+      "evidence": "Files named before-copilot-adopt.png and after-copilot-adopt.png per the skill's naming convention."
     },
     {
       "id": "B4",
       "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded",
-      "result": "PASS",
-      "evidence": "Screenshots taken with --wait-for-timeout=5000 per skill Step 4. File sizes (~66KB) confirm rendered panels."
+      "result": "INCONCLUSIVE",
+      "evidence": "Screenshots were taken from a real Grafana instance. Visual inspection was not performed."
     }
   ],
-  "pass_rate": 1.0,
-  "notes": "The skill's Step 3 explicitly defines before/after mode and sequencing, reducing ambiguity compared to without_skill. Token savings ~48% due to structured workflow."
+  "pass_rate": null,
+  "notes": "Manual command execution. No actual dashboard changes were applied between before/after screenshots."
 }

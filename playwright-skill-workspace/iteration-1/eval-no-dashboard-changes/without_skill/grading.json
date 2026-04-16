@@ -1,20 +1,22 @@
 {
   "test_case": "eval-no-dashboard-changes",
   "configuration": "without_skill",
+  "methodology": "manual_command_execution",
+  "methodology_notes": "A git diff command was executed manually by the evaluator, NOT by a separate agent instance.",
   "assertions": [
     {
       "id": "C1",
       "description": "No screenshot files are committed when no dashboards are affected",
       "result": "PASS",
-      "evidence": "No after-*.png or before-*.png files exist in v2/screenshots/ directory. Correct behavior."
+      "evidence": "No after-*.png or before-*.png files exist. The evaluator ran git diff, found no dashboard changes, and did not run any screenshot commands."
     },
     {
       "id": "C2",
       "description": "Agent explicitly states that no dashboards are affected by the changes",
-      "result": "PASS",
-      "evidence": "Agent output: 'No dashboard JSON files were modified in this PR. No screenshots needed.' — clearly communicates that no dashboards are affected."
+      "result": "NOT_TESTED",
+      "evidence": "No actual agent was run. The evaluator's bash script output 'No dashboard JSON files were modified' but this was the evaluator's own script, not an agent's response."
     }
   ],
-  "pass_rate": 1.0,
-  "notes": "Without the skill, the agent correctly identifies no dashboard changes by checking git diff. This is a straightforward case but still requires the agent to know the correct path pattern (v2/grafana/dashboards/*.json)."
+  "pass_rate": null,
+  "notes": "Manual command execution. C2 cannot be evaluated without running an actual agent."
 }
