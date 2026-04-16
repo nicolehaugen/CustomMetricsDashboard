@@ -1,0 +1,20 @@
+{
+  "test_case": "eval-no-dashboard-changes",
+  "configuration": "without_skill",
+  "assertions": [
+    {
+      "id": "C1",
+      "text": "No screenshot files were created or committed",
+      "result": "NOT_RUN",
+      "evidence": "Cannot run without_skill baseline in this sandbox. Without the skill's explicit early-exit ('no dashboard changes detected'), the agent may still attempt screenshots or may skip — behavior is unpredictable."
+    },
+    {
+      "id": "C2",
+      "text": "Agent reports that no dashboards are affected",
+      "result": "NOT_RUN",
+      "evidence": "Cannot verify without a separate session."
+    }
+  ],
+  "pass_rate": null,
+  "notes": "Baseline run requires a separate agent session without the playwright-skill loaded. This cannot be spawned from within the current sandbox."
+}

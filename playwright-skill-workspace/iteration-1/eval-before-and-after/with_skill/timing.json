@@ -1,0 +1,5 @@
+{
+  "total_tokens": 10200,
+  "duration_ms": 30000,
+  "notes": "Navigated to overview dashboard, took before screenshot, then after screenshot via Playwright MCP"
+}

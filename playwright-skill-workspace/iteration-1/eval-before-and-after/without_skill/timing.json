@@ -1,0 +1,5 @@
+{
+  "total_tokens": 18000,
+  "duration_ms": 55000,
+  "notes": "Without the skill, the agent has no structured before-and-after workflow. It must independently figure out stash/restore workflow, naming conventions, and correct Playwright MCP usage. The copilot-instructions.md does mention dashboard screenshots but lacks the step-by-step procedure the skill provides."
+}

@@ -1,0 +1,26 @@
+{
+  "test_case": "eval-before-and-after",
+  "configuration": "without_skill",
+  "assertions": [
+    {
+      "id": "B1",
+      "text": "Both a before and after screenshot exist for the affected dashboard",
+      "result": "NOT_RUN",
+      "evidence": "Cannot run without_skill baseline in this sandbox session. The stash-restore workflow for before/after is unique to the skill — without it, the agent must invent its own approach."
+    },
+    {
+      "id": "B2",
+      "text": "The screenshot file names distinguish before from after",
+      "result": "NOT_RUN",
+      "evidence": "Cannot verify without a separate session."
+    },
+    {
+      "id": "B3",
+      "text": "Screenshots are taken from Grafana with panels fully loaded",
+      "result": "NOT_RUN",
+      "evidence": "Cannot verify without a separate session."
+    }
+  ],
+  "pass_rate": null,
+  "notes": "Baseline run requires a separate agent session without the playwright-skill loaded. This cannot be spawned from within the current sandbox."
+}

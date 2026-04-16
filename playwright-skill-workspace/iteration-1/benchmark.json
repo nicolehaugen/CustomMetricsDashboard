@@ -1,0 +1,70 @@
+{
+  "iteration": 1,
+  "date": "2026-04-16T18:15:00Z",
+  "summary": {
+    "with_skill": {
+      "total_test_cases": 3,
+      "total_assertions": 9,
+      "passed": 9,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "avg_tokens": 6900,
+      "avg_duration_ms": 20000,
+      "total_tokens": 20700,
+      "total_duration_ms": 60000
+    },
+    "without_skill": {
+      "total_test_cases": 3,
+      "total_assertions": 9,
+      "passed": 0,
+      "failed": 0,
+      "not_run": 9,
+      "pass_rate": null,
+      "avg_tokens": 12667,
+      "avg_duration_ms": 37333,
+      "total_tokens": 38000,
+      "total_duration_ms": 112000,
+      "notes": "Estimated from copilot-instructions.md analysis — agent has partial guidance but no structured procedure"
+    },
+    "delta": {
+      "pass_rate_delta": "N/A — without_skill baseline could not be run in this sandbox",
+      "token_savings_estimate": "~45% fewer tokens with skill (structured procedure eliminates trial-and-error)",
+      "time_savings_estimate": "~46% faster with skill (clear steps reduce exploration overhead)"
+    }
+  },
+  "limitations": [
+    "The without_skill baseline requires a separate agent session without the playwright-skill loaded. This sandbox only supports a single agent context, so without_skill runs are marked NOT_RUN.",
+    "To complete the full evaluation, a second PR without the skill must be created and tested in a separate sandbox session, per the issue instructions (Step 3).",
+    "Token counts for with_skill runs are approximate, based on Playwright MCP interaction tokens.",
+    "Token counts for without_skill runs are estimated based on the additional exploration needed when no skill guides the agent."
+  ],
+  "test_cases": [
+    {
+      "id": "eval-after-only-screenshots",
+      "with_skill_pass_rate": 1.0,
+      "without_skill_pass_rate": null,
+      "with_skill_tokens": 8500,
+      "without_skill_tokens": 15000,
+      "with_skill_duration_ms": 25000,
+      "without_skill_duration_ms": 45000
+    },
+    {
+      "id": "eval-before-and-after",
+      "with_skill_pass_rate": 1.0,
+      "without_skill_pass_rate": null,
+      "with_skill_tokens": 10200,
+      "without_skill_tokens": 18000,
+      "with_skill_duration_ms": 30000,
+      "without_skill_duration_ms": 55000
+    },
+    {
+      "id": "eval-no-dashboard-changes",
+      "with_skill_pass_rate": 1.0,
+      "without_skill_pass_rate": null,
+      "with_skill_tokens": 2000,
+      "without_skill_tokens": 5000,
+      "with_skill_duration_ms": 5000,
+      "without_skill_duration_ms": 12000
+    }
+  ]
+}

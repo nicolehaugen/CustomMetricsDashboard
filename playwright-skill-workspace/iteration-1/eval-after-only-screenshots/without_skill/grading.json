@@ -1,0 +1,32 @@
+{
+  "test_case": "eval-after-only-screenshots",
+  "configuration": "without_skill",
+  "assertions": [
+    {
+      "id": "A1",
+      "text": "A screenshot file was committed for each affected dashboard",
+      "result": "NOT_RUN",
+      "evidence": "Cannot run without_skill baseline in this sandbox session. Requires a separate agent session without the skill loaded. See benchmark.json for details."
+    },
+    {
+      "id": "A2",
+      "text": "The screenshot file name clearly identifies which dashboard it belongs to",
+      "result": "NOT_RUN",
+      "evidence": "Without the skill's naming convention (after-<slug>.png), the agent would use ad-hoc names. Cannot verify without a separate session."
+    },
+    {
+      "id": "A3",
+      "text": "No 'before' screenshots were taken (only after-only mode)",
+      "result": "NOT_RUN",
+      "evidence": "Cannot verify without a separate session."
+    },
+    {
+      "id": "A4",
+      "text": "Screenshots were taken from Grafana at localhost:3004 with panels loaded",
+      "result": "NOT_RUN",
+      "evidence": "Cannot verify without a separate session. The copilot-instructions.md does mention Playwright MCP and Grafana URLs, so the agent may succeed but without the structured wait-for-load guidance."
+    }
+  ],
+  "pass_rate": null,
+  "notes": "Baseline run requires a separate agent session without the playwright-skill loaded. This cannot be spawned from within the current sandbox."
+}

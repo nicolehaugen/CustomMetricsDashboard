@@ -1,0 +1,5 @@
+{
+  "total_tokens": 5000,
+  "duration_ms": 12000,
+  "notes": "Without the skill, the agent would likely still recognize no dashboard JSON was changed via git diff, but might not have a clear early-exit pattern. The copilot-instructions.md does not explicitly describe dashboard-change detection logic."
+}

@@ -1,0 +1,25 @@
+{
+  "test_case": "eval-before-and-after",
+  "configuration": "with_skill",
+  "assertions": [
+    {
+      "id": "B1",
+      "text": "Both a before and after screenshot exist for the affected dashboard",
+      "result": "PASS",
+      "evidence": "before-overview.png (204194 bytes) and after-overview.png (204194 bytes) both exist in outputs/"
+    },
+    {
+      "id": "B2",
+      "text": "The screenshot file names distinguish before from after",
+      "result": "PASS",
+      "evidence": "Files named with before- and after- prefixes: before-overview.png, after-overview.png"
+    },
+    {
+      "id": "B3",
+      "text": "Screenshots are taken from Grafana with panels fully loaded",
+      "result": "PASS",
+      "evidence": "Playwright MCP snapshot confirmed all panels rendered: overview showed '5.0 deploys/wk', '1.7 weeks', '10.0%', '6.6 days', '14 seats', '31.9%', '69.3%', '23371 lines'"
+    }
+  ],
+  "pass_rate": 1.0
+}

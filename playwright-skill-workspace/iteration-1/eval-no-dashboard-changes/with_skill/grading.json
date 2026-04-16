@@ -1,0 +1,19 @@
+{
+  "test_case": "eval-no-dashboard-changes",
+  "configuration": "with_skill",
+  "assertions": [
+    {
+      "id": "C1",
+      "text": "No screenshot files were created or committed",
+      "result": "PASS",
+      "evidence": "No .png files in outputs/ — only agent-output.txt. git diff detected 0 dashboard JSON files changed."
+    },
+    {
+      "id": "C2",
+      "text": "Agent reports that no dashboards are affected",
+      "result": "PASS",
+      "evidence": "Agent output: 'No dashboard changes detected — skipping screenshots.' Matches skill procedure step 1."
+    }
+  ],
+  "pass_rate": 1.0
+}

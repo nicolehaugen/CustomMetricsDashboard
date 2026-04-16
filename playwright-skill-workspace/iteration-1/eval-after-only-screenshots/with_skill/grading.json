@@ -1,0 +1,31 @@
+{
+  "test_case": "eval-after-only-screenshots",
+  "configuration": "with_skill",
+  "assertions": [
+    {
+      "id": "A1",
+      "text": "A screenshot file was committed for each affected dashboard",
+      "result": "PASS",
+      "evidence": "after-deploy-freq.png (129478 bytes) and after-lead-time.png (152308 bytes) were captured and saved to outputs/"
+    },
+    {
+      "id": "A2",
+      "text": "The screenshot file name clearly identifies which dashboard it belongs to",
+      "result": "PASS",
+      "evidence": "Files named after-deploy-freq.png and after-lead-time.png — slugs match dashboard UIDs (deploy-freq, lead-time)"
+    },
+    {
+      "id": "A3",
+      "text": "No 'before' screenshots were taken (only after-only mode)",
+      "result": "PASS",
+      "evidence": "No before-*.png files exist in outputs/ directory"
+    },
+    {
+      "id": "A4",
+      "text": "Screenshots were taken from Grafana at localhost:3004 with panels loaded",
+      "result": "PASS",
+      "evidence": "Playwright MCP snapshot confirmed panels fully rendered: deploy-freq showed '5.0 deploys/wk' and '87.0%' stats; lead-time showed '1.7 weeks' and '1.5 days' stats with chart panels visible"
+    }
+  ],
+  "pass_rate": 1.0
+}
