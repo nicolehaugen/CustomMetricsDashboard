@@ -1,6 +1,6 @@
 ---
 name: safe-worktree
-description: "**WORKFLOW SKILL** — Creates an isolated Git worktree from origin/<default> before any code changes. Fetches remote first to avoid inheriting unpushed local commits. WHEN: \"start any coding task\", \"before making code changes\", \"beginning implementation\", \"autopilot session start\", \"create worktree for task\". INVOKES: git fetch, git worktree add. FOR SINGLE OPERATIONS: use git worktree add directly if already on a clean isolated worktree."
+description: "**WORKFLOW SKILL** — Creates an isolated Git worktree from origin/<default> before any code changes. WHEN: \"start any coding task\", \"before making code changes\", \"beginning implementation\", \"autopilot session start\", \"create worktree for task\". INVOKES: git fetch, git worktree add. FOR SINGLE OPERATIONS: use git worktree add directly if already on a clean isolated worktree."
 ---
 
 # Safe Worktree
@@ -64,3 +64,7 @@ git push -u origin <branch-name>
 ```
 
 Never force-push. If rejected by branch protection, create a new worktree with a different branch name.
+
+## ⚠️ Do NOT open a pull request
+
+Push the branch and stop. **Do not create a pull request** unless the user explicitly asks for one (e.g., "open a PR", "create a pull request"). Opening an unsolicited PR is an overreach — the user decides when and whether to merge.
