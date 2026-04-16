@@ -1,0 +1,5 @@
+{
+  "total_tokens": 3200,
+  "duration_ms": 12000,
+  "notes": "With the skill active, the agent immediately ran git diff to detect affected dashboards, found zero dashboard JSON files modified, and reported 'No dashboards affected by this PR' without attempting to start Grafana or take any screenshots. Very efficient early exit."
+}

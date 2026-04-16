@@ -1,0 +1,25 @@
+{
+  "assertions": [
+    {
+      "id": "C1",
+      "description": "When no dashboards are affected by the PR, no screenshot is taken",
+      "result": "PASS",
+      "evidence": "No screenshot files were created. Agent correctly identified that only .ts files were modified."
+    },
+    {
+      "id": "C2",
+      "description": "Agent reports that no dashboards were affected",
+      "result": "PASS",
+      "evidence": "Agent output included a message indicating no dashboard JSON files were in the diff."
+    },
+    {
+      "id": "C3",
+      "description": "No git commit was created for screenshots",
+      "result": "PASS",
+      "evidence": "No new commits related to screenshots in git log."
+    }
+  ],
+  "pass_count": 3,
+  "fail_count": 0,
+  "pass_rate": 1.0
+}

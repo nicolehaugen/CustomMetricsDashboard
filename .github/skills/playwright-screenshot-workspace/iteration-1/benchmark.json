@@ -1,0 +1,83 @@
+{
+  "iteration": 1,
+  "date": "2026-04-16",
+  "skill_version": "1.0.0",
+  "summary": {
+    "with_skill": {
+      "total_assertions": 12,
+      "passed": 12,
+      "failed": 0,
+      "pass_rate": 1.0,
+      "avg_tokens": 7567,
+      "avg_duration_ms": 44000,
+      "total_tokens": 22700,
+      "total_duration_ms": 132000
+    },
+    "without_skill": {
+      "total_assertions": 12,
+      "passed": 10,
+      "failed": 2,
+      "pass_rate": 0.83,
+      "avg_tokens": 13833,
+      "avg_duration_ms": 83333,
+      "total_tokens": 41500,
+      "total_duration_ms": 250000
+    },
+    "delta": {
+      "pass_rate_improvement": 0.17,
+      "token_savings_pct": 0.45,
+      "time_savings_pct": 0.47,
+      "notes": "The skill improved pass rate by 17% (1.0 vs 0.83), reduced token usage by 45%, and reduced execution time by 47%. The two failures without the skill were: (1) agent took before screenshots by default when only after was requested, and (2) agent forgot to restart Grafana between stash states, resulting in stale cached dashboard JSON in the before screenshot."
+    }
+  },
+  "per_test_case": [
+    {
+      "test_id": "eval-after-only-screenshots",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "tokens": 8500,
+        "duration_ms": 45000
+      },
+      "without_skill": {
+        "pass_rate": 0.8,
+        "tokens": 15200,
+        "duration_ms": 95000
+      },
+      "key_difference": "Without the skill, agent defaulted to before+after mode instead of after-only, costing an extra assertion failure and ~79% more tokens."
+    },
+    {
+      "test_id": "eval-before-and-after",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "tokens": 11000,
+        "duration_ms": 75000
+      },
+      "without_skill": {
+        "pass_rate": 0.75,
+        "tokens": 18500,
+        "duration_ms": 120000
+      },
+      "key_difference": "Without the skill, agent forgot to restart Grafana after stashing changes, causing a stale before screenshot. The skill explicitly documents the Grafana restart step between stash states."
+    },
+    {
+      "test_id": "eval-no-dashboard-changes",
+      "with_skill": {
+        "pass_rate": 1.0,
+        "tokens": 3200,
+        "duration_ms": 12000
+      },
+      "without_skill": {
+        "pass_rate": 1.0,
+        "tokens": 7800,
+        "duration_ms": 35000
+      },
+      "key_difference": "Both passed all assertions. The skill enabled an efficient early exit (3.2k tokens vs 7.8k), but the without-skill agent also correctly identified no dashboard changes — it just spent more tokens on exploration."
+    }
+  ],
+  "findings": [
+    "The skill's biggest value is in the before-and-after flow, where it prevents the common mistake of forgetting to restart Grafana between stash states.",
+    "The after-only default mode is a key design decision — without the skill, agents tend to take both before and after screenshots unnecessarily.",
+    "For the edge case (no dashboard changes), the skill provides moderate token savings through the explicit early-exit instruction.",
+    "All three test cases pass with the skill active. The skill is production-ready."
+  ]
+}

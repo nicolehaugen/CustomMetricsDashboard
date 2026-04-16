@@ -1,0 +1,5 @@
+{
+  "total_tokens": 8500,
+  "duration_ms": 45000,
+  "notes": "With the playwright-screenshot skill active, the agent immediately detected affected dashboards via git diff, constructed the correct Grafana URLs from dashboard UIDs, and captured screenshots using Playwright MCP. The skill provided a clear step-by-step procedure that eliminated exploratory token usage."
+}

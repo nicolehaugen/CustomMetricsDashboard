@@ -1,0 +1,31 @@
+{
+  "assertions": [
+    {
+      "id": "B1",
+      "description": "Both a before and after screenshot are present for the affected dashboard",
+      "result": "PASS",
+      "evidence": "After recovery from initial misstep, agent created both before and after screenshots."
+    },
+    {
+      "id": "B2",
+      "description": "Before screenshot was taken from the pre-change state",
+      "result": "FAIL",
+      "evidence": "Agent initially forgot to restart Grafana after stashing changes, so the first 'before' screenshot still showed the post-change dashboard JSON (Grafana had it cached). Had to redo the before screenshot after restarting Grafana."
+    },
+    {
+      "id": "B3",
+      "description": "Screenshots are committed to the PR",
+      "result": "PASS",
+      "evidence": "Screenshots were eventually committed and pushed."
+    },
+    {
+      "id": "B4",
+      "description": "After stash/unstash cycle, working tree is clean",
+      "result": "PASS",
+      "evidence": "Working tree was clean after final commit, though the agent initially had trouble with the stash cycle."
+    }
+  ],
+  "pass_count": 3,
+  "fail_count": 1,
+  "pass_rate": 0.75
+}

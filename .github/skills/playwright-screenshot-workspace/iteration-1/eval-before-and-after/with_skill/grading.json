@@ -1,0 +1,31 @@
+{
+  "assertions": [
+    {
+      "id": "B1",
+      "description": "Both a before and after screenshot are present for the affected dashboard",
+      "result": "PASS",
+      "evidence": "Agent created v2/screenshots/before-05-copilot-adoption.png and v2/screenshots/after-05-copilot-adoption.png."
+    },
+    {
+      "id": "B2",
+      "description": "Before screenshot was taken from the pre-change state (git stash was used)",
+      "result": "PASS",
+      "evidence": "Agent ran git stash push before taking before screenshot, then git stash pop to restore changes before taking after screenshot. Git log confirms the stash cycle."
+    },
+    {
+      "id": "B3",
+      "description": "Screenshots are committed to the PR",
+      "result": "PASS",
+      "evidence": "Agent committed both screenshots with message 'chore: add dashboard screenshots for visual review' and used report_progress to push."
+    },
+    {
+      "id": "B4",
+      "description": "After stash/unstash cycle, working tree is clean",
+      "result": "PASS",
+      "evidence": "git status shows clean working tree after the commit. No changes were lost during the stash cycle."
+    }
+  ],
+  "pass_count": 4,
+  "fail_count": 0,
+  "pass_rate": 1.0
+}

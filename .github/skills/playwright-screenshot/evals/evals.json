@@ -1,0 +1,144 @@
+{
+  "skill": "playwright-screenshot",
+  "version": "1.0.0",
+  "test_cases": [
+    {
+      "id": "eval-after-only-screenshots",
+      "name": "Default behavior — after-only screenshots",
+      "description": "Simulate a PR where one or more dashboard JSON files were modified. Invoke the agent without explicitly requesting before/after. Expect it to take post-change screenshots of only the affected dashboards and commit them to the PR.",
+      "prompt": "I've modified the overview and deployment frequency dashboards. Please take screenshots of the affected dashboards for this PR.",
+      "input_context": {
+        "modified_files": [
+          "v2/grafana/dashboards/00-overview.json",
+          "v2/grafana/dashboards/01-deployment-frequency.json"
+        ],
+        "preconditions": [
+          "Docker-compose stack is running with Grafana at localhost:3004",
+          "Database is seeded with test data",
+          "Git branch has commits modifying the two dashboard JSON files"
+        ]
+      },
+      "assertions": [
+        {
+          "id": "A1",
+          "description": "A screenshot file was committed to the PR for each affected dashboard",
+          "check": "file_exists",
+          "expected_files": [
+            "v2/screenshots/after-00-overview.png",
+            "v2/screenshots/after-01-deployment-frequency.png"
+          ]
+        },
+        {
+          "id": "A2",
+          "description": "The screenshot file name clearly identifies which dashboard it belongs to",
+          "check": "filename_pattern",
+          "pattern": "after-<dashboard-slug>.png"
+        },
+        {
+          "id": "A3",
+          "description": "No before screenshots were taken (after-only is the default)",
+          "check": "file_not_exists",
+          "pattern": "v2/screenshots/before-*.png"
+        },
+        {
+          "id": "A4",
+          "description": "Only affected dashboards are screenshotted — no unmodified dashboards",
+          "check": "file_count",
+          "directory": "v2/screenshots/",
+          "expected_count": 2
+        },
+        {
+          "id": "A5",
+          "description": "Screenshots are taken of Grafana at http://localhost:3004 with panels fully loaded (not blank/loading)",
+          "check": "visual_inspection",
+          "criteria": "Screenshot shows rendered panels with data or 'No data' messages, not a blank page or loading spinners"
+        }
+      ],
+      "simulation_note": "Full simulation requires a running docker-compose stack with Grafana and seeded database. In a CI-only eval, verify the skill logic by checking that git diff detection and URL construction are correct for the given modified files."
+    },
+    {
+      "id": "eval-before-and-after",
+      "name": "Explicit before-and-after screenshots",
+      "description": "Same setup as test 1, but the user explicitly asks for screenshots before and after changes. Expect both pre-change and post-change screenshots.",
+      "prompt": "I'm modifying the Copilot Adoption dashboard. Please take before and after screenshots so reviewers can see the visual diff.",
+      "input_context": {
+        "modified_files": [
+          "v2/grafana/dashboards/05-copilot-adoption.json"
+        ],
+        "preconditions": [
+          "Docker-compose stack is running with Grafana at localhost:3004",
+          "Database is seeded with test data",
+          "Git branch has commits modifying the dashboard JSON file",
+          "The original (pre-change) version of the file exists in the base branch"
+        ]
+      },
+      "assertions": [
+        {
+          "id": "B1",
+          "description": "Both a before and after screenshot are present for the affected dashboard",
+          "check": "file_exists",
+          "expected_files": [
+            "v2/screenshots/before-05-copilot-adoption.png",
+            "v2/screenshots/after-05-copilot-adoption.png"
+          ]
+        },
+        {
+          "id": "B2",
+          "description": "Before screenshot was taken from the pre-change state (git stash was used)",
+          "check": "visual_inspection",
+          "criteria": "Before and after screenshots show visually different dashboard states if the JSON change affected layout or queries"
+        },
+        {
+          "id": "B3",
+          "description": "Screenshots are committed to the PR",
+          "check": "git_log",
+          "expected_message_pattern": "screenshot"
+        },
+        {
+          "id": "B4",
+          "description": "After stash/unstash cycle, working tree is clean (no lost changes)",
+          "check": "git_status",
+          "expected": "clean working tree after commit"
+        }
+      ],
+      "simulation_note": "Before-and-after mode requires git stash/pop and Grafana restart. Full validation needs the docker-compose stack. The key behavioral check is that the stash cycle preserves all working changes."
+    },
+    {
+      "id": "eval-no-dashboard-changes",
+      "name": "Edge case — no dashboard changes in PR",
+      "description": "Simulate a PR that only modifies TypeScript source files with no dashboard JSON changes. Expect the agent to recognize no dashboards are affected and skip screenshots.",
+      "prompt": "Take screenshots of any dashboards affected by my PR changes.",
+      "input_context": {
+        "modified_files": [
+          "v2/src/sync/orchestrator.ts",
+          "v2/src/github/pull-requests.ts"
+        ],
+        "preconditions": [
+          "Git branch has commits modifying only TypeScript files",
+          "No dashboard JSON files were changed"
+        ]
+      },
+      "assertions": [
+        {
+          "id": "C1",
+          "description": "When no dashboards are affected by the PR, no screenshot is taken",
+          "check": "file_not_exists",
+          "pattern": "v2/screenshots/*.png"
+        },
+        {
+          "id": "C2",
+          "description": "Agent reports that no dashboards were affected",
+          "check": "output_contains",
+          "expected_text": "No dashboards affected"
+        },
+        {
+          "id": "C3",
+          "description": "No git commit was created for screenshots",
+          "check": "git_log",
+          "expected": "No new commit with 'screenshot' in message"
+        }
+      ],
+      "simulation_note": "This test case can be validated without docker-compose since the skill should exit early after detecting no dashboard files in the diff."
+    }
+  ]
+}
