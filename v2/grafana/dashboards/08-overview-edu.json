@@ -49,7 +49,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": ".*Live Data.*",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -59,9 +59,9 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Seed Data",
+                "pattern": ".*Seed Data.*",
                 "result": {
-                  "color": "#FA6400",
+                  "color": "#FF9830",
                   "index": 1
                 }
               }
@@ -87,7 +87,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
@@ -205,7 +205,8 @@
         "w": 24,
         "x": 0,
         "y": 21
-      }
+      },
+      "description": "Learning guide section for Deployment Frequency."
     },
     {
       "id": 300,
@@ -221,7 +222,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 3,
@@ -313,7 +315,8 @@
         "w": 24,
         "x": 0,
         "y": 28
-      }
+      },
+      "description": "Learning guide section for Lead Time (median hours)."
     },
     {
       "id": 301,
@@ -329,7 +332,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 4,
@@ -421,7 +425,8 @@
         "w": 24,
         "x": 0,
         "y": 35
-      }
+      },
+      "description": "Learning guide section for Change Fail Rate."
     },
     {
       "id": 302,
@@ -437,7 +442,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 5,
@@ -529,7 +535,8 @@
         "w": 24,
         "x": 0,
         "y": 42
-      }
+      },
+      "description": "Learning guide section for MTTR (median)."
     },
     {
       "id": 303,
@@ -545,7 +552,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 6,
@@ -628,7 +636,8 @@
         "w": 24,
         "x": 0,
         "y": 49
-      }
+      },
+      "description": "Learning guide section for Active Copilot Seats."
     },
     {
       "id": 304,
@@ -644,7 +653,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 7,
@@ -736,7 +746,8 @@
         "w": 24,
         "x": 0,
         "y": 56
-      }
+      },
+      "description": "Learning guide section for Acceptance Rate (%)."
     },
     {
       "id": 305,
@@ -752,7 +763,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 8,
@@ -844,7 +856,8 @@
         "w": 24,
         "x": 0,
         "y": 63
-      }
+      },
+      "description": "Learning guide section for Copilot PR Rate (%)."
     },
     {
       "id": 306,
@@ -860,7 +873,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 9,
@@ -943,7 +957,8 @@
         "w": 24,
         "x": 0,
         "y": 70
-      }
+      },
+      "description": "Learning guide section for Lines Accepted (28d)."
     },
     {
       "id": 307,
@@ -959,7 +974,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     }
   ],
   "tags": [

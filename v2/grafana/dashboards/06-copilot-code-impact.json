@@ -52,7 +52,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": ".*Live Data.*",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -62,9 +62,9 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Seed Data",
+                "pattern": ".*Seed Data.*",
                 "result": {
-                  "color": "#FA6400",
+                  "color": "#FF9830",
                   "index": 1
                 }
               }
@@ -90,7 +90,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",

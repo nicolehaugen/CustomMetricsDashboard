@@ -72,7 +72,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Live Data",
+                "pattern": ".*Live Data.*",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -82,9 +82,9 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "Seed Data",
+                "pattern": ".*Seed Data.*",
                 "result": {
-                  "color": "#FA6400",
+                  "color": "#FF9830",
                   "index": 1
                 }
               }
@@ -110,7 +110,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
@@ -228,7 +228,8 @@
         "w": 24,
         "x": 0,
         "y": 21
-      }
+      },
+      "description": "Learning guide section for MTTR (median)."
     },
     {
       "id": 300,
@@ -244,7 +245,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 3,
@@ -336,7 +338,8 @@
         "w": 24,
         "x": 0,
         "y": 28
-      }
+      },
+      "description": "Learning guide section for P90 MTTR (hours)."
     },
     {
       "id": 301,
@@ -352,7 +355,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 4,
@@ -443,7 +447,8 @@
         "w": 24,
         "x": 0,
         "y": 35
-      }
+      },
+      "description": "Learning guide section for Incidents Still Open."
     },
     {
       "id": 302,
@@ -459,7 +464,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 5,
@@ -534,7 +540,8 @@
         "w": 24,
         "x": 0,
         "y": 46
-      }
+      },
+      "description": "Learning guide section for MTTR over Time."
     },
     {
       "id": 303,
@@ -550,7 +557,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 6,
@@ -625,7 +633,8 @@
         "w": 24,
         "x": 0,
         "y": 57
-      }
+      },
+      "description": "Learning guide section for Incident Resolution Time."
     },
     {
       "id": 304,
@@ -641,7 +650,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     },
     {
       "id": 7,
@@ -710,7 +720,8 @@
         "w": 24,
         "x": 0,
         "y": 68
-      }
+      },
+      "description": "Learning guide section for Recent Failures with Recovery Time."
     },
     {
       "id": 305,
@@ -726,7 +737,8 @@
       "options": {
         "mode": "markdown",
         "content": "---"
-      }
+      },
+      "description": "Section divider."
     }
   ],
   "tags": [
