@@ -39,7 +39,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(\n  (SELECT \n    CASE mode\n      WHEN 'live' THEN '📡 Live Data — ' || COALESCE(source_label, '')\n      WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n      WHEN 'demo' THEN '🎮 Demo Environment — ' || COALESCE(source_label, '')\n      ELSE '⚠️ ' || COALESCE(source_label, 'No data loaded — run: npm run seed')\n    END\n  FROM data_mode ORDER BY updated_at DESC LIMIT 1),\n  '🔴 No data loaded — run: npm run seed'\n) AS \"Data Source\"",
+          "rawSql": "SELECT COALESCE(\n  (SELECT CASE mode\n    WHEN 'live' THEN 1\n    WHEN 'seed' THEN 2\n    WHEN 'demo' THEN 3\n    ELSE 0\n  END FROM data_mode ORDER BY updated_at DESC LIMIT 1),\n  0\n)::float AS \"Data Source\"",
           "format": "table"
         }
       ],
@@ -47,41 +47,22 @@
         "defaults": {
           "mappings": [
             {
-              "type": "regex",
+              "type": "value",
               "options": {
-                "pattern": "Live Data",
-                "result": {
-                  "color": "#73BF69",
+                "0": {
+                  "text": "⚠️ No data loaded — run: npm run seed",
                   "index": 0
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Seed Data",
-                "result": {
-                  "color": "#FA6400",
+                },
+                "1": {
+                  "text": "📡 Live Data",
                   "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo Environment",
-                "result": {
-                  "color": "#5794F2",
+                },
+                "2": {
+                  "text": "🌱 Synthetic Seed Data",
                   "index": 2
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "No data loaded|⚠️",
-                "result": {
-                  "color": "#E02F44",
+                },
+                "3": {
+                  "text": "🎮 Demo Environment",
                   "index": 3
                 }
               }
@@ -93,12 +74,23 @@
               {
                 "color": "dark-red",
                 "value": null
+              },
+              {
+                "color": "#73BF69",
+                "value": 1
+              },
+              {
+                "color": "#FA6400",
+                "value": 2
+              },
+              {
+                "color": "#5794F2",
+                "value": 3
               }
             ]
           },
           "color": {
-            "mode": "fixed",
-            "fixedColor": "dark-red"
+            "mode": "thresholds"
           }
         },
         "overrides": []
@@ -108,7 +100,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
+          "fields": "/.*/",
           "values": false
         },
         "colorMode": "background_solid",
