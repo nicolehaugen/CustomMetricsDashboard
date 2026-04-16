@@ -58,7 +58,7 @@
                   "index": 1
                 }
               }
-            },
+            }
           ],
           "thresholds": {
             "mode": "absolute",
