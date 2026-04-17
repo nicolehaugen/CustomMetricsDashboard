@@ -17,7 +17,7 @@
         "label": "User",
         "type": "query",
         "datasource": {
-          "type": "grafana-postgresql-datasource",
+          "type": "postgres",
           "uid": "PostgreSQL"
         },
         "definition": "SELECT DISTINCT user_login FROM copilot_user_metrics ORDER BY user_login",
