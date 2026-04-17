@@ -17,7 +17,7 @@
         "type": "query",
         "label": "Environment",
         "datasource": {
-          "type": "postgres",
+          "type": "grafana-postgresql-datasource",
           "uid": "PostgreSQL"
         },
         "definition": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
@@ -51,14 +51,14 @@
         "y": 0
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '\ud83c\udf31 Synthetic Seed Data'\n    ELSE '\ud83d\udce1 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
@@ -148,14 +148,14 @@
         "y": 17
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (d.created_at - pr.merged_at)) / 3600.0\n  )::numeric, 1) AS \"Lead Time (hours)\"\nFROM deployments d\nJOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\nJOIN pull_requests pr ON pr.number = dpr.pr_number\nJOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE d.environment = '$environment'\n  AND ds.state = 'success'\n  AND pr.merged_at IS NOT NULL\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1",
@@ -237,14 +237,14 @@
         "y": 28
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  )::numeric, 1) AS \"PR Cycle Time (hours)\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1",
@@ -326,14 +326,14 @@
         "y": 39
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  COUNT(*) AS \"PRs\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1",
@@ -419,14 +419,14 @@
         "y": 50
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n)\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS \"Cohort\",\n  SUM(COALESCE(pr.additions, 0) + COALESCE(pr.deletions, 0)) AS \"Lines Changed\"\nFROM pull_requests pr\nLEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\nWHERE pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1, 2\nORDER BY 1",
@@ -512,14 +512,14 @@
         "y": 61
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\ndeploy_cohorts AS (\n  SELECT\n    d.deployment_id,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort\n  FROM deployments d\n  JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  JOIN pull_requests pr ON pr.number = dpr.pr_number\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n),\nfailures AS (\n  SELECT DISTINCT d.deployment_id\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  JOIN issues i ON i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n    AND i.created_at BETWEEN d.created_at AND d.created_at + INTERVAL '24 hours'\n  WHERE ds.state = 'success'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  dc.cohort AS \"Cohort\",\n  ROUND(COUNT(DISTINCT f.deployment_id)::numeric / NULLIF(COUNT(DISTINCT dc.deployment_id), 0) * 100, 1) AS \"CFR (%)\"\nFROM deploy_cohorts dc\nLEFT JOIN failures f ON f.deployment_id = dc.deployment_id\nGROUP BY 1",
@@ -601,14 +601,14 @@
         "y": 72
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH copilot_users AS (\n  SELECT assignee_id FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'\n),\nfailure_deploys AS (\n  SELECT\n    d.deployment_id,\n    d.environment,\n    d.created_at AS failed_at,\n    CASE WHEN cu.assignee_id IS NOT NULL THEN 'Copilot Active' ELSE 'Non-Copilot' END AS cohort,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  LEFT JOIN deployment_pull_requests dpr ON dpr.deployment_id = d.deployment_id\n  LEFT JOIN pull_requests pr ON pr.number = dpr.pr_number\n  LEFT JOIN copilot_users cu ON pr.user_id = cu.assignee_id\n  WHERE ds.state = 'failure'\n  AND d.environment = '$environment'\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  cohort AS \"Cohort\",\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"Median MTTR (hours)\"\nFROM failure_deploys\nWHERE recovered_at IS NOT NULL\nGROUP BY 1",
@@ -690,14 +690,14 @@
         "y": 83
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats",
@@ -799,14 +799,14 @@
         "y": 90
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'",

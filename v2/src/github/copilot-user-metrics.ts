@@ -20,6 +20,7 @@ export interface CopilotUserMetricRecord {
   used_cli: boolean | null;
   used_copilot_code_review_active: boolean | null;
   used_copilot_code_review_passive: boolean | null;
+  used_copilot_coding_agent: boolean | null;
   totals_by_ide: unknown;
   totals_by_feature: unknown;
   totals_by_language_feature: unknown;
@@ -66,6 +67,7 @@ export async function fetchCopilotUserMetrics(
         used_cli: (entry.used_cli as boolean) ?? null,
         used_copilot_code_review_active: (entry.used_copilot_code_review_active as boolean) ?? null,
         used_copilot_code_review_passive: (entry.used_copilot_code_review_passive as boolean) ?? null,
+        used_copilot_coding_agent: (entry.used_copilot_coding_agent as boolean) ?? null,
         totals_by_ide: entry.totals_by_ide ?? null,
         totals_by_feature: entry.totals_by_feature ?? null,
         totals_by_language_feature: entry.totals_by_language_feature ?? null,

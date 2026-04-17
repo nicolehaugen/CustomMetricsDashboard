@@ -17,7 +17,7 @@
         "type": "query",
         "label": "Environment",
         "datasource": {
-          "type": "postgres",
+          "type": "grafana-postgresql-datasource",
           "uid": "PostgreSQL"
         },
         "definition": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
@@ -52,14 +52,14 @@
         "y": 0
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '🌱 Synthetic Seed Data'\n    ELSE '📡 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
@@ -149,14 +149,14 @@
         "y": 17
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL",
@@ -259,14 +259,14 @@
         "y": 24
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n  ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n)::numeric, 1) AS \"P90 MTTR (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL",
@@ -369,14 +369,14 @@
         "y": 31
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT COUNT(*) AS \"Incidents Still Open\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.state = 'open'",
@@ -478,14 +478,14 @@
         "y": 38
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  date_trunc('week', failed_at) AS time,\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P50 (hours)\",\n  ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0\n  )::numeric, 1) AS \"MTTR P90 (hours)\"\nFROM failure_windows\nWHERE recovered_at IS NOT NULL\nGROUP BY 1\nORDER BY 1",
@@ -571,14 +571,14 @@
         "y": 49
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT\n  date_trunc('week', i.created_at) AS time,\n  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (i.closed_at - i.created_at)) / 3600.0\n  )::numeric, 1) AS \"Issue Resolution Time P50 (hours)\"\nFROM issues i\nWHERE i.labels::jsonb @> '[{\"name\":\"incident\"}]'\n  AND i.closed_at IS NOT NULL\n  AND i.created_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
@@ -664,14 +664,14 @@
         "y": 60
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "WITH failure_windows AS (\n  SELECT\n    d.deployment_id,\n    d.environment,\n    d.sha,\n    d.creator_login,\n    d.created_at AS failed_at,\n    LEAD(d.created_at) OVER (PARTITION BY d.environment ORDER BY d.created_at) AS recovered_at\n  FROM deployments d\n  JOIN deployment_statuses ds ON ds.deployment_id = d.deployment_id\n  WHERE ds.state = 'failure'\n  AND ('$environment' = '__all__' OR d.environment = '$environment')\n  AND d.created_at BETWEEN $__timeFrom() AND $__timeTo()\n)\nSELECT\n  sha AS \"SHA\",\n  environment AS \"Environment\",\n  creator_login AS \"Creator\",\n  failed_at AS \"Failed At\",\n  recovered_at AS \"Recovered At\",\n  ROUND(EXTRACT(EPOCH FROM (recovered_at - failed_at)) / 3600.0::numeric, 1) AS \"Recovery Time (hours)\"\nFROM failure_windows\nORDER BY failed_at DESC\nLIMIT 25",

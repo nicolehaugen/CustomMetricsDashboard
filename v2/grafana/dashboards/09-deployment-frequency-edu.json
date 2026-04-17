@@ -22,14 +22,14 @@
         "y": 0
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '\ud83c\udf31 Synthetic Seed Data'\n    ELSE '\ud83d\udce1 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
@@ -110,7 +110,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "fieldConfig": {
@@ -158,7 +158,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -220,7 +220,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "fieldConfig": {
@@ -268,7 +268,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -330,7 +330,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "fieldConfig": {
@@ -361,7 +361,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "time_series",
@@ -423,7 +423,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "fieldConfig": {
@@ -450,7 +450,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -512,7 +512,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "fieldConfig": {
@@ -547,7 +547,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "time_series",
@@ -609,7 +609,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "fieldConfig": {
@@ -634,7 +634,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -696,7 +696,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "fieldConfig": {
@@ -723,7 +723,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -788,7 +788,7 @@
     "list": [
       {
         "datasource": {
-          "type": "postgres",
+          "type": "grafana-postgresql-datasource",
           "uid": "PostgreSQL"
         },
         "definition": "SELECT DISTINCT environment FROM deployments ORDER BY environment",

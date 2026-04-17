@@ -32,14 +32,14 @@
         "y": 0
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '🌱 Synthetic Seed Data'\n    ELSE '📡 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
@@ -130,14 +130,14 @@
         "y": 14
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT COUNT(*) AS \"Total Seats\" FROM copilot_seats",
@@ -183,14 +183,14 @@
         "y": 14
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT COUNT(*) AS \"Active Seats (28d)\" FROM copilot_seats WHERE last_activity_at >= NOW() - INTERVAL '28 days'",
@@ -236,14 +236,14 @@
         "y": 14
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT ROUND(\n  COUNT(*) FILTER (WHERE last_activity_at >= NOW() - INTERVAL '28 days')::numeric * 100.0 / NULLIF(COUNT(*), 0), 1\n) AS \"Seat Utilization Rate (%)\" FROM copilot_seats",
@@ -298,14 +298,14 @@
         "y": 14
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT COUNT(*) AS \"Inactive Seats (>14d)\"\nFROM copilot_seats\nWHERE last_activity_at < NOW() - INTERVAL '14 days'\n   OR last_activity_at IS NULL",
@@ -359,14 +359,14 @@
         "y": 18
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT day AS time, daily_active_users AS \"Daily Active\"\nFROM copilot_org_metrics\nWHERE day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
@@ -404,14 +404,14 @@
         "y": 18
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT last_activity_editor AS \"Editor\", COUNT(*) AS \"Seats\"\nFROM copilot_seats\nWHERE last_activity_editor IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC",
@@ -445,14 +445,14 @@
         "y": 26
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT\n  assignee_login AS \"Developer\",\n  last_activity_at AS \"Last Active\",\n  last_activity_editor AS \"Editor\",\n  plan_type AS \"Plan\"\nFROM copilot_seats\nORDER BY last_activity_at DESC",
@@ -484,14 +484,14 @@
         "y": 34
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT COUNT(*) AS \"Copilot Seats\" FROM copilot_seats",
@@ -545,14 +545,14 @@
         "y": 34
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'",

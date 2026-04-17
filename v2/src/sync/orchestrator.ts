@@ -155,9 +155,10 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
           user_initiated_interaction_count, code_generation_activity_count, code_acceptance_activity_count,
           loc_suggested_to_add_sum, loc_suggested_to_delete_sum, loc_added_sum, loc_deleted_sum,
           used_agent, used_chat, used_cli, used_copilot_code_review_active, used_copilot_code_review_passive,
+          used_copilot_coding_agent,
           totals_by_ide, totals_by_feature, totals_by_language_feature, totals_by_language_model,
           totals_by_model_feature, totals_by_cli)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
          ON CONFLICT (day, user_login) DO UPDATE SET
            loc_added_sum = EXCLUDED.loc_added_sum,
            fetched_at = NOW()`,
@@ -166,6 +167,7 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
          u.code_acceptance_activity_count, u.loc_suggested_to_add_sum, u.loc_suggested_to_delete_sum,
          u.loc_added_sum, u.loc_deleted_sum, u.used_agent, u.used_chat, u.used_cli,
          u.used_copilot_code_review_active, u.used_copilot_code_review_passive,
+         u.used_copilot_coding_agent,
          JSON.stringify(u.totals_by_ide), JSON.stringify(u.totals_by_feature),
          JSON.stringify(u.totals_by_language_feature), JSON.stringify(u.totals_by_language_model),
          JSON.stringify(u.totals_by_model_feature), JSON.stringify(u.totals_by_cli)]
