@@ -184,7 +184,7 @@ async function main() {
   await pool.query('TRUNCATE TABLE data_mode');
   await pool.query(
     `INSERT INTO data_mode (mode, source_label, source_url) VALUES ($1, $2, $3)`,
-    ['seeded', 'Synthetic seed data', null]
+    [config.dataMode, config.dataSourceLabel || 'Synthetic seed data', config.dataSourceUrl ?? null]
   );
 
   // Run bridge resolver inline (only link PRs merged before the deployment was created)

@@ -61,7 +61,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '\ud83c\udf31 Synthetic Seed Data'\n    ELSE '\ud83d\udce1 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT COALESCE(\n  (SELECT\n    CASE mode\n      WHEN 'seeded' THEN '\ud83c\udf31 Synthetic Seed Data' || COALESCE(' \u2014 ' || NULLIF(source_label, ''), '')\n      ELSE '\ud83d\udce1 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n    END\n   FROM data_mode ORDER BY updated_at DESC LIMIT 1),\n  '\u26a0\ufe0f No data loaded \u2014 run sync or seed'\n) AS \"Data Source\"",
           "format": "table"
         }
       ],
