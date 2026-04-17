@@ -1408,7 +1408,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  ROUND(EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0, 1) AS \"Review Time (hrs)\",\n  pr.created_at AS \"Opened\",\n  pr.merged_at AS \"Merged\"\nFROM pull_requests pr\nWHERE pr.merged_by_login = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY pr.merged_at DESC\nLIMIT 25",
+          "rawSql": "SELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author\",\n  ROUND((EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0)::numeric, 1) AS \"Review Time (hrs)\",\n  pr.created_at AS \"Opened\",\n  pr.merged_at AS \"Merged\"\nFROM pull_requests pr\nWHERE pr.merged_by_login = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY pr.merged_at DESC\nLIMIT 25",
           "format": "table"
         }
       ],
