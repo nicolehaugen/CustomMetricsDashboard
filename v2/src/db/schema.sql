@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS sync_jobs (
   finished_at    TIMESTAMPTZ,
   status         TEXT NOT NULL DEFAULT 'running',
   records_synced JSONB,
+  schema_drift   JSONB,
   error_message  TEXT
 );
 
@@ -158,30 +159,34 @@ CREATE INDEX IF NOT EXISTS idx_workflow_runs_head_sha    ON workflow_runs(head_s
 -- ─── Copilot: Org-Level Daily Metrics ───────────────────
 
 CREATE TABLE IF NOT EXISTS copilot_org_metrics (
-  id                               SERIAL PRIMARY KEY,
-  day                              DATE NOT NULL UNIQUE,
-  organization_id                  TEXT,
-  daily_active_users               INTEGER,
-  weekly_active_users              INTEGER,
-  monthly_active_users             INTEGER,
-  monthly_active_agent_users       INTEGER,
-  monthly_active_chat_users        INTEGER,
-  daily_active_cli_users           INTEGER,
-  code_acceptance_activity_count   INTEGER,
-  code_generation_activity_count   INTEGER,
-  user_initiated_interaction_count INTEGER,
-  loc_suggested_to_add_sum         INTEGER,
-  loc_suggested_to_delete_sum      INTEGER,
-  loc_added_sum                    INTEGER,
-  loc_deleted_sum                  INTEGER,
-  pull_requests                    JSONB,
-  totals_by_feature                JSONB,
-  totals_by_ide                    JSONB,
-  totals_by_language_feature       JSONB,
-  totals_by_language_model         JSONB,
-  totals_by_model_feature          JSONB,
-  totals_by_cli                    JSONB,
-  fetched_at                       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id                                        SERIAL PRIMARY KEY,
+  day                                       DATE NOT NULL UNIQUE,
+  organization_id                           TEXT,
+  daily_active_users                        INTEGER,
+  weekly_active_users                       INTEGER,
+  monthly_active_users                      INTEGER,
+  monthly_active_agent_users                INTEGER,
+  monthly_active_chat_users                 INTEGER,
+  daily_active_cli_users                    INTEGER,
+  daily_active_copilot_cloud_agent_users    INTEGER,
+  weekly_active_copilot_cloud_agent_users   INTEGER,
+  monthly_active_copilot_cloud_agent_users  INTEGER,
+  code_acceptance_activity_count            INTEGER,
+  code_generation_activity_count            INTEGER,
+  user_initiated_interaction_count          INTEGER,
+  loc_suggested_to_add_sum                  INTEGER,
+  loc_suggested_to_delete_sum               INTEGER,
+  loc_added_sum                             INTEGER,
+  loc_deleted_sum                           INTEGER,
+  pull_requests                             JSONB,
+  totals_by_feature                         JSONB,
+  totals_by_ide                             JSONB,
+  totals_by_language_feature                JSONB,
+  totals_by_language_model                  JSONB,
+  totals_by_model_feature                   JSONB,
+  totals_by_cli                             JSONB,
+  raw_data                                  JSONB NOT NULL DEFAULT '{}',
+  fetched_at                                TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_copilot_org_metrics_day ON copilot_org_metrics(day);
@@ -224,6 +229,7 @@ CREATE TABLE IF NOT EXISTS copilot_user_metrics (
   used_agent                       BOOLEAN,
   used_chat                        BOOLEAN,
   used_cli                         BOOLEAN,
+  used_copilot_coding_agent        BOOLEAN,
   used_copilot_code_review_active  BOOLEAN,
   used_copilot_code_review_passive BOOLEAN,
   totals_by_ide                    JSONB,
@@ -232,6 +238,7 @@ CREATE TABLE IF NOT EXISTS copilot_user_metrics (
   totals_by_language_model         JSONB,
   totals_by_model_feature          JSONB,
   totals_by_cli                    JSONB,
+  raw_data                         JSONB NOT NULL DEFAULT '{}',
   fetched_at                       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

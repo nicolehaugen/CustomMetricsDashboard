@@ -18,6 +18,7 @@ export interface CopilotUserMetricRecord {
   used_agent: boolean | null;
   used_chat: boolean | null;
   used_cli: boolean | null;
+  used_copilot_coding_agent: boolean | null;
   used_copilot_code_review_active: boolean | null;
   used_copilot_code_review_passive: boolean | null;
   totals_by_ide: unknown;
@@ -26,6 +27,7 @@ export interface CopilotUserMetricRecord {
   totals_by_language_model: unknown;
   totals_by_model_feature: unknown;
   totals_by_cli: unknown;
+  raw_data: Record<string, unknown>;
 }
 
 export async function fetchCopilotUserMetrics(
@@ -64,6 +66,7 @@ export async function fetchCopilotUserMetrics(
         used_agent: (entry.used_agent as boolean) ?? null,
         used_chat: (entry.used_chat as boolean) ?? null,
         used_cli: (entry.used_cli as boolean) ?? null,
+        used_copilot_coding_agent: (entry.used_copilot_coding_agent as boolean) ?? null,
         used_copilot_code_review_active: (entry.used_copilot_code_review_active as boolean) ?? null,
         used_copilot_code_review_passive: (entry.used_copilot_code_review_passive as boolean) ?? null,
         totals_by_ide: entry.totals_by_ide ?? null,
@@ -72,6 +75,7 @@ export async function fetchCopilotUserMetrics(
         totals_by_language_model: entry.totals_by_language_model ?? null,
         totals_by_model_feature: entry.totals_by_model_feature ?? null,
         totals_by_cli: entry.totals_by_cli ?? null,
+        raw_data: entry,
       });
     }
   }

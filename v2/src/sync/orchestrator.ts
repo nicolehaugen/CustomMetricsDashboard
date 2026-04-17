@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { Octokit } from '@octokit/rest';
-import { assertSchemaMatch } from './schema-check';
+import { assertSchemaMatch, detectSchemaDrift, SchemaDriftEntry } from './schema-check';
 import { getLastSyncedAt, updateSyncState } from './state';
 import { resolveBridge } from './bridge-resolver';
 import { fetchPullRequests } from '../github/pull-requests';
@@ -38,6 +38,7 @@ export async function runSync(pool: Pool, octokit: Octokit): Promise<number> {
 async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void> {
   const { org, repo } = config.github;
   const recordCounts: Record<string, number> = {};
+  const schemaDrift: SchemaDriftEntry[] = [];
 
   // ── 1. Set data_mode banner ──────────────────────────────────────────────
   const sourceLabel = config.dataSourceLabel || `${org}/${repo}`;
@@ -104,29 +105,44 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
     }
   }
   if (orgMetrics.length > 0) {
+    // Detect schema drift against the first record before truncating
+    const orgDrift = await detectSchemaDrift('copilot_org_metrics', orgMetrics[0].raw_data, pool);
+    if (orgDrift) {
+      console.warn(`[sync] Schema drift detected in copilot_org_metrics — added: [${orgDrift.added.join(', ')}], removed: [${orgDrift.removed.join(', ')}]`);
+      schemaDrift.push(orgDrift);
+    }
     await pool.query('TRUNCATE TABLE copilot_org_metrics');
     for (const m of orgMetrics) {
       await pool.query(
         `INSERT INTO copilot_org_metrics (day, organization_id, daily_active_users, weekly_active_users,
           monthly_active_users, monthly_active_agent_users, monthly_active_chat_users, daily_active_cli_users,
+          daily_active_copilot_cloud_agent_users, weekly_active_copilot_cloud_agent_users,
+          monthly_active_copilot_cloud_agent_users,
           code_acceptance_activity_count, code_generation_activity_count, user_initiated_interaction_count,
           loc_suggested_to_add_sum, loc_suggested_to_delete_sum, loc_added_sum, loc_deleted_sum,
           pull_requests, totals_by_feature, totals_by_ide, totals_by_language_feature,
-          totals_by_language_model, totals_by_model_feature, totals_by_cli)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+          totals_by_language_model, totals_by_model_feature, totals_by_cli, raw_data)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)
          ON CONFLICT (day) DO UPDATE SET
            daily_active_users = EXCLUDED.daily_active_users,
            loc_added_sum = EXCLUDED.loc_added_sum,
+           daily_active_copilot_cloud_agent_users = EXCLUDED.daily_active_copilot_cloud_agent_users,
+           weekly_active_copilot_cloud_agent_users = EXCLUDED.weekly_active_copilot_cloud_agent_users,
+           monthly_active_copilot_cloud_agent_users = EXCLUDED.monthly_active_copilot_cloud_agent_users,
+           raw_data = EXCLUDED.raw_data,
            fetched_at = NOW()`,
         [m.day, m.organization_id, m.daily_active_users, m.weekly_active_users,
          m.monthly_active_users, m.monthly_active_agent_users, m.monthly_active_chat_users,
-         m.daily_active_cli_users, m.code_acceptance_activity_count, m.code_generation_activity_count,
+         m.daily_active_cli_users,
+         m.daily_active_copilot_cloud_agent_users, m.weekly_active_copilot_cloud_agent_users,
+         m.monthly_active_copilot_cloud_agent_users,
+         m.code_acceptance_activity_count, m.code_generation_activity_count,
          m.user_initiated_interaction_count, m.loc_suggested_to_add_sum, m.loc_suggested_to_delete_sum,
          m.loc_added_sum, m.loc_deleted_sum,
          JSON.stringify(m.pull_requests), JSON.stringify(m.totals_by_feature),
          JSON.stringify(m.totals_by_ide), JSON.stringify(m.totals_by_language_feature),
          JSON.stringify(m.totals_by_language_model), JSON.stringify(m.totals_by_model_feature),
-         JSON.stringify(m.totals_by_cli)]
+         JSON.stringify(m.totals_by_cli), JSON.stringify(m.raw_data)]
       );
     }
     recordCounts.copilot_org_metrics = orgMetrics.length;
@@ -148,27 +164,38 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
     }
   }
   if (userMetrics.length > 0) {
+    // Detect schema drift against the first record before truncating
+    const userDrift = await detectSchemaDrift('copilot_user_metrics', userMetrics[0].raw_data, pool);
+    if (userDrift) {
+      console.warn(`[sync] Schema drift detected in copilot_user_metrics — added: [${userDrift.added.join(', ')}], removed: [${userDrift.removed.join(', ')}]`);
+      schemaDrift.push(userDrift);
+    }
     await pool.query('TRUNCATE TABLE copilot_user_metrics');
     for (const u of userMetrics) {
       await pool.query(
         `INSERT INTO copilot_user_metrics (day, user_id, user_login, enterprise_id, organization_id,
           user_initiated_interaction_count, code_generation_activity_count, code_acceptance_activity_count,
           loc_suggested_to_add_sum, loc_suggested_to_delete_sum, loc_added_sum, loc_deleted_sum,
-          used_agent, used_chat, used_cli, used_copilot_code_review_active, used_copilot_code_review_passive,
+          used_agent, used_chat, used_cli, used_copilot_coding_agent,
+          used_copilot_code_review_active, used_copilot_code_review_passive,
           totals_by_ide, totals_by_feature, totals_by_language_feature, totals_by_language_model,
-          totals_by_model_feature, totals_by_cli)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+          totals_by_model_feature, totals_by_cli, raw_data)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
          ON CONFLICT (day, user_login) DO UPDATE SET
            loc_added_sum = EXCLUDED.loc_added_sum,
+           used_copilot_coding_agent = EXCLUDED.used_copilot_coding_agent,
+           raw_data = EXCLUDED.raw_data,
            fetched_at = NOW()`,
         [u.day, u.user_id, u.user_login, u.enterprise_id, u.organization_id,
          u.user_initiated_interaction_count, u.code_generation_activity_count,
          u.code_acceptance_activity_count, u.loc_suggested_to_add_sum, u.loc_suggested_to_delete_sum,
          u.loc_added_sum, u.loc_deleted_sum, u.used_agent, u.used_chat, u.used_cli,
+         u.used_copilot_coding_agent,
          u.used_copilot_code_review_active, u.used_copilot_code_review_passive,
          JSON.stringify(u.totals_by_ide), JSON.stringify(u.totals_by_feature),
          JSON.stringify(u.totals_by_language_feature), JSON.stringify(u.totals_by_language_model),
-         JSON.stringify(u.totals_by_model_feature), JSON.stringify(u.totals_by_cli)]
+         JSON.stringify(u.totals_by_model_feature), JSON.stringify(u.totals_by_cli),
+         JSON.stringify(u.raw_data)]
       );
     }
     recordCounts.copilot_user_metrics = userMetrics.length;
@@ -270,11 +297,14 @@ async function doSync(pool: Pool, octokit: Octokit, jobId: number): Promise<void
   const bridgeLinks = await resolveBridge(pool);
   recordCounts.deployment_pull_requests = bridgeLinks;
 
-  // ── 10. Update job record counts ─────────────────────────────────────────
+  // ── 10. Update job record counts + schema drift ──────────────────────────
   await pool.query(
-    `UPDATE sync_jobs SET records_synced = $1 WHERE id = $2`,
-    [JSON.stringify(recordCounts), jobId]
+    `UPDATE sync_jobs SET records_synced = $1, schema_drift = $2 WHERE id = $3`,
+    [JSON.stringify(recordCounts), schemaDrift.length > 0 ? JSON.stringify(schemaDrift) : null, jobId]
   );
 
+  if (schemaDrift.length > 0) {
+    console.warn('[sync] Schema drift summary:', JSON.stringify(schemaDrift));
+  }
   console.log('[sync] Sync complete:', recordCounts);
 }

@@ -134,6 +134,9 @@ export interface CopilotOrgMetricSeed {
   monthly_active_agent_users: number;
   monthly_active_chat_users: number;
   daily_active_cli_users: number;
+  daily_active_copilot_cloud_agent_users: number | null;
+  weekly_active_copilot_cloud_agent_users: number | null;
+  monthly_active_copilot_cloud_agent_users: number | null;
   code_acceptance_activity_count: number;
   code_generation_activity_count: number;
   user_initiated_interaction_count: number;
@@ -148,6 +151,7 @@ export interface CopilotOrgMetricSeed {
   totals_by_language_model: unknown;
   totals_by_model_feature: unknown;
   totals_by_cli: unknown;
+  raw_data: Record<string, unknown>;
 }
 
 export interface CopilotUserMetricSeed {
@@ -165,6 +169,7 @@ export interface CopilotUserMetricSeed {
   used_agent: boolean;
   used_chat: boolean;
   used_cli: boolean;
+  used_copilot_coding_agent: boolean;
   used_copilot_code_review_active: boolean;
   used_copilot_code_review_passive: boolean;
   totals_by_ide: unknown;
@@ -173,6 +178,7 @@ export interface CopilotUserMetricSeed {
   totals_by_language_model: unknown;
   totals_by_model_feature: unknown;
   totals_by_cli: unknown;
+  raw_data: Record<string, unknown>;
 }
 
 export interface CopilotSeatSeed {
@@ -398,6 +404,42 @@ export function generateSeedData(config: {
     const suggested = randomInt(1500, 3500);
     const accepted = Math.floor(suggested * (0.25 + Math.random() * 0.15));
 
+    const cloudAgentDau = randomInt(3, Math.floor(dau * 0.15));
+    const pullRequestsData = {
+      total_created: randomInt(3, 8),
+      total_reviewed: randomInt(5, 12),
+      total_merged: randomInt(3, 7),
+      total_created_by_copilot: randomInt(0, 2),
+      total_reviewed_by_copilot: randomInt(1, 4),
+      total_merged_reviewed_by_copilot: randomInt(0, 3),
+      median_minutes_to_merge: randomInt(120, 1440),
+      median_minutes_to_merge_copilot_authored: randomInt(60, 720),
+      median_minutes_to_merge_copilot_reviewed: randomInt(60, 720),
+      total_suggestions: randomInt(10, 50),
+      total_applied_suggestions: randomInt(5, 25),
+      total_copilot_suggestions: randomInt(5, 20),
+      total_copilot_applied_suggestions: randomInt(2, 10),
+    };
+    const totalsFeature = [
+      { feature: 'code_completion', loc_added_sum: Math.floor(accepted * 0.6), code_acceptance_activity_count: randomInt(50, 120) },
+      { feature: 'chat_panel_ask_mode', loc_added_sum: Math.floor(accepted * 0.25), code_acceptance_activity_count: randomInt(20, 60) },
+      { feature: 'agent_edit', loc_added_sum: Math.floor(accepted * 0.15), code_acceptance_activity_count: randomInt(10, 30) },
+      { feature: 'copilot_cli', loc_added_sum: randomInt(10, 50), code_acceptance_activity_count: randomInt(5, 20) },
+    ];
+    const totalsIde = [
+      { ide: 'vscode', loc_added_sum: Math.floor(accepted * 0.65) },
+      { ide: 'jetbrains', loc_added_sum: Math.floor(accepted * 0.25) },
+      { ide: 'neovim', loc_added_sum: Math.floor(accepted * 0.10) },
+    ];
+    const totalsLangFeature = [
+      { language: 'TypeScript', feature: 'code_completion', loc_added_sum: Math.floor(accepted * 0.4) },
+      { language: 'Python', feature: 'code_completion', loc_added_sum: Math.floor(accepted * 0.2) },
+    ];
+    const totalsCli = {
+      session_count: randomInt(5, 20),
+      request_count: randomInt(20, 80),
+      token_usage: randomInt(5000, 50000),
+    };
     copilotOrgMetrics.push({
       day: dayStr,
       organization_id: 'org-seed-001',
@@ -407,6 +449,9 @@ export function generateSeedData(config: {
       monthly_active_agent_users: Math.floor(dau * 0.3),
       monthly_active_chat_users: Math.floor(dau * 0.6),
       daily_active_cli_users: randomInt(2, 8),
+      daily_active_copilot_cloud_agent_users: cloudAgentDau,
+      weekly_active_copilot_cloud_agent_users: Math.floor(cloudAgentDau * 1.4),
+      monthly_active_copilot_cloud_agent_users: Math.floor(cloudAgentDau * 2.1),
       code_acceptance_activity_count: randomInt(80, 200),
       code_generation_activity_count: randomInt(150, 400),
       user_initiated_interaction_count: randomInt(50, 150),
@@ -414,39 +459,39 @@ export function generateSeedData(config: {
       loc_suggested_to_delete_sum: Math.floor(suggested * 0.3),
       loc_added_sum: accepted,
       loc_deleted_sum: Math.floor(accepted * 0.2),
-      pull_requests: {
-        total_created: randomInt(3, 8),
-        total_reviewed: randomInt(5, 12),
-        total_merged: randomInt(3, 7),
-        total_created_by_copilot: randomInt(0, 2),
-        total_reviewed_by_copilot: randomInt(1, 4),
-        median_minutes_to_merge: randomInt(120, 1440),
-        median_minutes_to_merge_copilot_authored: randomInt(60, 720),
-        total_suggestions: randomInt(10, 50),
-        total_applied_suggestions: randomInt(5, 25),
-        total_copilot_suggestions: randomInt(5, 20),
-        total_copilot_applied_suggestions: randomInt(2, 10),
-      },
-      totals_by_feature: [
-        { feature: 'code_completion', loc_added_sum: Math.floor(accepted * 0.6), code_acceptance_activity_count: randomInt(50, 120) },
-        { feature: 'chat_panel_ask_mode', loc_added_sum: Math.floor(accepted * 0.25), code_acceptance_activity_count: randomInt(20, 60) },
-        { feature: 'agent_edit', loc_added_sum: Math.floor(accepted * 0.15), code_acceptance_activity_count: randomInt(10, 30) },
-      ],
-      totals_by_ide: [
-        { ide: 'vscode', loc_added_sum: Math.floor(accepted * 0.65) },
-        { ide: 'jetbrains', loc_added_sum: Math.floor(accepted * 0.25) },
-        { ide: 'neovim', loc_added_sum: Math.floor(accepted * 0.10) },
-      ],
-      totals_by_language_feature: [
-        { language: 'TypeScript', feature: 'code_completion', loc_added_sum: Math.floor(accepted * 0.4) },
-        { language: 'Python', feature: 'code_completion', loc_added_sum: Math.floor(accepted * 0.2) },
-      ],
+      pull_requests: pullRequestsData,
+      totals_by_feature: totalsFeature,
+      totals_by_ide: totalsIde,
+      totals_by_language_feature: totalsLangFeature,
       totals_by_language_model: [],
       totals_by_model_feature: [],
-      totals_by_cli: {
-        session_count: randomInt(5, 20),
-        request_count: randomInt(20, 80),
-        token_usage: randomInt(5000, 50000),
+      totals_by_cli: totalsCli,
+      raw_data: {
+        day: dayStr,
+        organization_id: 'org-seed-001',
+        daily_active_users: dau,
+        weekly_active_users: Math.floor(dau * 1.4),
+        monthly_active_users: Math.floor(dau * 2.1),
+        monthly_active_agent_users: Math.floor(dau * 0.3),
+        monthly_active_chat_users: Math.floor(dau * 0.6),
+        daily_active_cli_users: randomInt(2, 8),
+        daily_active_copilot_cloud_agent_users: cloudAgentDau,
+        weekly_active_copilot_cloud_agent_users: Math.floor(cloudAgentDau * 1.4),
+        monthly_active_copilot_cloud_agent_users: Math.floor(cloudAgentDau * 2.1),
+        code_acceptance_activity_count: randomInt(80, 200),
+        code_generation_activity_count: randomInt(150, 400),
+        user_initiated_interaction_count: randomInt(50, 150),
+        loc_suggested_to_add_sum: suggested,
+        loc_suggested_to_delete_sum: Math.floor(suggested * 0.3),
+        loc_added_sum: accepted,
+        loc_deleted_sum: Math.floor(accepted * 0.2),
+        pull_requests: pullRequestsData,
+        totals_by_feature: totalsFeature,
+        totals_by_ide: totalsIde,
+        totals_by_language_feature: totalsLangFeature,
+        totals_by_language_model: [],
+        totals_by_model_feature: [],
+        totals_by_cli: totalsCli,
       },
     });
   }
@@ -479,6 +524,7 @@ export function generateSeedData(config: {
       if (!isActive) continue;
       const suggested = randomInt(50, 400);
       const accepted = Math.floor(suggested * (0.2 + Math.random() * 0.5));
+      const useCodingAgent = Math.random() < 0.1;
       copilotUserMetrics.push({
         day: dayStr,
         user_id: user.id,
@@ -494,6 +540,7 @@ export function generateSeedData(config: {
         used_agent: Math.random() < 0.3,
         used_chat: Math.random() < 0.6,
         used_cli: Math.random() < 0.15,
+        used_copilot_coding_agent: useCodingAgent,
         used_copilot_code_review_active: Math.random() < 0.2,
         used_copilot_code_review_passive: Math.random() < 0.4,
         totals_by_ide: [{ ide: randomChoice(editors), loc_added_sum: accepted }],
@@ -502,6 +549,19 @@ export function generateSeedData(config: {
         totals_by_language_model: [],
         totals_by_model_feature: [],
         totals_by_cli: {},
+        raw_data: {
+          day: dayStr,
+          user_id: user.id,
+          user_login: user.login,
+          organization_id: 'org-seed-001',
+          used_agent: Math.random() < 0.3,
+          used_chat: Math.random() < 0.6,
+          used_cli: Math.random() < 0.15,
+          used_copilot_coding_agent: useCodingAgent,
+          used_copilot_code_review_active: Math.random() < 0.2,
+          used_copilot_code_review_passive: Math.random() < 0.4,
+          loc_added_sum: accepted,
+        },
       });
     }
   }
