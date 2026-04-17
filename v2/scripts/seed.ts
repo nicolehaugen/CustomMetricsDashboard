@@ -166,14 +166,16 @@ async function main() {
         user_initiated_interaction_count, code_generation_activity_count, code_acceptance_activity_count,
         loc_suggested_to_add_sum, loc_suggested_to_delete_sum, loc_added_sum, loc_deleted_sum,
         used_agent, used_chat, used_cli, used_copilot_code_review_active, used_copilot_code_review_passive,
+        used_copilot_coding_agent,
         totals_by_ide, totals_by_feature, totals_by_language_feature, totals_by_language_model,
         totals_by_model_feature, totals_by_cli)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
        ON CONFLICT (day, user_login) DO NOTHING`,
       [m.day, m.user_id, m.user_login, m.organization_id,
        m.user_initiated_interaction_count, m.code_generation_activity_count, m.code_acceptance_activity_count,
        m.loc_suggested_to_add_sum, m.loc_suggested_to_delete_sum, m.loc_added_sum, m.loc_deleted_sum,
        m.used_agent, m.used_chat, m.used_cli, m.used_copilot_code_review_active, m.used_copilot_code_review_passive,
+       m.used_copilot_coding_agent,
        JSON.stringify(m.totals_by_ide), JSON.stringify(m.totals_by_feature),
        JSON.stringify(m.totals_by_language_feature), JSON.stringify(m.totals_by_language_model),
        JSON.stringify(m.totals_by_model_feature), JSON.stringify(m.totals_by_cli)]

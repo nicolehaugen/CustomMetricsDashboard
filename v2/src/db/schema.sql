@@ -226,6 +226,7 @@ CREATE TABLE IF NOT EXISTS copilot_user_metrics (
   used_cli                         BOOLEAN,
   used_copilot_code_review_active  BOOLEAN,
   used_copilot_code_review_passive BOOLEAN,
+  used_copilot_coding_agent        BOOLEAN,
   totals_by_ide                    JSONB,
   totals_by_feature                JSONB,
   totals_by_language_feature       JSONB,

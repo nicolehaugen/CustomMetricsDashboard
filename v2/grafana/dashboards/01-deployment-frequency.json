@@ -25,14 +25,14 @@
         "y": 0
       },
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "targets": [
         {
           "refId": "A",
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "rawSql": "SELECT\n  CASE mode\n    WHEN 'seeded' THEN '🌱 Synthetic Seed Data'\n    ELSE '📡 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
@@ -113,7 +113,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "description": "### What it measures\nAverage number of successful deployments per week in the selected environment and time range.\n\n### What insight it offers\nElite: ≥5/day, High: ≥1/week, Medium: ≥1/month, Low: <1/month. Higher frequency indicates better CI/CD maturity.\n\n### ⚠️ Caveats\n- Only counts deployments with 'success' status\n- Divide total by number of weeks in the time range",
@@ -162,7 +162,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -175,7 +175,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "description": "### What it measures\nWeekly count of successful deployments in the selected environment over time.\n\n### What insight it offers\nShows deployment velocity trends — identify acceleration, slowdowns, or seasonal patterns in your release cadence.\n\n### ⚠️ Caveats\n- Partial weeks at the start/end of the range will have lower counts\n- Environment filter applied",
@@ -207,7 +207,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "time_series",
@@ -220,7 +220,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "description": "### What it measures\nTotal successful deployments grouped by environment in the selected time range.\n\n### What insight it offers\nCompare deployment volumes across environments to understand where delivery focus lies.\n\n### ⚠️ Caveats\n- The environment template variable does not filter this panel; it shows all environments for comparison",
@@ -248,7 +248,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -261,7 +261,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "description": "### What it measures\nPercentage of deployments in the selected environment that completed successfully.\n\n### What insight it offers\nLow success rates indicate pipeline instability or environment configuration issues that need attention.\n\n### ⚠️ Caveats\n- Deployments with no status record are excluded\n- May include retries counted as separate deployments",
@@ -310,7 +310,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -323,7 +323,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "description": "### What it measures\nWeekly count of failed deployments in the selected environment over time.\n\n### What insight it offers\nSpikes in failures often correlate with risky changes, under-tested releases, or infrastructure issues.\n\n### ⚠️ Caveats\n- Failures are deployments with state = 'failure' only\n- Does not include deployments with state = 'error' or 'cancelled'",
@@ -359,7 +359,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "time_series",
@@ -372,7 +372,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "description": "### What it measures\nLast 50 deployments in the selected environment, ordered by most recent.\n\n### What insight it offers\nProvides an audit trail of recent releases including who triggered them and their final status.\n\n### ⚠️ Caveats\n- Capped at 50 rows for performance\n- Status reflects the latest status record; earlier states are not shown",
@@ -398,7 +398,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -411,7 +411,7 @@
     },
     {
       "datasource": {
-        "type": "postgres",
+        "type": "grafana-postgresql-datasource",
         "uid": "PostgreSQL"
       },
       "description": "### What it measures\nComparison of weekly deployment counts for PRs authored by active Copilot users versus non-Copilot users.\n\n### What insight it offers\nIf Copilot users ship more frequently, it may indicate reduced friction in the development workflow.\n\n### ⚠️ Caveats\n- Copilot user definition: active seat in the last 28 days\n- Deployment-PR linkage is required; unlinked deployments are excluded",
@@ -439,7 +439,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "postgres",
+            "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
           "format": "table",
@@ -455,7 +455,7 @@
     "list": [
       {
         "datasource": {
-          "type": "postgres",
+          "type": "grafana-postgresql-datasource",
           "uid": "PostgreSQL"
         },
         "definition": "SELECT DISTINCT environment FROM deployments ORDER BY environment",
