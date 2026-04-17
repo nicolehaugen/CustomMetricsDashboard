@@ -595,6 +595,87 @@
         "graphMode": "none",
         "justifyMode": "auto"
       }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "",
+      "description": "Schema drift banner — detects when the GitHub Copilot API has added or removed fields that are not reflected in the database schema. When drift is detected, the table name and field names are listed so you know exactly what migration to run.",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE\n    WHEN schema_drift IS NULL OR schema_drift = '[]'::jsonb THEN '✅ Copilot schema up to date'\n    ELSE '⚠️ Schema drift — ' || (\n      SELECT string_agg(\n        entry->>'table' || ': +[' || COALESCE((SELECT string_agg(f::text, ', ') FROM jsonb_array_elements_text(entry->'added') f), '') || '] -[' || COALESCE((SELECT string_agg(f::text, ', ') FROM jsonb_array_elements_text(entry->'removed') f), '') || ']',\n        ' | '\n      )\n      FROM jsonb_array_elements(schema_drift) entry\n    )\n  END AS \"Schema Status\"\nFROM sync_jobs\nWHERE status IN ('success', 'failed')\nORDER BY started_at DESC\nLIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*up to date.*",
+                "result": {
+                  "color": "#73BF69",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*drift.*",
+                "result": {
+                  "color": "#FF9830",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "transparent": false
     }
   ]
 }

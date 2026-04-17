@@ -99,6 +99,87 @@
       "transparent": false
     },
     {
+      "id": 11,
+      "type": "stat",
+      "title": "",
+      "description": "Schema drift banner — detects when the GitHub Copilot API has added or removed fields not reflected in the database schema.",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  CASE\n    WHEN schema_drift IS NULL OR schema_drift = '[]'::jsonb THEN '✅ Copilot schema up to date'\n    ELSE '⚠️ Schema drift — ' || (\n      SELECT string_agg(\n        entry->>'table' || ': +[' || COALESCE((SELECT string_agg(f::text, ', ') FROM jsonb_array_elements_text(entry->'added') f), '') || '] -[' || COALESCE((SELECT string_agg(f::text, ', ') FROM jsonb_array_elements_text(entry->'removed') f), '') || ']',\n        ' | '\n      )\n      FROM jsonb_array_elements(schema_drift) entry\n    )\n  END AS \"Schema Status\"\nFROM sync_jobs\nWHERE status IN ('success', 'failed')\nORDER BY started_at DESC\nLIMIT 1",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*up to date.*",
+                "result": {
+                  "color": "#73BF69",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": ".*drift.*",
+                "result": {
+                  "color": "#FF9830",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "transparent": false
+    },
+    {
       "id": 1,
       "type": "text",
       "title": "",
@@ -106,7 +187,7 @@
         "h": 15,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 4
       },
       "options": {
         "mode": "markdown",
@@ -123,7 +204,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 17
+        "y": 19
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -204,7 +285,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 23
       },
       "description": "Learning guide section for Deployment Frequency."
     },
@@ -217,7 +298,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 24
       },
       "options": {
         "mode": "markdown",
@@ -233,7 +314,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 24
+        "y": 26
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -314,7 +395,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 30
       },
       "description": "Learning guide section for Lead Time (median hours)."
     },
@@ -327,7 +408,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 31
       },
       "options": {
         "mode": "markdown",
@@ -343,7 +424,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 31
+        "y": 33
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -424,7 +505,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 37
       },
       "description": "Learning guide section for Change Fail Rate."
     },
@@ -437,7 +518,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 38
       },
       "options": {
         "mode": "markdown",
@@ -453,7 +534,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 38
+        "y": 40
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -534,7 +615,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 44
       },
       "description": "Learning guide section for MTTR (median)."
     },
@@ -547,7 +628,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 45
       },
       "options": {
         "mode": "markdown",
@@ -563,7 +644,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 45
+        "y": 47
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -635,7 +716,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 51
       },
       "description": "Learning guide section for Active Copilot Seats."
     },
@@ -648,7 +729,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 52
       },
       "options": {
         "mode": "markdown",
@@ -664,7 +745,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 52
+        "y": 54
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -745,7 +826,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 58
       },
       "description": "Learning guide section for Acceptance Rate (%)."
     },
@@ -758,7 +839,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 59
       },
       "options": {
         "mode": "markdown",
@@ -774,7 +855,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 59
+        "y": 61
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -855,7 +936,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 63
+        "y": 65
       },
       "description": "Learning guide section for Copilot PR Rate (%)."
     },
@@ -868,7 +949,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 64
+        "y": 66
       },
       "options": {
         "mode": "markdown",
@@ -884,7 +965,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 66
+        "y": 68
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -956,7 +1037,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 70
+        "y": 72
       },
       "description": "Learning guide section for Lines Accepted (28d)."
     },
@@ -969,7 +1050,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 71
+        "y": 73
       },
       "options": {
         "mode": "markdown",

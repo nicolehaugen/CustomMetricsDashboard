@@ -139,21 +139,26 @@ async function main() {
     await pool.query(
       `INSERT INTO copilot_org_metrics (day, organization_id, daily_active_users, weekly_active_users,
         monthly_active_users, monthly_active_agent_users, monthly_active_chat_users, daily_active_cli_users,
+        daily_active_copilot_cloud_agent_users, weekly_active_copilot_cloud_agent_users,
+        monthly_active_copilot_cloud_agent_users,
         code_acceptance_activity_count, code_generation_activity_count, user_initiated_interaction_count,
         loc_suggested_to_add_sum, loc_suggested_to_delete_sum, loc_added_sum, loc_deleted_sum,
         pull_requests, totals_by_feature, totals_by_ide, totals_by_language_feature,
-        totals_by_language_model, totals_by_model_feature, totals_by_cli)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+        totals_by_language_model, totals_by_model_feature, totals_by_cli, raw_data)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)
        ON CONFLICT (day) DO NOTHING`,
       [m.day, m.organization_id, m.daily_active_users, m.weekly_active_users,
        m.monthly_active_users, m.monthly_active_agent_users, m.monthly_active_chat_users,
-       m.daily_active_cli_users, m.code_acceptance_activity_count, m.code_generation_activity_count,
+       m.daily_active_cli_users,
+       m.daily_active_copilot_cloud_agent_users, m.weekly_active_copilot_cloud_agent_users,
+       m.monthly_active_copilot_cloud_agent_users,
+       m.code_acceptance_activity_count, m.code_generation_activity_count,
        m.user_initiated_interaction_count, m.loc_suggested_to_add_sum, m.loc_suggested_to_delete_sum,
        m.loc_added_sum, m.loc_deleted_sum,
        JSON.stringify(m.pull_requests), JSON.stringify(m.totals_by_feature),
        JSON.stringify(m.totals_by_ide), JSON.stringify(m.totals_by_language_feature),
        JSON.stringify(m.totals_by_language_model), JSON.stringify(m.totals_by_model_feature),
-       JSON.stringify(m.totals_by_cli)]
+       JSON.stringify(m.totals_by_cli), JSON.stringify(m.raw_data)]
     );
   }
 
@@ -165,20 +170,21 @@ async function main() {
       `INSERT INTO copilot_user_metrics (day, user_id, user_login, organization_id,
         user_initiated_interaction_count, code_generation_activity_count, code_acceptance_activity_count,
         loc_suggested_to_add_sum, loc_suggested_to_delete_sum, loc_added_sum, loc_deleted_sum,
-        used_agent, used_chat, used_cli, used_copilot_code_review_active, used_copilot_code_review_passive,
-        used_copilot_coding_agent,
+        used_agent, used_chat, used_cli, used_copilot_coding_agent,
+        used_copilot_code_review_active, used_copilot_code_review_passive,
         totals_by_ide, totals_by_feature, totals_by_language_feature, totals_by_language_model,
-        totals_by_model_feature, totals_by_cli)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+        totals_by_model_feature, totals_by_cli, raw_data)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
        ON CONFLICT (day, user_login) DO NOTHING`,
       [m.day, m.user_id, m.user_login, m.organization_id,
        m.user_initiated_interaction_count, m.code_generation_activity_count, m.code_acceptance_activity_count,
        m.loc_suggested_to_add_sum, m.loc_suggested_to_delete_sum, m.loc_added_sum, m.loc_deleted_sum,
-       m.used_agent, m.used_chat, m.used_cli, m.used_copilot_code_review_active, m.used_copilot_code_review_passive,
-       m.used_copilot_coding_agent,
+       m.used_agent, m.used_chat, m.used_cli, m.used_copilot_coding_agent,
+       m.used_copilot_code_review_active, m.used_copilot_code_review_passive,
        JSON.stringify(m.totals_by_ide), JSON.stringify(m.totals_by_feature),
        JSON.stringify(m.totals_by_language_feature), JSON.stringify(m.totals_by_language_model),
-       JSON.stringify(m.totals_by_model_feature), JSON.stringify(m.totals_by_cli)]
+       JSON.stringify(m.totals_by_model_feature), JSON.stringify(m.totals_by_cli),
+       JSON.stringify(m.raw_data)]
     );
   }
 

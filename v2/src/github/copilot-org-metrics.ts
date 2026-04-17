@@ -11,6 +11,9 @@ export interface CopilotOrgMetricRecord {
   monthly_active_agent_users: number | null;
   monthly_active_chat_users: number | null;
   daily_active_cli_users: number | null;
+  daily_active_copilot_cloud_agent_users: number | null;
+  weekly_active_copilot_cloud_agent_users: number | null;
+  monthly_active_copilot_cloud_agent_users: number | null;
   code_acceptance_activity_count: number | null;
   code_generation_activity_count: number | null;
   user_initiated_interaction_count: number | null;
@@ -25,6 +28,7 @@ export interface CopilotOrgMetricRecord {
   totals_by_language_model: unknown;
   totals_by_model_feature: unknown;
   totals_by_cli: unknown;
+  raw_data: Record<string, unknown>;
 }
 
 export async function fetchCopilotOrgMetrics(
@@ -59,6 +63,9 @@ export async function fetchCopilotOrgMetrics(
           monthly_active_agent_users: (entry.monthly_active_agent_users as number) ?? null,
           monthly_active_chat_users: (entry.monthly_active_chat_users as number) ?? null,
           daily_active_cli_users: (entry.daily_active_cli_users as number) ?? null,
+          daily_active_copilot_cloud_agent_users: (entry.daily_active_copilot_cloud_agent_users as number) ?? null,
+          weekly_active_copilot_cloud_agent_users: (entry.weekly_active_copilot_cloud_agent_users as number) ?? null,
+          monthly_active_copilot_cloud_agent_users: (entry.monthly_active_copilot_cloud_agent_users as number) ?? null,
           code_acceptance_activity_count: (entry.code_acceptance_activity_count as number) ?? null,
           code_generation_activity_count: (entry.code_generation_activity_count as number) ?? null,
           user_initiated_interaction_count: (entry.user_initiated_interaction_count as number) ?? null,
@@ -73,6 +80,7 @@ export async function fetchCopilotOrgMetrics(
           totals_by_language_model: entry.totals_by_language_model ?? null,
           totals_by_model_feature: entry.totals_by_model_feature ?? null,
           totals_by_cli: entry.totals_by_cli ?? null,
+          raw_data: entry,
         });
       }
     }
