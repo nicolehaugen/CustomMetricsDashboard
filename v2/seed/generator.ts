@@ -172,7 +172,6 @@ export interface CopilotUserMetricSeed {
   used_copilot_coding_agent: boolean;
   used_copilot_code_review_active: boolean;
   used_copilot_code_review_passive: boolean;
-  used_copilot_coding_agent: boolean;
   totals_by_ide: unknown;
   totals_by_feature: unknown;
   totals_by_language_feature: unknown;
@@ -544,7 +543,6 @@ export function generateSeedData(config: {
         used_copilot_coding_agent: useCodingAgent,
         used_copilot_code_review_active: Math.random() < 0.2,
         used_copilot_code_review_passive: Math.random() < 0.4,
-        used_copilot_coding_agent: Math.random() < 0.1,
         totals_by_ide: [{ ide: randomChoice(editors), loc_added_sum: accepted }],
         totals_by_feature: [{ feature: 'code_completion', loc_added_sum: accepted }],
         totals_by_language_feature: [],
