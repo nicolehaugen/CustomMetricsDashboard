@@ -36,11 +36,29 @@ const COPILOT_DASHBOARDS = [
     tables: [] as string[],
     softTables: [] as string[],
   },
+  {
+    uid: 'edu-per-user-copilot',
+    title: /Per-User Copilot Metrics/i,
+    stats: [] as string[],
+    softStats: [
+      'Total Interactions (28d)',
+      'Code Generation Activities (28d)',
+      'Code Acceptance Activities (28d)',
+      'Active Days (28d)',
+      'Lines Suggested (28d)',
+      'Lines Accepted (28d)',
+      'Acceptance Rate (%)',
+    ],
+    charts: ['Daily Activity Trend', 'Weekly PR Review Time Trend'],
+    tables: [] as string[],
+    softTables: ['Recent PRs Merged by This User'],
+    url: '/d/edu-per-user-copilot/?orgId=1&from=now-28d&to=now&var-user_login=dev01',
+  },
 ];
 
 for (const dash of COPILOT_DASHBOARDS) {
   test.describe(`Copilot: ${dash.uid}`, () => {
-    const URL = `/d/${dash.uid}/?orgId=1&from=now-28d&to=now`;
+    const URL = dash.url ?? `/d/${dash.uid}/?orgId=1&from=now-28d&to=now`;
 
     test.beforeEach(async ({ page }) => {
       await page.goto(URL);
@@ -105,4 +123,3 @@ for (const dash of COPILOT_DASHBOARDS) {
     });
   });
 }
-
