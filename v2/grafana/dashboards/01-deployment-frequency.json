@@ -35,7 +35,7 @@
             "type": "postgres",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(\n  (SELECT\n    CASE mode\n      WHEN 'seeded' THEN '🌱 Synthetic Seed Data' || COALESCE(' — ' || NULLIF(source_label, ''), '')\n      ELSE '📡 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n    END\n   FROM data_mode ORDER BY updated_at DESC LIMIT 1),\n  '⚠️ No data loaded — run sync or seed'\n) AS \"Data Source\"",
+          "rawSql": "SELECT COALESCE(\n  (SELECT\n    CASE mode\n      WHEN 'seed' THEN '🌱 Synthetic Seed Data'\n      ELSE '📡 ' || COALESCE(NULLIF(source_label, ''), 'Live Data')\n    END\n   FROM data_mode ORDER BY updated_at DESC LIMIT 1),\n  '⚠️ No data loaded — run sync or seed'\n) AS \"Data Source\"",
           "format": "table"
         }
       ],

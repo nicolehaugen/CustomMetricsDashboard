@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// Prevent dotenv from loading the .env file during tests — env vars are set
+// explicitly per-test via setRequiredEnv() and process.env manipulation.
+vi.mock('dotenv/config', () => ({}));
+
 const originalEnv = { ...process.env };
 
 beforeEach(() => {
@@ -62,11 +66,11 @@ describe('config', () => {
     expect(config.dataMode).toBe('live');
   });
 
-  it('DATA_MODE can be set to "seeded"', async () => {
+  it('DATA_MODE can be set to "seed"', async () => {
     setRequiredEnv();
-    process.env.DATA_MODE = 'seeded';
+    process.env.DATA_MODE = 'seed';
     const { config } = await import('../src/config');
-    expect(config.dataMode).toBe('seeded');
+    expect(config.dataMode).toBe('seed');
   });
 
   it('DATA_SOURCE_LABEL is read from env', async () => {
