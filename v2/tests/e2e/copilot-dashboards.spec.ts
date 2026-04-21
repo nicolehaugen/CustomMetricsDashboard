@@ -49,7 +49,7 @@ const COPILOT_DASHBOARDS = [
       'Lines Accepted (28d)',
       'Acceptance Rate (%)',
     ],
-    charts: ['Daily Activity Trend', 'Weekly PR Review Time Trend'],
+    charts: ['Daily Activity Trend', 'Daily Interactions Trend', 'Weekly PR Review Time Trend'],
     tables: [] as string[],
     softTables: ['Recent PRs Merged by This User'],
     url: '/d/edu-per-user-copilot/?orgId=1&from=now-28d&to=now&var-user_login=dev01',
