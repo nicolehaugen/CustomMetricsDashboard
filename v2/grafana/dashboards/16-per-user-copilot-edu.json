@@ -1,7 +1,7 @@
 {
   "uid": "edu-per-user-copilot",
-  "title": "👤 Per-User Copilot Metrics [Edu] [v2]",
-  "description": "Shows per-user Copilot activity metrics — interactions, code volume, acceptance rate, feature adoption, and daily trends — filtered to a selected user via the variable picker.",
+  "title": "\ud83d\udc64 Per-User Copilot Metrics [Edu] [v2]",
+  "description": "Shows per-user Copilot activity metrics \u2014 interactions, code volume, acceptance rate, feature adoption, and daily trends \u2014 filtered to a selected user via the variable picker.",
   "schemaVersion": 36,
   "version": 4,
   "refresh": "5m",
@@ -39,7 +39,7 @@
       "id": 9,
       "type": "stat",
       "title": "",
-      "description": "Data mode banner — shows whether this dashboard displays live GitHub data (green), synthetic seed data (amber), or demo data (blue).",
+      "description": "Data mode banner \u2014 shows whether this dashboard displays live GitHub data (green), synthetic seed data (amber), or demo data (blue).",
       "gridPos": {
         "h": 2,
         "w": 24,
@@ -57,7 +57,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '📡 Live Data — ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '🌱 Synthetic Seed Data — ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '🎮 Demo Environment — ' || COALESCE(source_label, '')\n    ELSE '❓ Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
+          "rawSql": "SELECT\n  CASE mode\n    WHEN 'live' THEN '\ud83d\udce1 Live Data \u2014 ' || COALESCE(source_label, '')\n    WHEN 'seed' THEN '\ud83c\udf31 Synthetic Seed Data \u2014 ' || COALESCE(source_label, '')\n    WHEN 'demo' THEN '\ud83c\udfae Demo Environment \u2014 ' || COALESCE(source_label, '')\n    ELSE '\u2753 Unknown Mode'\n  END AS \"Data Source\"\nFROM data_mode\nORDER BY updated_at DESC LIMIT 1",
           "format": "table"
         }
       ],
@@ -138,10 +138,10 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "# 👤 Per-User Copilot Metrics\n\n**Supplementary Metrics — Individual Developer Copilot Activity**\n\nUse the **User** dropdown above to select a developer and explore their Copilot activity across the selected time range.\n\n## What it Measures\nThis dashboard surfaces per-user data from the GitHub Copilot Metrics Reports API (users-28-day report). It shows how actively a specific developer is using Copilot — broken down by interaction volume, lines of code suggested and accepted, acceptance rate, and which Copilot surfaces they engage with.\n\n## Why it Matters\nOrg-level dashboards show aggregate trends, but individual coaching conversations require user-level context. This dashboard helps engineering managers and developer coaches:\n- Identify developers who have a seat but are not actively using Copilot\n- Distinguish low-acceptance-rate users (may need prompting guidance) from high-volume users\n- Understand feature adoption — does the developer use only completions, or also chat, CLI, agent mode, and code review?\n\n## How to Interpret\n| Metric | Healthy Signal | Action Needed |\n|---|---|---|\n| **Total Interactions** | Growing week-over-week | Flat or declining — explore blockers |\n| **Acceptance Rate** | ≥30% | <20% — review prompting habits or suggestion quality |\n| **Active Days** | Most days in window | Gaps — check for availability or disengagement |\n| **Feature Adoption** | Multiple surfaces (✅ on several)  | Only completions — expand use-case awareness |"
+        "content": "# \ud83d\udc64 Per-User Copilot Metrics\n\n**Supplementary Metrics \u2014 Individual Developer Copilot Activity**\n\nUse the **User** dropdown above to select a developer and explore their Copilot activity across the selected time range.\n\n## What it Measures\nThis dashboard surfaces per-user data from the GitHub Copilot Metrics Reports API (users-28-day report). It shows how actively a specific developer is using Copilot \u2014 broken down by interaction volume, lines of code suggested and accepted, acceptance rate, and which Copilot surfaces they engage with.\n\n## Why it Matters\nOrg-level dashboards show aggregate trends, but individual coaching conversations require user-level context. This dashboard helps engineering managers and developer coaches:\n- Identify developers who have a seat but are not actively using Copilot\n- Distinguish low-acceptance-rate users (may need prompting guidance) from high-volume users\n- Understand feature adoption \u2014 does the developer use only completions, or also chat, CLI, agent mode, and code review?\n\n## How to Interpret\n| Metric | Healthy Signal | Action Needed |\n|---|---|---|\n| **Total Interactions** | Growing week-over-week | Flat or declining \u2014 explore blockers |\n| **Acceptance Rate** | \u226530% | <20% \u2014 review prompting habits or suggestion quality |\n| **Active Days** | Most days in window | Gaps \u2014 check for availability or disengagement |\n| **Feature Adoption** | Multiple surfaces (\u2705 on several)  | Only completions \u2014 expand use-case awareness |"
       },
       "transparent": true,
-      "description": "Per-User Copilot Metrics — individual activity, code volume, acceptance rate, and feature adoption."
+      "description": "Per-User Copilot Metrics \u2014 individual activity, code volume, acceptance rate, and feature adoption."
     },
     {
       "id": 2,
@@ -194,7 +194,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `user_initiated_interaction_count` | Tables: `copilot_user_metrics`"
+      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `user_initiated_interaction_count` | Tables: `copilot_user_metrics`"
     },
     {
       "id": 200,
@@ -215,7 +215,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\nCopilot Metrics Reports API (2026-03-10): `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `user_initiated_interaction_count`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nSum of `user_initiated_interaction_count` for the selected user across the Grafana time range. Each row represents one calendar day. An interaction is any user-driven Copilot event: accepting a suggestion, sending a chat message, running a CLI command, etc.\n\n### ⚠️ Calculation Challenges\n\n- **28-day rolling report** — the `users-28-day` report always covers the most recent 28 days relative to when the sync ran. If you set the Grafana time picker to a different window, rows outside the report window may not exist in the DB.\n- **CLI now included** — as of April 10, 2026, CLI activity is included in top-level interaction counts. Historical rows (pre-April 10) reflect IDE-only counts, so be careful comparing trends across that date.\n- **Nullable field** — if the API returns null for a day, the row is still inserted with a null value. SUM(null) + number = number in PostgreSQL, so nulls are treated as zero.\n\n### 💡 What This Metric Doesn't Tell You\n\n- The quality or outcome of interactions.\n- Whether interactions led to code being committed.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(user_initiated_interaction_count) AS \"Total Interactions (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\nCopilot Metrics Reports API (2026-03-10): `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `user_initiated_interaction_count`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nSum of `user_initiated_interaction_count` for the selected user across the Grafana time range. Each row represents one calendar day. An interaction is any user-driven Copilot event: accepting a suggestion, sending a chat message, running a CLI command, etc.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **28-day rolling report** \u2014 the `users-28-day` report always covers the most recent 28 days relative to when the sync ran. If you set the Grafana time picker to a different window, rows outside the report window may not exist in the DB.\n- **CLI now included** \u2014 as of April 10, 2026, CLI activity is included in top-level interaction counts. Historical rows (pre-April 10) reflect IDE-only counts, so be careful comparing trends across that date.\n- **Nullable field** \u2014 if the API returns null for a day, the row is still inserted with a null value. SUM(null) + number = number in PostgreSQL, so nulls are treated as zero.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- The quality or outcome of interactions.\n- Whether interactions led to code being committed.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT SUM(user_initiated_interaction_count) AS \"Total Interactions (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -293,7 +293,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `code_generation_activity_count` | Tables: `copilot_user_metrics`"
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `code_generation_activity_count` | Tables: `copilot_user_metrics`"
     },
     {
       "id": 201,
@@ -314,7 +314,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `code_generation_activity_count`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nSum of `code_generation_activity_count` for the selected user. This counts Copilot code generation events — completions shown to the user, regardless of whether they were accepted.\n\n### ⚠️ Calculation Challenges\n\n- **Shown ≠ Accepted** — this counts how many times Copilot offered a code suggestion, not how many were kept.\n- **CLI included from Apr 10, 2026** — CLI-triggered code generation now adds to this count. Cross-date comparisons may show a step change.\n\n### 💡 What This Metric Doesn't Tell You\n\n- How many of these suggestions were accepted.\n- Which IDE or language generated the most suggestions.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(code_generation_activity_count) AS \"Code Generation Activities (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `code_generation_activity_count`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nSum of `code_generation_activity_count` for the selected user. This counts Copilot code generation events \u2014 completions shown to the user, regardless of whether they were accepted.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Shown \u2260 Accepted** \u2014 this counts how many times Copilot offered a code suggestion, not how many were kept.\n- **CLI included from Apr 10, 2026** \u2014 CLI-triggered code generation now adds to this count. Cross-date comparisons may show a step change.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- How many of these suggestions were accepted.\n- Which IDE or language generated the most suggestions.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT SUM(code_generation_activity_count) AS \"Code Generation Activities (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -392,7 +392,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `code_acceptance_activity_count` | Tables: `copilot_user_metrics`"
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `code_acceptance_activity_count` | Tables: `copilot_user_metrics`"
     },
     {
       "id": 202,
@@ -413,7 +413,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `code_acceptance_activity_count`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nSum of `code_acceptance_activity_count` for the selected user. This counts the number of times the user explicitly accepted a Copilot code suggestion (Tab / ✓).\n\n### ⚠️ Calculation Challenges\n\n- **Accept event, not code survival** — a developer can accept and immediately delete the suggestion. This is still counted as an acceptance.\n- **Partial acceptance not tracked** — accepting the first line of a multi-line suggestion and deleting the rest counts as one acceptance.\n\n### 💡 What This Metric Doesn't Tell You\n\n- How many lines of code those acceptances represent (see Lines Accepted below).\n- Whether the accepted code survived to production.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(code_acceptance_activity_count) AS \"Code Acceptance Activities (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `code_acceptance_activity_count`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nSum of `code_acceptance_activity_count` for the selected user. This counts the number of times the user explicitly accepted a Copilot code suggestion (Tab / \u2713).\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Accept event, not code survival** \u2014 a developer can accept and immediately delete the suggestion. This is still counted as an acceptance.\n- **Partial acceptance not tracked** \u2014 accepting the first line of a multi-line suggestion and deleting the rest counts as one acceptance.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- How many lines of code those acceptances represent (see Lines Accepted below).\n- Whether the accepted code survived to production.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT SUM(code_acceptance_activity_count) AS \"Code Acceptance Activities (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -520,7 +520,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nCount of distinct calendar days where the user has a row in `copilot_user_metrics`. The sync stores one row per user per day only when the user had Copilot activity. Days with no activity have no row.\n\n### ⚠️ Calculation Challenges\n\n- **Inactive days are absent, not zero** — a user with 5 active days and a user with 5 zero-activity rows cannot be distinguished without checking for missing rows.\n- **Depends on sync cadence** — if syncs are infrequent, recent days may not yet have data.\n\n### 💡 What This Metric Doesn't Tell You\n\n- How productive those active days were.\n- Whether inactivity was due to PTO, oncall, or disengagement.\n\n### 🔍 SQL Query\n\n```sql\nSELECT COUNT(DISTINCT day) AS \"Active Days (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nCount of distinct calendar days where the user has a row in `copilot_user_metrics`. The sync stores one row per user per day only when the user had Copilot activity. Days with no activity have no row.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Inactive days are absent, not zero** \u2014 a user with 5 active days and a user with 5 zero-activity rows cannot be distinguished without checking for missing rows.\n- **Depends on sync cadence** \u2014 if syncs are infrequent, recent days may not yet have data.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- How productive those active days were.\n- Whether inactivity was due to PTO, oncall, or disengagement.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT COUNT(DISTINCT day) AS \"Active Days (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -598,7 +598,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_suggested_to_add_sum` | Tables: `copilot_user_metrics`"
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `loc_suggested_to_add_sum` | Tables: `copilot_user_metrics`"
     },
     {
       "id": 204,
@@ -619,7 +619,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nSum of lines Copilot proposed to add for this user across all days in the time range. Includes both accepted and rejected suggestions.\n\n### ⚠️ Calculation Challenges\n\n- **Suggested ≠ kept** — this includes suggestions the developer dismissed.\n- **1 suggestion can span many lines** — a single Tab keystroke accepting a function body could add 20+ lines.\n\n### 💡 What This Metric Doesn't Tell You\n\n- How many of those lines were accepted.\n- Which suggestion prompted the most lines (see Acceptance Rate).\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_suggested_to_add_sum) AS \"Lines Suggested (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `loc_suggested_to_add_sum`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nSum of lines Copilot proposed to add for this user across all days in the time range. Includes both accepted and rejected suggestions.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Suggested \u2260 kept** \u2014 this includes suggestions the developer dismissed.\n- **1 suggestion can span many lines** \u2014 a single Tab keystroke accepting a function body could add 20+ lines.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- How many of those lines were accepted.\n- Which suggestion prompted the most lines (see Acceptance Rate).\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT SUM(loc_suggested_to_add_sum) AS \"Lines Suggested (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -697,7 +697,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_added_sum` | Tables: `copilot_user_metrics`"
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `loc_added_sum` | Tables: `copilot_user_metrics`"
     },
     {
       "id": 205,
@@ -718,7 +718,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_added_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nSum of lines the user accepted from Copilot suggestions. This is the numerator of the acceptance rate. A line is counted at the moment of acceptance, not when the code is committed.\n\n### ⚠️ Calculation Challenges\n\n- **Accept ≠ commit** — accepted code may be deleted before commit.\n- **CLI merged in** — as of April 10, 2026, CLI-generated lines are included. Pre-April comparisons should note the step change.\n\n### 💡 What This Metric Doesn't Tell You\n\n- Code quality or test coverage of accepted lines.\n- Whether accepted lines reached production.\n\n### 🔍 SQL Query\n\n```sql\nSELECT SUM(loc_added_sum) AS \"Lines Accepted (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `loc_added_sum`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nSum of lines the user accepted from Copilot suggestions. This is the numerator of the acceptance rate. A line is counted at the moment of acceptance, not when the code is committed.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Accept \u2260 commit** \u2014 accepted code may be deleted before commit.\n- **CLI merged in** \u2014 as of April 10, 2026, CLI-generated lines are included. Pre-April comparisons should note the step change.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Code quality or test coverage of accepted lines.\n- Whether accepted lines reached production.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT SUM(loc_added_sum) AS \"Lines Accepted (28d)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -805,7 +805,7 @@
         "graphMode": "none",
         "justifyMode": "auto"
       },
-      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_added_sum / loc_suggested_to_add_sum` | Tables: `copilot_user_metrics`"
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `loc_added_sum / loc_suggested_to_add_sum` | Tables: `copilot_user_metrics`"
     },
     {
       "id": 206,
@@ -826,7 +826,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_added_sum / loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\n`SUM(loc_added_sum) / SUM(loc_suggested_to_add_sum)` expressed as a percentage. This is a line-weighted acceptance rate — a suggestion of 20 lines counts 20× more than a single-line suggestion.\n\n### ⚠️ Calculation Challenges\n\n- **Lines, not suggestions** — two developers with the same 30% rate may behave differently: one accepts many small suggestions, the other rarely accepts but those suggestions are large.\n- **Zero-division handled** — uses `NULLIF(..., 0)` to return NULL instead of dividing by zero when there are no suggestions.\n- **Healthy range** — industry benchmarks suggest 25–40% is typical. Very high rates (>70%) may mean the developer only triggers Copilot when they plan to accept; very low rates (<10%) may indicate suggestions are off-target.\n\n### 💡 What This Metric Doesn't Tell You\n\n- Whether accepted lines are correct or high-quality.\n- Why the developer rejected suggestions (irrelevant, incorrect, or just preferred typing).\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  SUM(loc_added_sum)::numeric * 100.0 / NULLIF(SUM(loc_suggested_to_add_sum), 0), 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `loc_added_sum / loc_suggested_to_add_sum`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\n`SUM(loc_added_sum) / SUM(loc_suggested_to_add_sum)` expressed as a percentage. This is a line-weighted acceptance rate \u2014 a suggestion of 20 lines counts 20\u00d7 more than a single-line suggestion.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Lines, not suggestions** \u2014 two developers with the same 30% rate may behave differently: one accepts many small suggestions, the other rarely accepts but those suggestions are large.\n- **Zero-division handled** \u2014 uses `NULLIF(..., 0)` to return NULL instead of dividing by zero when there are no suggestions.\n- **Healthy range** \u2014 industry benchmarks suggest 25\u201340% is typical. Very high rates (>70%) may mean the developer only triggers Copilot when they plan to accept; very low rates (<10%) may indicate suggestions are off-target.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Whether accepted lines are correct or high-quality.\n- Why the developer rejected suggestions (irrelevant, incorrect, or just preferred typing).\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT ROUND(\n  SUM(loc_added_sum)::numeric * 100.0 / NULLIF(SUM(loc_suggested_to_add_sum), 0), 1\n) AS \"Acceptance Rate (%)\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -874,7 +874,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  CASE WHEN BOOL_OR(used_agent) THEN '✅' ELSE '❌' END AS \"Agent Mode (IDE)\",\n  CASE WHEN BOOL_OR(used_chat) THEN '✅' ELSE '❌' END AS \"Chat\",\n  CASE WHEN BOOL_OR(used_cli) THEN '✅' ELSE '❌' END AS \"CLI\",\n  CASE WHEN BOOL_OR(used_copilot_code_review_active) THEN '✅' ELSE '❌' END AS \"Code Review (Active)\",\n  CASE WHEN BOOL_OR(used_copilot_code_review_passive) THEN '✅' ELSE '❌' END AS \"Code Review (Passive)\",\n  CASE WHEN BOOL_OR(used_copilot_coding_agent) THEN '✅' ELSE '❌' END AS \"Cloud Agent\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "rawSql": "SELECT\n  CASE WHEN BOOL_OR(used_agent) THEN '\u2705' ELSE '\u274c' END AS \"Agent Mode (IDE)\",\n  CASE WHEN BOOL_OR(used_chat) THEN '\u2705' ELSE '\u274c' END AS \"Chat\",\n  CASE WHEN BOOL_OR(used_cli) THEN '\u2705' ELSE '\u274c' END AS \"CLI\",\n  CASE WHEN BOOL_OR(used_copilot_code_review_active) THEN '\u2705' ELSE '\u274c' END AS \"Code Review (Active)\",\n  CASE WHEN BOOL_OR(used_copilot_code_review_passive) THEN '\u2705' ELSE '\u274c' END AS \"Code Review (Passive)\",\n  CASE WHEN BOOL_OR(used_copilot_coding_agent) THEN '\u2705' ELSE '\u274c' END AS \"Cloud Agent\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
       ],
@@ -893,7 +893,7 @@
         },
         "showHeader": true
       },
-      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent` | Tables: `copilot_user_metrics`"
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent` | Tables: `copilot_user_metrics`"
     },
     {
       "id": 207,
@@ -914,7 +914,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nEach boolean column is aggregated with `BOOL_OR()` across all rows in the time range. If the user had at least one day with the flag set to `true`, the column shows ✅.\n\n### Feature Definitions\n\n| Feature | Column | Set `true` when... |\n|---|---|---|\n| **Agent Mode (IDE)** | `used_agent` | Developer used Copilot agent mode inside an IDE |\n| **Chat** | `used_chat` | Developer used Copilot Chat (IDE sidebar or web) |\n| **CLI** | `used_cli` | Developer used GitHub Copilot CLI (`gh copilot`) |\n| **Code Review (Active)** | `used_copilot_code_review_active` | Developer intentionally assigned Copilot as reviewer, re-requested a CCR review, or applied a CCR suggestion |\n| **Code Review (Passive)** | `used_copilot_code_review_passive` | Copilot auto-reviewed a PR via repo policy; developer did not interact. Active takes precedence if both occur. |\n| **Cloud Agent** | `used_copilot_coding_agent` | Developer assigned Copilot to a GitHub Issue or mentioned @copilot in a PR |\n\n### ⚠️ Calculation Challenges\n\n- **Day-level granularity** — each boolean reflects whether the feature was used *at all* on a given day. Frequency within a day is not captured.\n- **Active vs Passive CCR** — if a user has both active and passive CCR on the same day, only `used_copilot_code_review_active` is set. `BOOL_OR(used_copilot_code_review_active)` being ✅ is a stronger signal of engagement than passive only.\n- **Cloud Agent field** — added to the API in the March 25, 2026 changelog. Historic rows before that date will have NULL for this column.\n\n### 💡 What This Metric Doesn't Tell You\n\n- How frequently each surface was used (not counts, only flags).\n- Which IDE the developer used for agent or chat sessions.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  CASE WHEN BOOL_OR(used_agent) THEN '✅' ELSE '❌' END AS \"Agent Mode (IDE)\",\n  CASE WHEN BOOL_OR(used_chat) THEN '✅' ELSE '❌' END AS \"Chat\",\n  CASE WHEN BOOL_OR(used_cli) THEN '✅' ELSE '❌' END AS \"CLI\",\n  CASE WHEN BOOL_OR(used_copilot_code_review_active) THEN '✅' ELSE '❌' END AS \"Code Review (Active)\",\n  CASE WHEN BOOL_OR(used_copilot_code_review_passive) THEN '✅' ELSE '❌' END AS \"Code Review (Passive)\",\n  CASE WHEN BOOL_OR(used_copilot_coding_agent) THEN '✅' ELSE '❌' END AS \"Cloud Agent\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nEach boolean column is aggregated with `BOOL_OR()` across all rows in the time range. If the user had at least one day with the flag set to `true`, the column shows \u2705.\n\n### Feature Definitions\n\n| Feature | Column | Set `true` when... |\n|---|---|---|\n| **Agent Mode (IDE)** | `used_agent` | Developer used Copilot agent mode inside an IDE |\n| **Chat** | `used_chat` | Developer used Copilot Chat (IDE sidebar or web) |\n| **CLI** | `used_cli` | Developer used GitHub Copilot CLI (`gh copilot`) |\n| **Code Review (Active)** | `used_copilot_code_review_active` | Developer intentionally assigned Copilot as reviewer, re-requested a CCR review, or applied a CCR suggestion |\n| **Code Review (Passive)** | `used_copilot_code_review_passive` | Copilot auto-reviewed a PR via repo policy; developer did not interact. Active takes precedence if both occur. |\n| **Cloud Agent** | `used_copilot_coding_agent` | Developer assigned Copilot to a GitHub Issue or mentioned @copilot in a PR |\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Day-level granularity** \u2014 each boolean reflects whether the feature was used *at all* on a given day. Frequency within a day is not captured.\n- **Active vs Passive CCR** \u2014 if a user has both active and passive CCR on the same day, only `used_copilot_code_review_active` is set. `BOOL_OR(used_copilot_code_review_active)` being \u2705 is a stronger signal of engagement than passive only.\n- **Cloud Agent field** \u2014 added to the API in the March 25, 2026 changelog. Historic rows before that date will have NULL for this column.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- How frequently each surface was used (not counts, only flags).\n- Which IDE the developer used for agent or chat sessions.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT\n  CASE WHEN BOOL_OR(used_agent) THEN '\u2705' ELSE '\u274c' END AS \"Agent Mode (IDE)\",\n  CASE WHEN BOOL_OR(used_chat) THEN '\u2705' ELSE '\u274c' END AS \"Chat\",\n  CASE WHEN BOOL_OR(used_cli) THEN '\u2705' ELSE '\u274c' END AS \"CLI\",\n  CASE WHEN BOOL_OR(used_copilot_code_review_active) THEN '\u2705' ELSE '\u274c' END AS \"Code Review (Active)\",\n  CASE WHEN BOOL_OR(used_copilot_code_review_passive) THEN '\u2705' ELSE '\u274c' END AS \"Code Review (Passive)\",\n  CASE WHEN BOOL_OR(used_copilot_coding_agent) THEN '\u2705' ELSE '\u274c' END AS \"Cloud Agent\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
           }
         }
       ],
@@ -944,7 +944,7 @@
     {
       "id": 11,
       "type": "timeseries",
-      "title": "Daily Activity Trend — Lines Accepted",
+      "title": "Daily Activity Trend \u2014 Lines Accepted",
       "gridPos": {
         "h": 8,
         "w": 24,
@@ -1037,7 +1037,7 @@
           "placement": "bottom"
         }
       },
-      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_added_sum` and `loc_suggested_to_add_sum` | Tables: `copilot_user_metrics`"
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `loc_added_sum` and `loc_suggested_to_add_sum` | Tables: `copilot_user_metrics`"
     },
     {
       "id": 208,
@@ -1058,7 +1058,7 @@
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_added_sum`, `loc_suggested_to_add_sum`\n\n### 🗄️ Database Table(s)\n\n`copilot_user_metrics`\n\n### 📐 How It's Calculated\n\nTwo time series plotted per calendar day:\n- **Lines Accepted** (solid green) — `loc_added_sum` — lines accepted by the user that day\n- **Lines Suggested** (dashed blue) — `loc_suggested_to_add_sum` — lines Copilot offered\n\nThe gap between the two lines is the volume of rejected suggestions. Shrinking gap = improving acceptance rate.\n\n### ⚠️ Calculation Challenges\n\n- **Gaps = no activity days** — the `users-28-day` report only includes days where the user had activity. Days with no Copilot usage have no row, which creates gaps in the time series.\n- **Spike/drop patterns** — sharp spikes on single days often reflect large multi-file refactors where Copilot made bulk suggestions.\n\n### 💡 What This Metric Doesn't Tell You\n\n- Which projects or files were being worked on.\n- Whether the accepted lines were later reverted.\n\n### 🔍 SQL Query\n\n```sql\nSELECT day AS time, COALESCE(loc_added_sum, 0) AS \"Lines Accepted\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `loc_added_sum`, `loc_suggested_to_add_sum`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nTwo time series plotted per calendar day:\n- **Lines Accepted** (solid green) \u2014 `loc_added_sum` \u2014 lines accepted by the user that day\n- **Lines Suggested** (dashed blue) \u2014 `loc_suggested_to_add_sum` \u2014 lines Copilot offered\n\nThe gap between the two lines is the volume of rejected suggestions. Shrinking gap = improving acceptance rate.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Gaps = no activity days** \u2014 the `users-28-day` report only includes days where the user had activity. Days with no Copilot usage have no row, which creates gaps in the time series.\n- **Spike/drop patterns** \u2014 sharp spikes on single days often reflect large multi-file refactors where Copilot made bulk suggestions.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Which projects or files were being worked on.\n- Whether the accepted lines were later reverted.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT day AS time, COALESCE(loc_added_sum, 0) AS \"Lines Accepted\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
           }
         }
       ],
@@ -1070,6 +1070,150 @@
       }
     },
     {
+      "id": 311,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 84
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "---"
+      }
+    },
+    {
+      "id": 312,
+      "type": "timeseries",
+      "title": "Daily Interactions Trend",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 86
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(user_initiated_interaction_count, 0) AS \"Total Interactions\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(code_acceptance_activity_count, 0) AS \"Acceptances\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Acceptances"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    4,
+                    4
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total Interactions"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FF9830",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `user_initiated_interaction_count`, `code_acceptance_activity_count` | Tables: `copilot_user_metrics`"
+    },
+    {
+      "id": 313,
+      "type": "row",
+      "title": "Daily Interactions Trend - Learning Guide",
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 314,
+          "type": "text",
+          "title": "",
+          "transparent": true,
+          "gridPos": {
+            "h": 32,
+            "w": 24,
+            "x": 0,
+            "y": 95
+          },
+          "options": {
+            "mode": "markdown",
+            "content": "### \ud83d\udce1 GitHub API Source [\u2192 docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` \u2192 `user_initiated_interaction_count`, `code_acceptance_activity_count`\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`copilot_user_metrics`\n\n### \ud83d\udcd0 How It's Calculated\n\nTwo time series plotted per calendar day:\n- **Total Interactions** (solid) \u2014 `user_initiated_interaction_count` \u2014 every user-driven Copilot event: accepting a suggestion, sending a chat message, running a CLI command, etc.\n- **Acceptances** (dashed blue) \u2014 `code_acceptance_activity_count` \u2014 subset of interactions where the user explicitly accepted a code suggestion.\n\nThe gap between the two lines represents non-acceptance interactions (chat, dismissed suggestions, CLI usage). A shrinking gap means a higher proportion of interactions are resulting in accepted code.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Gaps = no activity days** \u2014 the `users-28-day` report only includes days where the user had Copilot activity. Days with no usage have no row, which creates gaps in the time series.\n- **CLI included from Apr 10, 2026** \u2014 CLI activity was added to top-level interaction counts on April 10 2026. Comparing trends across that date may show a step change that is not a true engagement change.\n- **Nullable fields** \u2014 if the API returns null for a day, the row is still inserted with a null value. `COALESCE(..., 0)` treats nulls as zero.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- The reason an interaction did not result in an acceptance (chat message, wrong suggestion, etc.).\n- Which Copilot feature (agent, chat, inline completion) generated each interaction.\n\n### \ud83d\udd0d SQL Queries\n\n```sql\n-- Total Interactions per day\nSELECT day AS time, COALESCE(user_initiated_interaction_count, 0) AS \"Total Interactions\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n\n-- Acceptances per day\nSELECT day AS time, COALESCE(code_acceptance_activity_count, 0) AS \"Acceptances\"\nFROM copilot_user_metrics\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 94
+      }
+    },
+    {
       "id": 12,
       "type": "stat",
       "title": "Median PR Review Time (hrs)",
@@ -1077,7 +1221,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 84
+        "y": 95
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1139,7 +1283,7 @@
         "h": 4,
         "w": 8,
         "x": 8,
-        "y": 84
+        "y": 95
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1201,7 +1345,7 @@
         "h": 4,
         "w": 8,
         "x": 16,
-        "y": 84
+        "y": 95
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1250,13 +1394,13 @@
     {
       "id": 209,
       "type": "row",
-      "title": "PR Review Time — Learning Guide",
+      "title": "PR Review Time \u2014 Learning Guide",
       "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 99
       },
       "panels": [
         {
@@ -1268,11 +1412,11 @@
             "h": 22,
             "w": 24,
             "x": 0,
-            "y": 89
+            "y": 100
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source\n\nGitHub REST API — Pull Requests endpoint.\n\n### 🗄️ Database Table(s)\n\n`pull_requests`\n\n### 📐 How It's Calculated\n\n**PR Review Time** = `merged_at − created_at` — elapsed time from when a PR was opened to when it was merged.\n\nFiltered by `merged_by_login = user` — **PRs this developer personally merged**, regardless of who wrote the code. Captures both their own PRs and Copilot-agent PRs they reviewed and shipped.\n\n- **Median (P50)** — half of PRs merged faster, half slower. Resistant to outliers.\n- **P90** — 90% of PRs merged within this time. Highlights the slow tail.\n- **Count** — total PRs merged in the selected window.\n\n### ⚠️ Calculation Challenges\n\n- **Author-agnostic by design** — includes human-authored and Copilot-bot-authored PRs. Use the Recent PRs table to see `Author Login` and `Author Type`.\n- **`created_at` is a proxy for review start** — draft PRs can be opened before code is actually ready for review, so this measures PR open-to-merge time unless draft PRs are explicitly excluded.\n- **Long-running branches skew P90** — a feature branch open for weeks will inflate the P90 significantly.\n\n### 💡 What This Metric Doesn't Tell You\n\n- Whether the review was thorough or rubber-stamped.\n- How many review cycles happened before merge.\n- Exactly when work became review-ready for draft PRs.\n\n### 🔍 SQL Query\n\n```sql\nSELECT ROUND(\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  )::numeric, 1\n) AS \"Median PR Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by_login = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+            "content": "### \ud83d\udce1 GitHub API Source\n\nGitHub REST API \u2014 Pull Requests endpoint.\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`pull_requests`\n\n### \ud83d\udcd0 How It's Calculated\n\n**PR Review Time** = `merged_at \u2212 created_at` \u2014 elapsed time from when a PR was opened to when it was merged.\n\nFiltered by `merged_by_login = user` \u2014 **PRs this developer personally merged**, regardless of who wrote the code. Captures both their own PRs and Copilot-agent PRs they reviewed and shipped.\n\n- **Median (P50)** \u2014 half of PRs merged faster, half slower. Resistant to outliers.\n- **P90** \u2014 90% of PRs merged within this time. Highlights the slow tail.\n- **Count** \u2014 total PRs merged in the selected window.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Author-agnostic by design** \u2014 includes human-authored and Copilot-bot-authored PRs. Use the Recent PRs table to see `Author Login` and `Author Type`.\n- **`created_at` is a proxy for review start** \u2014 draft PRs can be opened before code is actually ready for review, so this measures PR open-to-merge time unless draft PRs are explicitly excluded.\n- **Long-running branches skew P90** \u2014 a feature branch open for weeks will inflate the P90 significantly.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Whether the review was thorough or rubber-stamped.\n- How many review cycles happened before merge.\n- Exactly when work became review-ready for draft PRs.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT ROUND(\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  )::numeric, 1\n) AS \"Median PR Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by_login = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
           }
         }
       ]
@@ -1286,7 +1430,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 89
+        "y": 100
       },
       "options": {
         "mode": "markdown",
@@ -1301,7 +1445,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 91
+        "y": 102
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1344,13 +1488,13 @@
     {
       "id": 210,
       "type": "row",
-      "title": "Weekly PR Review Time Trend — Learning Guide",
+      "title": "Weekly PR Review Time Trend \u2014 Learning Guide",
       "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 99
+        "y": 110
       },
       "panels": [
         {
@@ -1362,11 +1506,11 @@
             "h": 18,
             "w": 24,
             "x": 0,
-            "y": 100
+            "y": 111
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source\n\nGitHub REST API — Pull Requests endpoint.\n\n### 🗄️ Database Table(s)\n\n`pull_requests`\n\n### 📐 How It's Calculated\n\nWeekly median of `merged_at − created_at` for PRs merged by this user. Bucketed by `date_trunc('week', merged_at)`.\n\n### ⚠️ Calculation Challenges\n\n- **Low-volume weeks** — a week with 1 PR will show exactly that PR's review time with no averaging.\n- **Week boundary artifacts** — a PR opened in one week and merged the next appears only in the merge week.\n\n### 💡 What This Metric Doesn't Tell You\n\n- Why review time changed week-over-week (team bandwidth, PR complexity, Copilot vs human authorship).\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  ROUND(\n    PERCENTILE_CONT(0.5) WITHIN GROUP (\n      ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n    )::numeric, 1\n  ) AS \"Median Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by_login = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
+            "content": "### \ud83d\udce1 GitHub API Source\n\nGitHub REST API \u2014 Pull Requests endpoint.\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`pull_requests`\n\n### \ud83d\udcd0 How It's Calculated\n\nWeekly median of `merged_at \u2212 created_at` for PRs merged by this user. Bucketed by `date_trunc('week', merged_at)`.\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Low-volume weeks** \u2014 a week with 1 PR will show exactly that PR's review time with no averaging.\n- **Week boundary artifacts** \u2014 a PR opened in one week and merged the next appears only in the merge week.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- Why review time changed week-over-week (team bandwidth, PR complexity, Copilot vs human authorship).\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  ROUND(\n    PERCENTILE_CONT(0.5) WITHIN GROUP (\n      ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n    )::numeric, 1\n  ) AS \"Median Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by_login = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
           }
         }
       ]
@@ -1380,7 +1524,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 100
+        "y": 111
       },
       "options": {
         "mode": "markdown",
@@ -1395,7 +1539,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 102
+        "y": 113
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1485,13 +1629,13 @@
     {
       "id": 211,
       "type": "row",
-      "title": "Recent PRs — Learning Guide",
+      "title": "Recent PRs \u2014 Learning Guide",
       "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 110
+        "y": 121
       },
       "panels": [
         {
@@ -1503,11 +1647,11 @@
             "h": 18,
             "w": 24,
             "x": 0,
-            "y": 111
+            "y": 122
           },
           "options": {
             "mode": "markdown",
-            "content": "### 📡 GitHub API Source\n\nGitHub REST API — Pull Requests endpoint.\n\n### 🗄️ Database Table(s)\n\n`pull_requests`\n\n### 📐 How It's Calculated\n\n25 most recently merged PRs within the selected time range where `merged_by_login = user`. **Author Login** shows the PR opener, and **Author Type** classifies that login as human or bot. Review Time = `merged_at − created_at` in hours, colour-coded green (<24h) / yellow (24–72h) / red (>72h).\n\n### ⚠️ Calculation Challenges\n\n- **Author Login = PR opener** — for Copilot coding agent PRs this will be the bot username, not the human developer.\n- **Sorted by merge date** — most recent first. Click the Review Time column header to sort by slowest.\n\n### 💡 What This Metric Doesn't Tell You\n\n- The quality of the review.\n- How many back-and-forth cycles occurred.\n\n### 🔍 SQL Query\n\n```sql\nSELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author Login\",\n  CASE\n    WHEN pr.user_login LIKE '%[bot]' THEN 'Copilot Bot'\n    ELSE 'Human'\n  END AS \"Author Type\",\n  ROUND((EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0)::numeric, 1) AS \"Review Time (hrs)\",\n  pr.created_at AS \"Opened\",\n  pr.merged_at AS \"Merged\"\nFROM pull_requests pr\nWHERE pr.merged_by_login = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY pr.merged_at DESC\nLIMIT 25\n```"
+            "content": "### \ud83d\udce1 GitHub API Source\n\nGitHub REST API \u2014 Pull Requests endpoint.\n\n### \ud83d\uddc4\ufe0f Database Table(s)\n\n`pull_requests`\n\n### \ud83d\udcd0 How It's Calculated\n\n25 most recently merged PRs within the selected time range where `merged_by_login = user`. **Author Login** shows the PR opener, and **Author Type** classifies that login as human or bot. Review Time = `merged_at \u2212 created_at` in hours, colour-coded green (<24h) / yellow (24\u201372h) / red (>72h).\n\n### \u26a0\ufe0f Calculation Challenges\n\n- **Author Login = PR opener** \u2014 for Copilot coding agent PRs this will be the bot username, not the human developer.\n- **Sorted by merge date** \u2014 most recent first. Click the Review Time column header to sort by slowest.\n\n### \ud83d\udca1 What This Metric Doesn't Tell You\n\n- The quality of the review.\n- How many back-and-forth cycles occurred.\n\n### \ud83d\udd0d SQL Query\n\n```sql\nSELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user_login AS \"Author Login\",\n  CASE\n    WHEN pr.user_login LIKE '%[bot]' THEN 'Copilot Bot'\n    ELSE 'Human'\n  END AS \"Author Type\",\n  ROUND((EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0)::numeric, 1) AS \"Review Time (hrs)\",\n  pr.created_at AS \"Opened\",\n  pr.merged_at AS \"Merged\"\nFROM pull_requests pr\nWHERE pr.merged_by_login = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY pr.merged_at DESC\nLIMIT 25\n```"
           }
         }
       ]
