@@ -158,6 +158,10 @@ CREATE TABLE IF NOT EXISTS copilot_enterprise_daily (
   daily_active_users               BIGINT,
   weekly_active_users              BIGINT,
   monthly_active_users             BIGINT,
+  -- drift: added 2026-04-28
+  daily_active_copilot_cloud_agent_users   BIGINT,
+  weekly_active_copilot_cloud_agent_users  BIGINT,
+  monthly_active_copilot_cloud_agent_users BIGINT,
   monthly_active_agent_users       BIGINT,
   monthly_active_chat_users        BIGINT,
   daily_active_cli_users           BIGINT,
