@@ -1,0 +1,91 @@
+---
+name: schema-drift-apply
+description: "**WORKFLOW SKILL** — Apply discovered API drift columns to v3/src/db/schema.sql, rebuild, and relaunch the app. User provides the table name and new field names; skill infers PostgreSQL types from naming conventions, patches schema.sql, rebuilds Docker, and verifies columns exist. WHEN: \"update schema for drift\", \"add drift columns\", \"schema has new fields\", \"API added new columns\", \"apply drift to schema\", \"new API fields discovered\", \"sync found new columns\". INVOKES: file editing, docker-compose, psql. FOR SINGLE OPERATIONS: manually add columns to schema.sql."
+---
+
+# Schema Drift Apply
+
+Commit discovered API drift columns into `v3/src/db/schema.sql` so fresh deployments include them without waiting for the first sync's `applyDrift()` call.
+
+## Inputs (from user prompt)
+
+1. **Table name** — which table has drift (e.g., `copilot_enterprise_daily`, `copilot_user_daily`)
+2. **Field names** — the new columns discovered by `applyDrift()` or observed in API responses
+3. **Sample values** (optional) — helps confirm type inference when naming convention is ambiguous
+
+## Step 1 — Infer PostgreSQL column types
+
+Use naming conventions matching the patterns in `v3/src/db/insert.ts inferType()`:
+
+| Field name pattern | PostgreSQL type | Examples |
+|---|---|---|
+| `*_users`, `*_count`, `*_sum`, `*_id` (numeric) | `BIGINT` | `daily_active_users`, `code_generation_activity_count` |
+| `used_*` | `BOOLEAN` | `used_agent`, `used_cli` |
+| `*_at` | `TIMESTAMPTZ` | `created_at`, `last_activity_at` |
+| `*_date` | `DATE` | `pending_cancellation_date` |
+| `totals_by_*`, known nested objects | `JSONB` | `totals_by_feature`, `pull_requests` |
+| Everything else (names, labels, states) | `TEXT` | `plan_type`, `environment` |
+
+If the user provides sample values, use runtime type:
+- `boolean` → `BOOLEAN`
+- integer → `BIGINT`
+- float → `NUMERIC`
+- `string` → `TEXT`
+- `object` or `array` → `JSONB`
+
+If ambiguous, ask the user.
+
+## Step 2 — Read current schema.sql
+
+Read `v3/src/db/schema.sql` and locate the `CREATE TABLE IF NOT EXISTS <table>` block. Confirm the fields do not already exist (idempotent — skip any that are already defined).
+
+## Step 3 — Patch schema.sql
+
+Insert new columns into the `CREATE TABLE` block:
+- Place them **after** the last existing column of the same type/category
+- Match the existing alignment style (column name padded to ~40 chars, then type)
+- Add a date comment above the group:
+
+```sql
+  monthly_active_users             BIGINT,
+  -- drift: added YYYY-MM-DD
+  daily_active_copilot_cloud_agent_users   BIGINT,
+  weekly_active_copilot_cloud_agent_users  BIGINT,
+  monthly_active_copilot_cloud_agent_users BIGINT,
+```
+
+## Step 4 — Rebuild and relaunch
+
+```bash
+cd v3
+docker-compose down
+docker-compose up -d --build
+```
+
+Wait for all containers to be healthy. The `--build` flag ensures the new schema.sql is baked into the image.
+
+## Step 5 — Verify columns exist
+
+```bash
+docker exec v3-postgres-1 psql -U postgres -d dora_metrics \
+  -c "\d <table>" | grep "<new_column_name>"
+```
+
+Run this for each new column. All must appear in the output.
+
+## Step 6 — Run validation
+
+```bash
+cd v3
+npm run build
+```
+
+Build must pass. Schema.sql changes are SQL-only and don't affect TypeScript compilation, but this confirms nothing else broke.
+
+## Rules
+
+- **Additive only** — never remove or rename columns. Drift is always forward.
+- **Column names = API field names** — the project uses source-faithful naming. Do not rename, alias, or transform field names.
+- **Skip duplicates** — if a field is already in schema.sql, skip it silently.
+- **No seed generator in v3** — v3 does not have a separate seed generator file. Seed data comes from the sync pipeline or manual SQL inserts. Do not look for or create seed generator changes.
+- **Both v2 and v3 have schema.sql** — if the user doesn't specify which version, default to `v3/src/db/schema.sql`. Only update `v2/src/db/schema.sql` if explicitly asked.
