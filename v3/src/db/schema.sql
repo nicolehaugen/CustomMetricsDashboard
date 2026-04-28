@@ -183,6 +183,39 @@ CREATE TABLE IF NOT EXISTS copilot_enterprise_daily (
 
 CREATE INDEX IF NOT EXISTS idx_copent_day ON copilot_enterprise_daily(day);
 
+-- ─── Copilot: Organization-Level Daily Metrics ───────────────
+
+CREATE TABLE IF NOT EXISTS copilot_organization_daily (
+  day                              DATE NOT NULL,
+  organization_id                  TEXT,
+  daily_active_users               BIGINT,
+  weekly_active_users              BIGINT,
+  monthly_active_users             BIGINT,
+  daily_active_copilot_cloud_agent_users   BIGINT,
+  weekly_active_copilot_cloud_agent_users  BIGINT,
+  monthly_active_copilot_cloud_agent_users BIGINT,
+  monthly_active_agent_users       BIGINT,
+  monthly_active_chat_users        BIGINT,
+  daily_active_cli_users           BIGINT,
+  code_acceptance_activity_count   BIGINT,
+  code_generation_activity_count   BIGINT,
+  user_initiated_interaction_count BIGINT,
+  loc_suggested_to_add_sum         BIGINT,
+  loc_suggested_to_delete_sum      BIGINT,
+  loc_added_sum                    BIGINT,
+  loc_deleted_sum                  BIGINT,
+  totals_by_feature                JSONB,
+  totals_by_ide                    JSONB,
+  totals_by_language_feature       JSONB,
+  totals_by_language_model         JSONB,
+  totals_by_model_feature          JSONB,
+  totals_by_cli                    JSONB,
+  pull_requests                    JSONB,
+  PRIMARY KEY (day, organization_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_coporg_day ON copilot_organization_daily(day);
+
 -- ─── Copilot: Per-User Daily Metrics ─────────────────────────
 
 CREATE TABLE IF NOT EXISTS copilot_user_daily (
