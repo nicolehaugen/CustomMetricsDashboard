@@ -2178,7 +2178,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 354,
+        "y": 362,
         "w": 24,
         "h": 18
       },
@@ -2195,7 +2195,7 @@
       "description": "Daily trend of CLI sessions, requests, prompts, and token usage for the selected user. Source: `totals_by_cli` from `copilot_user_daily`.",
       "gridPos": {
         "x": 0,
-        "y": 372,
+        "y": 354,
         "w": 24,
         "h": 8
       },
@@ -2324,7 +2324,7 @@
       "title": "PR Review Time — Learning Guide - Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 376,
+        "y": 384,
         "w": 24,
         "h": 1
       },
@@ -2337,7 +2337,7 @@
       "title": "Median PR Review Time (hrs)",
       "gridPos": {
         "x": 0,
-        "y": 377,
+        "y": 385,
         "w": 8,
         "h": 4
       },
@@ -2399,7 +2399,7 @@
       "title": "P90 PR Review Time (hrs)",
       "gridPos": {
         "x": 8,
-        "y": 377,
+        "y": 385,
         "w": 8,
         "h": 4
       },
@@ -2461,7 +2461,7 @@
       "title": "PRs Merged",
       "gridPos": {
         "x": 16,
-        "y": 377,
+        "y": 385,
         "w": 8,
         "h": 4
       },
@@ -2516,7 +2516,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 381,
+        "y": 389,
         "w": 24,
         "h": 14
       },
@@ -2532,7 +2532,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 395,
+        "y": 403,
         "w": 24,
         "h": 4
       },
@@ -2547,7 +2547,7 @@
       "title": "Weekly PR Review Time Trend — Learning Guide - Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 399,
+        "y": 407,
         "w": 24,
         "h": 1
       },
