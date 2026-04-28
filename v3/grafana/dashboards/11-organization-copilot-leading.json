@@ -1,0 +1,127 @@
+{
+  "uid": "edu-organization-leading",
+  "title": "🏛️ Organization Copilot Leading Indicators [Edu]",
+  "description": "Organization-level Copilot leading indicators — PR throughput, adoption metrics, and code volume — aggregated at the organization scope.",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5m",
+  "time": {
+    "from": "now-28d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "name": "organization_id",
+        "label": "Organization",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "PostgreSQL"
+        },
+        "definition": "SELECT DISTINCT organization_id FROM copilot_organization_daily WHERE organization_id IS NOT NULL ORDER BY organization_id",
+        "query": "SELECT DISTINCT organization_id FROM copilot_organization_daily WHERE organization_id IS NOT NULL ORDER BY organization_id",
+        "refresh": 1,
+        "sort": 1,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "PRs Created (28 days)",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT SUM((pull_requests->>'total_created')::int) AS value FROM copilot_organization_daily WHERE organization_id = '$organization_id' AND day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_organization_daily)",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Monthly Active Users",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT MAX(monthly_active_users) AS value FROM copilot_organization_daily WHERE organization_id = '$organization_id' AND day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_organization_daily)",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Lines of Code Suggested",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT SUM(loc_suggested_to_add_sum) AS value FROM copilot_organization_daily WHERE organization_id = '$organization_id' AND day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_organization_daily)",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Lines of Code Added",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT SUM(loc_added_sum) AS value FROM copilot_organization_daily WHERE organization_id = '$organization_id' AND day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_organization_daily)",
+          "format": "table"
+        }
+      ]
+    }
+  ]
+}
