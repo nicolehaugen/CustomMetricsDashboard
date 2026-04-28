@@ -2321,7 +2321,7 @@
     {
       "id": 209,
       "type": "row",
-      "title": "PR Review Time — Learning Guide - Learning Guide",
+      "title": "PR Review Time",
       "gridPos": {
         "x": 0,
         "y": 384,
@@ -2364,7 +2364,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               },
               {
@@ -2426,7 +2426,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               },
               {
@@ -2544,7 +2544,7 @@
     {
       "id": 210,
       "type": "row",
-      "title": "Weekly PR Review Time Trend — Learning Guide - Learning Guide",
+      "title": "Weekly PR Review Time Trend",
       "gridPos": {
         "x": 0,
         "y": 407,
@@ -2637,7 +2637,7 @@
     {
       "id": 211,
       "type": "row",
-      "title": "Recent PRs — Learning Guide - Learning Guide",
+      "title": "Recent PRs",
       "gridPos": {
         "x": 0,
         "y": 431,
@@ -2712,7 +2712,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "green",
+                      "color": "blue",
                       "value": null
                     },
                     {
