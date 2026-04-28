@@ -16,11 +16,12 @@ app.post('/sync', async (_req, res) => {
     return res.status(409).json({ error: 'Sync already running' });
   }
   syncRunning = true;
-  res.json({ status: 'started' });
   try {
     await runSync();
+    res.json({ status: 'done' });
   } catch (err) {
     console.error('[server] Sync failed:', err);
+    res.status(500).json({ error: String(err) });
   } finally {
     syncRunning = false;
   }

@@ -92,6 +92,35 @@ Array-valued fields (`labels`, `assignees`, `requested_reviewers`, `payload`, al
 EXTRACT(DAY FROM ($__timeTo()::timestamptz - $__timeFrom()::timestamptz))
 ```
 
+### Dashboard panel structure
+Every metric section in an educational (`[Edu]`) dashboard follows a strict four-panel pattern. **Always add a vertical spacer before each section.**
+
+```
+spacer  → transparent text panel, id 3xx, h:4, empty content ""
+row     → uncollapsed row (collapsed: false), title "<Metric Name> - Learning Guide"
+stat    → the metric visualization (stat, table, timeseries, etc.)
+text    → Learning Guide markdown (API source, calculation, SQL)
+```
+
+The spacer is a transparent text panel with `h: 4` and empty markdown content — it provides consistent vertical separation between sections. Example:
+```json
+{
+  "id": 320,
+  "type": "text",
+  "title": "",
+  "transparent": true,
+  "gridPos": { "x": 0, "y": <next_y>, "w": 24, "h": 4 },
+  "options": { "mode": "markdown", "content": "" }
+}
+```
+
+**Learning Guide text panel heights** — size the `h` value to match the content length so there is no excess whitespace below the markdown:
+- `h: 7` — short guides (API source, calculation, SQL only — no "How to Interpret" table)
+- `h: 14` — standard guides (includes a "How to Interpret" healthy/action table)
+- `h: 18` — extra-long guides (multiple tables or extended explanation)
+
+When adding or reordering sections, ensure every section has a spacer panel preceding it. Use sequential ids in the 3xx range for spacers.
+
 ### Syncing data
 Use the **`sync-verifier` agent** whenever you need to trigger a sync or diagnose missing data. It covers: starting the docker-compose stack, triggering the sync, reading `records_synced`, inspecting raw dump files, and prescribing fixes for silent 403/404 failures.
 

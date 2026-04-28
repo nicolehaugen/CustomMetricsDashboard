@@ -1,0 +1,23 @@
+/* Force border on text panels */
+.panel[data-panel-id="300"] {
+  border: 3px solid #4C7DB8 !important;
+  box-shadow: inset 0 0 0 3px #4C7DB8;
+}
+
+.panel-container[data-panel-id="300"] {
+  border: 3px solid #4C7DB8 !important;
+}
+
+/* Target by nth-child or other means */
+div[id="panel-300"] {
+  border: 3px solid #4C7DB8 !important;
+}
+
+/* More general approach */
+.panel-container {
+  box-sizing: border-box;
+}
+
+.panel-container[data-panel-id="300"] > * {
+  border: 3px solid #4C7DB8 !important;
+}

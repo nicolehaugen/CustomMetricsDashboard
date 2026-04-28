@@ -44,11 +44,13 @@ services:
       GF_AUTH_DISABLE_LOGIN_FORM: "false"
       GF_USERS_DEFAULT_THEME: dark
       GF_PANELS_DISABLE_SANITIZE_HTML: "true"
+      GF_CUSTOM_CSS_FILE: /usr/share/grafana/public/custom.css
       PG_USER: ${PG_USER:-postgres}
       PG_PASSWORD: ${PG_PASSWORD:-postgres}
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/custom.css:/usr/share/grafana/public/custom.css:ro
       - grafana_data:/var/lib/grafana
 
 volumes:
