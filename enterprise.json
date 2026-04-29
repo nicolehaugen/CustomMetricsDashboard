@@ -1,0 +1,2788 @@
+{
+  "uid": "edu-per-user-copilot",
+  "title": "👤 Per-User Copilot Metrics [Edu]",
+  "description": "Shows per-user Copilot activity metrics — interactions, code volume, acceptance rate, feature adoption, and daily trends — filtered to a selected user via the variable picker.",
+  "schemaVersion": 36,
+  "version": 7,
+  "refresh": "5m",
+  "time": {
+    "from": "now-28d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "name": "user_login",
+        "label": "User",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "PostgreSQL"
+        },
+        "definition": "SELECT DISTINCT user_login FROM copilot_user_daily ORDER BY user_login",
+        "query": "SELECT DISTINCT user_login FROM copilot_user_daily ORDER BY user_login",
+        "refresh": 1,
+        "sort": 1,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "",
+      "description": "Data mode banner — shows whether this dashboard displays live GitHub data (green), synthetic seed data (amber), or demo data (blue).",
+      "gridPos": {
+        "x": 0,
+        "y": 2,
+        "w": 24,
+        "h": 2
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE('Live: ' || (SELECT value FROM app_config WHERE key = 'org') || '/' || (SELECT value FROM app_config WHERE key = 'repo'), 'Not yet synced') AS \"Data Source\"",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "Live Data",
+                "result": {
+                  "color": "#73BF69",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "Seed Data",
+                "result": {
+                  "color": "#FA6400",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "Demo Environment",
+                "result": {
+                  "color": "#5794F2",
+                  "index": 2
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "transparent": false
+    },
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 11
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "# 👤 Per-User Copilot Metrics\n\n**Supplementary Metrics — Individual Developer Copilot Activity**\n\nUse the **User** dropdown above to select a developer and explore their Copilot activity across the selected time range.\n\n## What it Measures\nThis dashboard surfaces per-user data from the GitHub Copilot Metrics Reports API (users-28-day report). It shows how actively a specific developer is using Copilot — broken down by interaction volume, lines of code suggested and accepted, acceptance rate, and which Copilot surfaces they engage with.\n\n⚠️ **Important:** This dashboard contains Copilot activity metrics only (interactions, code generation, lines accepted, and feature adoption). The GitHub Copilot Metrics Reports API does not provide per-user pull request telemetry, so this dashboard does not include PR-related metrics or per-PR attribution.\n\n## Why it Matters\nOrg-level dashboards show aggregate trends, but individual coaching conversations require user-level context. This dashboard helps engineering managers and developer coaches:\n- Identify developers who have a seat but are not actively using Copilot\n- Distinguish low-acceptance-rate users (may need prompting guidance) from high-volume users\n- Understand feature adoption — does the developer use only completions, or also chat, CLI, agent mode, and code review?"
+      },
+      "transparent": true,
+      "description": "Per-User Copilot Metrics — individual activity, code volume, acceptance rate, and feature adoption."
+    },
+    {
+      "id": 320,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 200,
+      "type": "row",
+      "title": "Total Interactions (28d) - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": [],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "backgroundColor": "#E8F2FF"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total Interactions (28d)",
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 24,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT SUM(user_initiated_interaction_count) AS \"Total Interactions (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: Copilot Metrics Reports API: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `user_initiated_interaction_count` | Tables: `copilot_user_daily`"
+    },
+    {
+      "id": 300,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\nCopilot Metrics Reports API (2026-03-10): `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `user_initiated_interaction_count`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nSum of `user_initiated_interaction_count` for the selected user across the Grafana time range. Each row represents one calendar day. An interaction is any user-driven Copilot event: accepting a suggestion, sending a chat message, running a CLI command, etc.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Growing week-over-week | Flat or declining — explore blockers |\n\n### SQL Query\n\n```sql\nSELECT SUM(user_initiated_interaction_count) AS \"Total Interactions (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+      }
+    },
+    {
+      "id": 321,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 201,
+      "type": "row",
+      "title": "Code Generation Activities (28d) - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Code Generation Activities (28d)",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT SUM(code_generation_activity_count) AS \"Code Generation Activities (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `code_generation_activity_count` | Tables: `copilot_user_daily`"
+    },
+    {
+      "id": 301,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 24,
+        "h": 7
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `code_generation_activity_count`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nSum of `code_generation_activity_count` for the selected user. This counts Copilot code generation events — completions shown to the user, regardless of whether they were accepted.\n\n### SQL Query\n\n```sql\nSELECT SUM(code_generation_activity_count) AS \"Code Generation Activities (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+      }
+    },
+    {
+      "id": 325,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 58,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 202,
+      "type": "row",
+      "title": "Code Acceptance Activities (28d) - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 58,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Code Acceptance Activities (28d)",
+      "gridPos": {
+        "x": 0,
+        "y": 59,
+        "w": 24,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT SUM(code_acceptance_activity_count) AS \"Code Acceptance Activities (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `code_acceptance_activity_count` | Tables: `copilot_user_daily`"
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 63,
+        "w": 24,
+        "h": 7
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `code_acceptance_activity_count`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nSum of `code_acceptance_activity_count` for the selected user. This counts the number of times the user explicitly accepted a Copilot code suggestion (Tab / ).\n\n### SQL Query\n\n```sql\nSELECT SUM(code_acceptance_activity_count) AS \"Code Acceptance Activities (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+      }
+    },
+    {
+      "id": 322,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 77,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 203,
+      "type": "row",
+      "title": "Active Days (28d) - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 77,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Active Days (28d)",
+      "gridPos": {
+        "x": 0,
+        "y": 78,
+        "w": 24,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COUNT(DISTINCT day) AS \"Active Days (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 7
+              },
+              {
+                "color": "green",
+                "value": 15
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` | Tables: `copilot_user_daily`"
+    },
+    {
+      "id": 303,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 82,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nCount of distinct calendar days where the user has a row in `copilot_user_daily`. The sync stores one row per user per day only when the user had Copilot activity. Days with no activity have no row.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Most days in window | Gaps — check for availability or disengagement |\n\n### SQL Query\n\n```sql\nSELECT COUNT(DISTINCT day) AS \"Active Days (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+      }
+    },
+    {
+      "id": 323,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 134,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 206,
+      "type": "row",
+      "title": "Lines Suggested vs Accepted - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 134,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Lines Suggested vs Accepted (28d)",
+      "gridPos": {
+        "x": 0,
+        "y": 135,
+        "w": 24,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  COALESCE(SUM(loc_suggested_to_add_sum), 0) AS \"Lines Suggested\",\n  COALESCE(SUM(loc_added_sum), 0) AS \"Lines Accepted\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Suggested"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Accepted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_suggested_to_add_sum`, `loc_added_sum` | Tables: `copilot_user_daily`. Lines Suggested = total lines Copilot offered. Lines Accepted = total lines the user kept. Agent/chat mode can produce accepted lines without inline suggestions."
+    },
+    {
+      "id": 306,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 139,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_suggested_to_add_sum`, `loc_added_sum`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nShows raw line-of-code counts side by side:\n- **Lines Suggested** — total lines Copilot offered (inline completions)\n- **Lines Accepted** — total lines the user kept from Copilot\n\n⚠️ **Why not a percentage?** Agent mode, chat, and edit mode write lines directly (`loc_added_sum`) without going through the inline suggestion pipeline (`loc_suggested_to_add_sum`). For heavy agent/chat users, accepted lines can far exceed suggested lines — making a percentage misleading (often >100% or even millions of %). Showing raw counts avoids this distortion.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Accepted close to or below Suggested | Accepted >> Suggested — agent/chat mode dominates (not inherently bad) |\n\n### SQL Query\n\n```sql\nSELECT\n  COALESCE(SUM(loc_suggested_to_add_sum), 0) AS \"Lines Suggested\",\n  COALESCE(SUM(loc_added_sum), 0) AS \"Lines Accepted\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+      }
+    },
+    {
+      "id": 324,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 153,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 207,
+      "type": "row",
+      "title": "Feature Adoption - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 153,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Feature Adoption (days used in window)",
+      "gridPos": {
+        "x": 0,
+        "y": 154,
+        "w": 24,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  SUM(CASE WHEN used_agent THEN 1 ELSE 0 END) AS \"Agent Mode (IDE)\",\n  SUM(CASE WHEN used_chat THEN 1 ELSE 0 END) AS \"Chat\",\n  SUM(CASE WHEN used_cli THEN 1 ELSE 0 END) AS \"CLI\",\n  SUM(CASE WHEN used_copilot_code_review_active THEN 1 ELSE 0 END) AS \"Code Review (Active)\",\n  SUM(CASE WHEN used_copilot_code_review_passive THEN 1 ELSE 0 END) AS \"Code Review (Passive)\",\n  SUM(CASE WHEN used_copilot_coding_agent THEN 1 ELSE 0 END) AS \"Cloud Agent\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "displayMode": "color-background",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-gray",
+                "value": null
+              },
+              {
+                "color": "#FF6B6B",
+                "value": 0
+              },
+              {
+                "color": "#FFA94D",
+                "value": 1
+              },
+              {
+                "color": "#FFD93D",
+                "value": 10
+              },
+              {
+                "color": "#95E1D3",
+                "value": 15
+              },
+              {
+                "color": "#52B788",
+                "value": 20
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Agent Mode (IDE)"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Chat"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CLI"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Code Review (Active)"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Code Review (Passive)"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cloud Agent"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent` | Tables: `copilot_user_daily`"
+    },
+    {
+      "id": 307,
+      "type": "text",
+      "title": "",
+      "transparent": false,
+      "gridPos": {
+        "x": 0,
+        "y": 159,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nEach boolean column is converted into a day count using `SUM(CASE WHEN ... THEN 1 ELSE 0 END)` across all rows in the selected time range. The result is the number of days in the window where the selected user used each surface at least once.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Multiple surfaces (✅ on several) | Only completions — expand use-case awareness |\n\n### Feature Definitions\n\n| Feature | Column | Set `true` when... |\n|---|---|---|\n| **Agent Mode (IDE)** | `used_agent` | Developer used Copilot agent mode inside an IDE |\n| **Chat** | `used_chat` | Developer used Copilot Chat (IDE sidebar or web) |\n| **CLI** | `used_cli` | Developer used GitHub Copilot CLI (`gh copilot`) |\n| **Code Review (Active)** | `used_copilot_code_review_active` | Developer intentionally assigned Copilot as reviewer, re-requested a CCR review, or applied a CCR suggestion |\n| **Code Review (Passive)** | `used_copilot_code_review_passive` | Copilot auto-reviewed a PR via repo policy; developer did not interact. Active takes precedence if both occur. |\n| **Cloud Agent** | `used_copilot_coding_agent` | Developer assigned Copilot to a GitHub Issue or mentioned @copilot in a PR |\n\n### SQL Query\n\n```sql\nSELECT\n  SUM(CASE WHEN used_agent THEN 1 ELSE 0 END) AS \"Agent Mode (IDE)\",\n  SUM(CASE WHEN used_chat THEN 1 ELSE 0 END) AS \"Chat\",\n  SUM(CASE WHEN used_cli THEN 1 ELSE 0 END) AS \"CLI\",\n  SUM(CASE WHEN used_copilot_code_review_active THEN 1 ELSE 0 END) AS \"Code Review (Active)\",\n  SUM(CASE WHEN used_copilot_code_review_passive THEN 1 ELSE 0 END) AS \"Code Review (Passive)\",\n  SUM(CASE WHEN used_copilot_coding_agent THEN 1 ELSE 0 END) AS \"Cloud Agent\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+      }
+    },
+    {
+      "id": 319,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 173,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 208,
+      "type": "row",
+      "title": "Daily Activity Trend - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 191,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Daily Activity Trend — Lines Accepted",
+      "gridPos": {
+        "x": 0,
+        "y": 192,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(loc_added_sum, 0) AS \"Lines Accepted\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(loc_suggested_to_add_sum, 0) AS \"Lines Suggested\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(loc_deleted_sum, 0) AS \"Lines Deleted\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Suggested"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    4,
+                    4
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Accepted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Deleted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F2495C",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    4,
+                    4
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_added_sum`, `loc_suggested_to_add_sum`, `loc_deleted_sum` | Tables: `copilot_user_daily`"
+    },
+    {
+      "id": 317,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 198,
+        "w": 24,
+        "h": 14
+      },
+      "datasource": null,
+      "targets": [],
+      "fieldConfig": {
+        "overrides": [],
+        "defaults": {}
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `loc_added_sum`, `loc_suggested_to_add_sum`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nTwo time series plotted per calendar day:\n- **Lines Accepted** (solid green) — `loc_added_sum` — lines accepted by the user that day\n- **Lines Suggested** (dashed blue) — `loc_suggested_to_add_sum` — lines Copilot offered\n\nThe gap between the two lines is the volume of rejected suggestions. Shrinking gap = improving acceptance rate.\n\n### SQL Query\n\n```sql\nSELECT day AS time, COALESCE(loc_added_sum, 0) AS \"Lines Accepted\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\nORDER BY day\n```"
+      }
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "Lines Deleted (28d)",
+      "description": "Lines deleted from the editor by Copilot (agent/edit mode direct file writes). Source: `loc_deleted_sum` | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 0,
+        "y": 219,
+        "w": 12,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT SUM(loc_deleted_sum) AS \"Lines Deleted (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "Net Lines Changed (28d)",
+      "description": "Net lines changed by Copilot (lines added minus lines deleted). Positive = net new code. Source: `loc_added_sum - loc_deleted_sum` | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 12,
+        "y": 219,
+        "w": 12,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT SUM(loc_added_sum) - COALESCE(SUM(loc_deleted_sum), 0) AS \"Net Lines Changed (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 321,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 237,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 330,
+      "type": "row",
+      "title": "Top Languages Used with Copilot - Learning Guide",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 241,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 19,
+      "type": "table",
+      "title": "Top Languages Used with Copilot",
+      "description": "Languages used with Copilot, ranked by lines accepted. Acceptance Rate > 100% is expected when agent/CLI modes write more lines than were offered as completion suggestions — see the Learning Guide. Source: `totals_by_language_feature` JSONB | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 0,
+        "y": 242,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  lang->>'language' AS \"Language\",\n  SUM((lang->>'loc_added_sum')::bigint) AS \"Lines Accepted\",\n  ROUND(\n    SUM((lang->>'loc_added_sum')::bigint)::numeric\n    / NULLIF(SUM((lang->>'loc_suggested_to_add_sum')::bigint), 0) * 100, 1\n  ) AS \"Acceptance Rate (%)\"\nFROM copilot_user_daily,\n  jsonb_array_elements(totals_by_language_feature) AS lang\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_language_feature IS NOT NULL\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST\nLIMIT 10",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Accepted"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Acceptance Rate (%)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.width",
+                "value": 180
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 20
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      }
+    },
+    {
+      "id": 312,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 248,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `totals_by_language_feature`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nUnnests the `totals_by_language_feature` JSONB array with `jsonb_array_elements()`. Each element represents one language+feature combination. Groups by `language` (summing across features) to compute:\n\n- **Lines Accepted** — `SUM(loc_added_sum)` — total Copilot-accepted lines in this language\n- **Acceptance Rate (%)** — `SUM(loc_added_sum) / SUM(loc_suggested_to_add_sum)` per language\n\nSorted by Lines Accepted descending; capped at top 10 languages.\n\n### SQL Query\n\n```sql\nSELECT\n  lang->>'language' AS \"Language\",\n  SUM((lang->>'loc_added_sum')::bigint) AS \"Lines Accepted\",\n  ROUND(\n    SUM((lang->>'loc_added_sum')::bigint)::numeric\n    / NULLIF(SUM((lang->>'loc_suggested_to_add_sum')::bigint), 0) * 100, 1\n  ) AS \"Acceptance Rate (%)\"\nFROM copilot_user_daily,\n  jsonb_array_elements(totals_by_language_feature) AS lang\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_language_feature IS NOT NULL\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST\nLIMIT 10\n```"
+      }
+    },
+    {
+      "id": 322,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 263,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 214,
+      "type": "row",
+      "title": "Feature Activity Breakdown - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 267,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 20,
+      "type": "table",
+      "title": "Feature Activity Breakdown",
+      "description": "Copilot interactions and lines accepted by feature surface (completions, inline_chat, chat_panel, agent_edit). Source: `totals_by_feature` JSONB | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 0,
+        "y": 268,
+        "w": 24,
+        "h": 7
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  feat->>'feature' AS \"Feature\",\n  SUM((feat->>'user_initiated_interaction_count')::bigint) AS \"Interactions\",\n  SUM((feat->>'loc_added_sum')::bigint) AS \"Lines Accepted\"\nFROM copilot_user_daily,\n  jsonb_array_elements(totals_by_feature) AS feat\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_feature IS NOT NULL\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Interactions"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Accepted"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      }
+    },
+    {
+      "id": 313,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 275,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `totals_by_feature`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nUnnests the `totals_by_feature` JSONB array and groups by `feature` name. Shows interaction volume and lines accepted per Copilot surface.\n\nTypical feature values:\n- `completions` — inline code completions triggered automatically as the developer types\n- `inline_chat` — code suggestions via inline chat (keyboard shortcut in the editor)\n- `chat_panel` — interactions in the Copilot Chat sidebar\n- `agent_edit` — agent or edit mode direct file writes (not counted in suggestion-based metrics)\n\n### SQL Query\n\n```sql\nSELECT\n  feat->>'feature' AS \"Feature\",\n  SUM((feat->>'user_initiated_interaction_count')::bigint) AS \"Interactions\",\n  SUM((feat->>'loc_added_sum')::bigint) AS \"Lines Accepted\"\nFROM copilot_user_daily,\n  jsonb_array_elements(totals_by_feature) AS feat\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_feature IS NOT NULL\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST\n```"
+      }
+    },
+    {
+      "id": 323,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 289,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 215,
+      "type": "row",
+      "title": "IDE Usage - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 293,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 21,
+      "type": "table",
+      "title": "IDE Usage",
+      "description": "Which IDE(s) this developer uses Copilot in. Source: `totals_by_ide` JSONB | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 0,
+        "y": 294,
+        "w": 24,
+        "h": 6
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  ide_row->>'ide' AS \"IDE\",\n  SUM((ide_row->>'user_initiated_interaction_count')::bigint) AS \"Interactions\",\n  SUM((ide_row->>'loc_added_sum')::bigint) AS \"Lines Accepted\"\nFROM copilot_user_daily,\n  jsonb_array_elements(totals_by_ide) AS ide_row\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_ide IS NOT NULL\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Interactions"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines Accepted"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      }
+    },
+    {
+      "id": 314,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 300,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `totals_by_ide`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nUnnests the `totals_by_ide` JSONB array and groups by `ide` name. Shows interactions and accepted lines per IDE.\n\nTypical IDE values: `vscode`, `jetbrains`, `vim`, `neovim`, `visual_studio`, `xcode`, `azure_data_studio`.\n\n### SQL Query\n\n```sql\nSELECT\n  ide_row->>'ide' AS \"IDE\",\n  SUM((ide_row->>'user_initiated_interaction_count')::bigint) AS \"Interactions\",\n  SUM((ide_row->>'loc_added_sum')::bigint) AS \"Lines Accepted\"\nFROM copilot_user_daily,\n  jsonb_array_elements(totals_by_ide) AS ide_row\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_ide IS NOT NULL\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST\n```"
+      }
+    },
+    {
+      "id": 324,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 314,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 216,
+      "type": "row",
+      "title": "AI Model & Chat Mode Usage - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 318,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 22,
+      "type": "table",
+      "title": "AI Model Usage (Chat)",
+      "description": "Which AI models this user's chat interactions use (chat only, not completions). Source: `totals_by_model_feature` JSONB | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 0,
+        "y": 319,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  m->>'model' AS \"Model\",\n  SUM((m->>'user_initiated_interaction_count')::bigint) AS \"Interactions\"\nFROM copilot_user_daily,\n  jsonb_array_elements(totals_by_model_feature) AS m\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_model_feature IS NOT NULL\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Interactions"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      }
+    },
+    {
+      "id": 26,
+      "type": "table",
+      "title": "Chat Mode Breakdown",
+      "description": "Chat panel interactions by mode (ask, edit, agent, plan). Source: `totals_by_model_feature` JSONB → `feature` field | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 12,
+        "y": 319,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  m->>'feature' AS \"Chat Mode\",\n  SUM((m->>'user_initiated_interaction_count')::bigint) AS \"Interactions\"\nFROM copilot_user_daily,\n  jsonb_array_elements(totals_by_model_feature) AS m\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_model_feature IS NOT NULL\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Interactions"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "purple",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      }
+    },
+    {
+      "id": 315,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 327,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `totals_by_model_feature`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nUnnests the `totals_by_model_feature` JSONB array. Per the API docs, this field covers **chat activity only** (not inline completions). Each element has a `model` and a `feature` (chat mode).\n\n**AI Model Usage (left)** — groups by `model`. When auto-select is on, the actual model used (not \"Auto\") is attributed.\n\n**Chat Mode Breakdown (right)** — groups by `feature`. Mode values:\n- `ask` — question-and-answer in the chat sidebar\n- `edit` — Copilot edit mode (modifies the current file)\n- `agent` — multi-step agent mode spanning multiple files\n- `plan` — planning mode (proposes a plan before coding)\n- `custom` — custom agent extensions\n\n### SQL Queries\n\n```sql\n-- AI Model Usage\nSELECT m->>'model' AS \"Model\",\n  SUM((m->>'user_initiated_interaction_count')::bigint) AS \"Interactions\"\nFROM copilot_user_daily, jsonb_array_elements(totals_by_model_feature) AS m\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_model_feature IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC NULLS LAST\n\n-- Chat Mode Breakdown\nSELECT m->>'feature' AS \"Chat Mode\",\n  SUM((m->>'user_initiated_interaction_count')::bigint) AS \"Interactions\"\nFROM copilot_user_daily, jsonb_array_elements(totals_by_model_feature) AS m\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_model_feature IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC NULLS LAST\n```"
+      }
+    },
+    {
+      "id": 325,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 341,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 217,
+      "type": "row",
+      "title": "CLI Usage - Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 345,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 23,
+      "type": "stat",
+      "title": "CLI Sessions (28d)",
+      "description": "Distinct `gh copilot` CLI sessions. Source: `totals_by_cli` (JSON object, not array) → `session_count` | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 0,
+        "y": 346,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->>'session_count')::bigint), 0) AS \"CLI Sessions (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 24,
+      "type": "stat",
+      "title": "CLI Requests (28d)",
+      "description": "Total CLI requests (user prompts + automated agentic follow-ups). Source: `totals_by_cli.request_count` | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 8,
+        "y": 346,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->>'request_count')::bigint), 0) AS \"CLI Requests (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 25,
+      "type": "stat",
+      "title": "CLI Prompts (28d)",
+      "description": "User-initiated CLI prompts/commands only (excludes automated agentic follow-up calls). Source: `totals_by_cli.prompt_count` | Table: `copilot_user_daily`",
+      "gridPos": {
+        "x": 16,
+        "y": 346,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->>'prompt_count')::bigint), 0) AS \"CLI Prompts (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 331,
+      "type": "stat",
+        "title": "CLI Output Tokens (28d)",
+        "description": "Total CLI output tokens over the selected time range.",
+      "gridPos": {
+        "x": 0,
+        "y": 350,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->'token_usage'->>'output_tokens_sum')::bigint), 0) AS \"CLI Output Tokens (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 332,
+      "type": "stat",
+      "title": "CLI Prompt Tokens (28d)",
+      "description": "Total CLI prompt tokens over the selected time range.",
+      "gridPos": {
+        "x": 8,
+        "y": 350,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::bigint), 0) AS \"CLI Prompt Tokens (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 333,
+      "type": "stat",
+      "title": "CLI Avg Tokens/Request",
+      "description": "Average total CLI tokens per request over the selected time range.",
+      "gridPos": {
+        "x": 16,
+        "y": 350,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE(ROUND(\n  (COALESCE(SUM((totals_by_cli->'token_usage'->>'output_tokens_sum')::numeric), 0)\n  + COALESCE(SUM((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::numeric), 0))\n  / NULLIF(COALESCE(SUM((totals_by_cli->>'request_count')::numeric), 0), 0),\n  1\n), 0) AS \"CLI Avg Tokens/Request\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 316,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 362,
+        "w": 24,
+        "h": 18
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `totals_by_cli`\n\n### Database Table(s)\n\n`copilot_user_daily` — one row per user per day.\n\n### Important: Daily Values, Not Rolling Totals\n\nDespite the report name (`users-28-day`), each NDJSON line returned by the API represents **a single calendar day's activity** for one user — not a 28-day rolling aggregate. The `28-day` in the endpoint name refers to the report's time window (it returns the last 28 days of data), not the aggregation period of each row.\n\n**Evidence:** Values fluctuate significantly day-to-day (e.g. a user may have 138 requests one day and 1,219 the next). If these were rolling 28-day totals, values would be far more stable. Additionally, the table contains exactly one row per user per active day.\n\nBecause each row is a **daily snapshot**, the `SUM()` across the selected time range correctly produces the total for that period — there is no double-counting.\n\n### How It's Calculated\n\n`totals_by_cli` is a JSON object on each daily row. These CLI cards sum daily values across the selected time range:\n\n- **CLI Sessions** — `session_count` — distinct `gh copilot` invocations, summed\n- **CLI Requests** — `request_count` — total API calls, including automated follow-ups\n- **CLI Prompts** — `prompt_count` — user-typed prompts only\n- **CLI Output Tokens** — `token_usage.output_tokens_sum` — total generated tokens\n- **CLI Prompt Tokens** — `token_usage.prompt_tokens_sum` — total prompt tokens sent\n- **CLI Avg Tokens/Request** — `(output_tokens_sum + prompt_tokens_sum) / request_count`\n\nToken counts can be large (hundreds of millions over 28 days for active CLI/agent-mode users) because each request sends full file context as prompt tokens.\n\nRows where `totals_by_cli IS NULL` (user had no CLI activity that day) are excluded.\n\n### SQL Query\n\n```sql\nSELECT\n  COALESCE(SUM((totals_by_cli->>'session_count')::bigint), 0) AS \"Sessions\",\n  COALESCE(SUM((totals_by_cli->>'request_count')::bigint), 0) AS \"Requests\",\n  COALESCE(SUM((totals_by_cli->>'prompt_count')::bigint), 0) AS \"Prompts\",\n  COALESCE(SUM((totals_by_cli->'token_usage'->>'output_tokens_sum')::bigint), 0) AS \"Output Tokens\",\n  COALESCE(SUM((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::bigint), 0) AS \"Prompt Tokens\",\n  COALESCE(ROUND(\n    (COALESCE(SUM((totals_by_cli->'token_usage'->>'output_tokens_sum')::numeric), 0)\n    + COALESCE(SUM((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::numeric), 0))\n    / NULLIF(COALESCE(SUM((totals_by_cli->>'request_count')::numeric), 0), 0),\n    1\n  ), 0) AS \"Avg Tokens/Request\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\n```"
+      },
+      "description": "How CLI usage metrics are sourced and aggregated for the selected time range."
+    },
+    {
+      "id": 334,
+      "type": "timeseries",
+      "title": "Daily CLI Usage Trend",
+      "description": "Daily trend of CLI sessions, requests, prompts, and token usage for the selected user. Source: `totals_by_cli` from `copilot_user_daily`.",
+      "gridPos": {
+        "x": 0,
+        "y": 354,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->>'session_count')::bigint, 0) AS \"Sessions\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->>'request_count')::bigint, 0) AS \"Requests\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->>'prompt_count')::bigint, 0) AS \"Prompts\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "format": "time_series"
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->'token_usage'->>'output_tokens_sum')::bigint, 0) AS \"Output Tokens\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "format": "time_series"
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::bigint, 0) AS \"Prompt Tokens\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "axisSoftMin": 0
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Sessions" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#5794F2", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Requests" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#73BF69", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Prompts" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#FF9830", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Output Tokens" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#B877D9", "mode": "fixed" } },
+              { "id": "custom.axisPlacement", "value": "right" },
+              { "id": "custom.lineStyle", "value": { "dash": [4, 4], "fill": "dash" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Prompt Tokens" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#F2495C", "mode": "fixed" } },
+              { "id": "custom.axisPlacement", "value": "right" },
+              { "id": "custom.lineStyle", "value": { "dash": [4, 4], "fill": "dash" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      }
+    },
+    {
+      "id": 326,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 380,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 209,
+      "type": "row",
+      "title": "PR Review Time",
+      "gridPos": {
+        "x": 0,
+        "y": 384,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Median PR Review Time (hrs)",
+      "gridPos": {
+        "x": 0,
+        "y": 385,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE(ROUND(\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  )::numeric, 1\n), 0) AS \"Median PR Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by->>'login' = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 24
+              },
+              {
+                "color": "red",
+                "value": 72
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `pull_requests` table | Filtered by `merged_by_login = user` | Tables: `pull_requests`"
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "P90 PR Review Time (hrs)",
+      "gridPos": {
+        "x": 8,
+        "y": 385,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COALESCE(ROUND(\n  PERCENTILE_CONT(0.9) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  )::numeric, 1\n), 0) AS \"P90 PR Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by->>'login' = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 24
+              },
+              {
+                "color": "red",
+                "value": 72
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `pull_requests` table | Filtered by `merged_by_login = user` | Tables: `pull_requests`"
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "PRs Merged",
+      "gridPos": {
+        "x": 16,
+        "y": 385,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"PRs Merged\"\nFROM pull_requests pr\nWHERE pr.merged_by->>'login' = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: `pull_requests` table | Filtered by `merged_by_login = user` | Tables: `pull_requests`"
+    },
+    {
+      "id": 309,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 389,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source\n\nGitHub REST API — Pull Requests endpoint.\n\n### Database Table(s)\n\n`pull_requests`\n\n### How It's Calculated\n\n**PR Review Time** = `merged_at - created_at` — elapsed time from when a PR was opened to when it was merged.\n\nFiltered by `merged_by->>'login' = user` — **PRs this developer personally merged**, regardless of who wrote the code. Captures both their own PRs and Copilot-agent PRs they reviewed and shipped.\n\n- **Median (P50)** — half of PRs merged faster, half slower. Resistant to outliers.\n- **P90** — 90% of PRs merged within this time. Highlights the slow tail.\n- **Count** — total PRs merged in the selected window.\n\n### SQL Query\n\n```sql\nSELECT COALESCE(ROUND(\n  PERCENTILE_CONT(0.5) WITHIN GROUP (\n    ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n  )::numeric, 1\n), 0) AS \"Median PR Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by->>'login' = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\n```"
+      }
+    },
+    {
+      "id": 327,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 403,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 210,
+      "type": "row",
+      "title": "Weekly PR Review Time Trend",
+      "gridPos": {
+        "x": 0,
+        "y": 407,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Weekly PR Review Time Trend",
+      "gridPos": {
+        "x": 0,
+        "y": 400,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  date_trunc('week', pr.merged_at) AS time,\n  ROUND(\n    PERCENTILE_CONT(0.5) WITHIN GROUP (\n      ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n    )::numeric, 1\n  ) AS \"Median Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by->>'login' = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": "Source: `pull_requests` table | Filtered by `merged_by_login = user` | Tables: `pull_requests`"
+    },
+    {
+      "id": 310,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 408,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source\n\nGitHub REST API — Pull Requests endpoint.\n\n### Database Table(s)\n\n`pull_requests`\n\n### How It's Calculated\n\nWeekly median of `merged_at - created_at` for PRs merged by this user. Bucketed by `date_trunc('week', merged_at)`.\n\n### SQL Query\n\n```sql\nSELECT\n  date_trunc('week', pr.merged_at) AS time,\n  ROUND(\n    PERCENTILE_CONT(0.5) WITHIN GROUP (\n      ORDER BY EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0\n    )::numeric, 1\n  ) AS \"Median Review Time (hrs)\"\nFROM pull_requests pr\nWHERE pr.merged_by->>'login' = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nGROUP BY 1\nORDER BY 1\n```"
+      }
+    },
+    {
+      "id": 329,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 427,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 211,
+      "type": "row",
+      "title": "Recent PRs",
+      "gridPos": {
+        "x": 0,
+        "y": 431,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 16,
+      "type": "table",
+      "title": "Recent PRs Merged by This User",
+      "gridPos": {
+        "x": 0,
+        "y": 432,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "rawSql": "SELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user->>'login' AS \"Author Login\",\n  CASE\n    WHEN pr.user->>'login' = 'Copilot' THEN 'Copilot'\n    WHEN pr.user->>'login' LIKE '%[bot]' THEN 'Bot'\n    ELSE 'Human'\n  END AS \"Author Type\",\n  ROUND((EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0)::numeric, 1) AS \"Review Time (hrs)\",\n  pr.created_at AS \"Opened\",\n  pr.merged_at AS \"Merged\"\nFROM pull_requests pr\nWHERE pr.merged_by->>'login' = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY pr.merged_at DESC\nLIMIT 25",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PR #"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 60
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Review Time (hrs)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "h"
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 24
+                    },
+                    {
+                      "color": "red",
+                      "value": 72
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "description": "Source: `pull_requests` table | Filtered by `merged_by_login = user` | Tables: `pull_requests`"
+    },
+    {
+      "id": 318,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 440,
+        "w": 24,
+        "h": 14
+      },
+      "datasource": null,
+      "targets": [],
+      "fieldConfig": {
+        "overrides": [],
+        "defaults": {}
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source\n\nGitHub REST API — Pull Requests endpoint.\n\n### Database Table(s)\n\n`pull_requests`\n\n### How It's Calculated\n\n25 most recently merged PRs within the selected time range where `merged_by->>'login' = user`. **Author Login** shows the PR opener, and **Author Type** classifies that login as Copilot, Bot, or Human. Review Time = `merged_at - created_at` in hours, colour-coded blue (<24h) / yellow (24-72h) / red (>72h).\n\n### SQL Query\n\n```sql\nSELECT\n  pr.number AS \"PR #\",\n  pr.title AS \"Title\",\n  pr.user->>'login' AS \"Author Login\",\n  CASE\n    WHEN pr.user->>'login' = 'Copilot' THEN 'Copilot'\n    WHEN pr.user->>'login' LIKE '%[bot]' THEN 'Bot'\n    ELSE 'Human'\n  END AS \"Author Type\",\n  ROUND((EXTRACT(EPOCH FROM (pr.merged_at - pr.created_at)) / 3600.0)::numeric, 1) AS \"Review Time (hrs)\",\n  pr.created_at AS \"Opened\",\n  pr.merged_at AS \"Merged\"\nFROM pull_requests pr\nWHERE pr.merged_by->>'login' = '${user_login}'\n  AND pr.merged_at IS NOT NULL\n  AND pr.merged_at BETWEEN $__timeFrom() AND $__timeTo()\nORDER BY pr.merged_at DESC\nLIMIT 25\n```"
+      }
+    },
+    {
+      "id": 320,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 214,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 212,
+      "type": "row",
+      "title": "Lines Deleted & Net Lines Changed - Learning Guide",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 218,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 311,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 223,
+        "w": 24,
+        "h": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### GitHub API Source [docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` -> `loc_deleted_sum`, `loc_added_sum`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\n**Lines Deleted (28d)** -> `SUM(loc_deleted_sum)`. Lines removed from the editor by Copilot, primarily through agent mode and edit mode direct file writes. Does not include lines the developer manually deleted.\n\n**Net Lines Changed (28d)** -> `SUM(loc_added_sum) - SUM(loc_deleted_sum)`. Positive = Copilot net-contributed new code. Near-zero or negative = Copilot is doing significant cleanup or refactoring.\n\nAlso see the **Daily Activity Trend** chart above. It includes a red dashed series for Lines Deleted.\n\n### SQL Query\n\n```sql\nSELECT SUM(loc_deleted_sum) AS \"Lines Deleted (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n\nSELECT SUM(loc_added_sum) - COALESCE(SUM(loc_deleted_sum), 0) AS \"Net Lines Changed (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 328,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 422,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    }
+  ],
+  "links": []
+}
