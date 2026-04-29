@@ -397,7 +397,7 @@
       },
       "options": {
         "mode": "html",
-        "content": "<div style=\"color:#aaa;font-size:13px;margin:2px 12px;line-height:1.35\">\n<strong style=\"color:#ddd\">Schema drift</strong> happens when the GitHub API adds new fields. On each sync the app auto-runs <code>ALTER TABLE ADD COLUMN</code>, so the live DB stays current — but two follow-ups remain, tracked by the tables below:\n<ul style=\"margin:2px 0 2px 22px;padding:0\">\n<li><strong style=\"color:#ddd\">not yet in schema.sql</strong> — codify the columns in <code>v3/src/db/schema.sql</code> so fresh rebuilds include them.</li>\n<li><strong style=\"color:#ddd\">not yet visualized</strong> — no Grafana panel references them yet.</li>\n</ul>\nSee the <em>Workflow</em> section at the bottom to clear both.\n</div>"
+        "content": "<div style=\"color:#aaa;font-size:13px;margin:2px 12px;line-height:1.35\">\n<strong style=\"color:#ddd\">Schema drift</strong> happens when the GitHub API adds new fields. On each sync the app auto-runs <code>ALTER TABLE ADD COLUMN</code>, so the live DB stays current — but two follow-ups remain, tracked by the tables below:\n<ul style=\"margin:2px 0 2px 22px;padding:0\">\n<li><strong style=\"color:#ddd\">not yet in schema.sql</strong> — codify the columns in <code>schema.sql</code> so fresh rebuilds include them.</li>\n<li><strong style=\"color:#ddd\">not yet visualized</strong> — no Grafana panel references them yet.</li>\n</ul>\nSee the <em>Workflow</em> section at the bottom to update both.\n</div>"
       }
     },
     {
