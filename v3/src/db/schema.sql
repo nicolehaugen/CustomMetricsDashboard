@@ -52,17 +52,20 @@ CREATE TABLE IF NOT EXISTS schema_columns (
   PRIMARY KEY (table_name, column_name)
 );
 
--- User-managed list of (table, column) pairs to hide from the drift
--- detection tables on the Overview dashboard. Populated via the
+-- User-managed list of (table, column, scope) entries to hide from the
+-- drift detection tables on the Overview dashboard. Populated via the
 -- `/drift/ignore` and `/drift/unignore` HTTP endpoints (clicked from
 -- the dashboard's "Ignore" / "Unignore" cell links).
+--   scope='schema'  → hide only from the "not yet in schema.sql" table
+--   scope='panel'   → hide only from the "not yet visualized" table
 -- NOTE: persistence is tied to the postgres volume — `docker compose
 -- down -v` clears all ignores. There is no other backing store.
 CREATE TABLE IF NOT EXISTS drift_ignores (
   table_name   TEXT NOT NULL,
   column_name  TEXT NOT NULL,
+  scope        TEXT NOT NULL,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (table_name, column_name)
+  PRIMARY KEY (table_name, column_name, scope)
 );
 
 -- ─── DORA: Pull Requests ─────────────────────────────────────

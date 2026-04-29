@@ -423,7 +423,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table' AS table_name,\n    col->>'field'   AS column_name\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n)\nSELECT COALESCE(COUNT(*)::int, 0) AS \"Missing from schema.sql\"\nFROM drift_cols dc\nLEFT JOIN schema_columns s\n  ON s.table_name = dc.table_name AND s.column_name = dc.column_name\nLEFT JOIN drift_ignores i\n  ON i.table_name = dc.table_name AND i.column_name = dc.column_name\nWHERE s.column_name IS NULL\n  AND i.column_name IS NULL"
+          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table' AS table_name,\n    col->>'field'   AS column_name\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n)\nSELECT COALESCE(COUNT(*)::int, 0) AS \"Missing from schema.sql\"\nFROM drift_cols dc\nLEFT JOIN schema_columns s\n  ON s.table_name = dc.table_name AND s.column_name = dc.column_name\nLEFT JOIN drift_ignores i\n  ON i.table_name = dc.table_name AND i.column_name = dc.column_name AND i.scope = 'schema'\nWHERE s.column_name IS NULL\n  AND i.column_name IS NULL"
         }
       ],
       "options": {
@@ -497,7 +497,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table' AS table_name,\n    col->>'field'   AS column_name\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n),\nreferenced AS (\n  SELECT DISTINCT dc.table_name, dc.column_name\n  FROM drift_cols dc\n  JOIN dashboard_panel_sql d\n    ON d.raw_sql ILIKE '%' || dc.column_name || '%'\n)\nSELECT COALESCE(COUNT(*)::int, 0) AS \"Not visualized\"\nFROM drift_cols dc\nLEFT JOIN referenced r\n  ON r.table_name = dc.table_name AND r.column_name = dc.column_name\nLEFT JOIN drift_ignores i\n  ON i.table_name = dc.table_name AND i.column_name = dc.column_name\nWHERE r.column_name IS NULL\n  AND i.column_name IS NULL"
+          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table' AS table_name,\n    col->>'field'   AS column_name\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n),\nreferenced AS (\n  SELECT DISTINCT dc.table_name, dc.column_name\n  FROM drift_cols dc\n  JOIN dashboard_panel_sql d\n    ON d.raw_sql ILIKE '%' || dc.column_name || '%'\n)\nSELECT COALESCE(COUNT(*)::int, 0) AS \"Not visualized\"\nFROM drift_cols dc\nLEFT JOIN referenced r\n  ON r.table_name = dc.table_name AND r.column_name = dc.column_name\nLEFT JOIN drift_ignores i\n  ON i.table_name = dc.table_name AND i.column_name = dc.column_name AND i.scope = 'panel'\nWHERE r.column_name IS NULL\n  AND i.column_name IS NULL"
         }
       ],
       "options": {
@@ -571,7 +571,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table'        AS table_name,\n    col->>'field'          AS column_name,\n    MAX(j.started_at)      AS last_seen\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n  GROUP BY 1, 2\n)\nSELECT\n  dc.table_name                                         AS \"Table\",\n  dc.column_name                                        AS \"Field Added\",\n  TO_CHAR(dc.last_seen AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                         AS \"First Seen\",\n  'Ignore'                                              AS \"Ignore\"\nFROM drift_cols dc\nLEFT JOIN schema_columns s\n  ON s.table_name = dc.table_name AND s.column_name = dc.column_name\nLEFT JOIN drift_ignores i\n  ON i.table_name = dc.table_name AND i.column_name = dc.column_name\nWHERE s.column_name IS NULL\n  AND i.column_name IS NULL\nORDER BY dc.last_seen DESC, dc.table_name, dc.column_name"
+          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table'        AS table_name,\n    col->>'field'          AS column_name,\n    MAX(j.started_at)      AS last_seen\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n  GROUP BY 1, 2\n)\nSELECT\n  dc.table_name                                         AS \"Table\",\n  dc.column_name                                        AS \"Field Added\",\n  TO_CHAR(dc.last_seen AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                         AS \"First Seen\",\n  'Ignore'                                              AS \"Ignore\"\nFROM drift_cols dc\nLEFT JOIN schema_columns s\n  ON s.table_name = dc.table_name AND s.column_name = dc.column_name\nLEFT JOIN drift_ignores i\n  ON i.table_name = dc.table_name AND i.column_name = dc.column_name AND i.scope = 'schema'\nWHERE s.column_name IS NULL\n  AND i.column_name IS NULL\nORDER BY dc.last_seen DESC, dc.table_name, dc.column_name"
         }
       ],
       "options": {
@@ -590,8 +590,8 @@
                 "id": "links",
                 "value": [
                   {
-                    "title": "Hide this drift column from the tables above",
-                    "url": "http://localhost:3005/drift/ignore?table=${__data.fields.Table}&column=${__data.fields[\"Field Added\"]}",
+                    "title": "Hide this drift column from the schema.sql table above",
+                    "url": "http://localhost:3005/drift/ignore?table=${__data.fields.Table}&column=${__data.fields[\"Field Added\"]}&scope=schema",
                     "targetBlank": false
                   }
                 ]
@@ -627,7 +627,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table'        AS table_name,\n    col->>'field'          AS column_name,\n    MAX(j.started_at)      AS last_seen\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n  GROUP BY 1, 2\n),\nreferenced AS (\n  SELECT DISTINCT dc.table_name, dc.column_name\n  FROM drift_cols dc\n  JOIN dashboard_panel_sql d\n    ON d.raw_sql ILIKE '%' || dc.column_name || '%'\n)\nSELECT\n  dc.table_name                                         AS \"Table\",\n  dc.column_name                                        AS \"Field Added\",\n  TO_CHAR(dc.last_seen AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                         AS \"First Seen\",\n  'Ignore'                                              AS \"Ignore\"\nFROM drift_cols dc\nLEFT JOIN referenced r\n  ON r.table_name = dc.table_name AND r.column_name = dc.column_name\nLEFT JOIN drift_ignores i\n  ON i.table_name = dc.table_name AND i.column_name = dc.column_name\nWHERE r.column_name IS NULL\n  AND i.column_name IS NULL\nORDER BY dc.last_seen DESC, dc.table_name, dc.column_name"
+          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table'        AS table_name,\n    col->>'field'          AS column_name,\n    MAX(j.started_at)      AS last_seen\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n  GROUP BY 1, 2\n),\nreferenced AS (\n  SELECT DISTINCT dc.table_name, dc.column_name\n  FROM drift_cols dc\n  JOIN dashboard_panel_sql d\n    ON d.raw_sql ILIKE '%' || dc.column_name || '%'\n)\nSELECT\n  dc.table_name                                         AS \"Table\",\n  dc.column_name                                        AS \"Field Added\",\n  TO_CHAR(dc.last_seen AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                         AS \"First Seen\",\n  'Ignore'                                              AS \"Ignore\"\nFROM drift_cols dc\nLEFT JOIN referenced r\n  ON r.table_name = dc.table_name AND r.column_name = dc.column_name\nLEFT JOIN drift_ignores i\n  ON i.table_name = dc.table_name AND i.column_name = dc.column_name AND i.scope = 'panel'\nWHERE r.column_name IS NULL\n  AND i.column_name IS NULL\nORDER BY dc.last_seen DESC, dc.table_name, dc.column_name"
         }
       ],
       "options": {
@@ -646,8 +646,8 @@
                 "id": "links",
                 "value": [
                   {
-                    "title": "Hide this drift column from the tables above",
-                    "url": "http://localhost:3005/drift/ignore?table=${__data.fields.Table}&column=${__data.fields[\"Field Added\"]}",
+                    "title": "Hide this drift column from the visualization table above",
+                    "url": "http://localhost:3005/drift/ignore?table=${__data.fields.Table}&column=${__data.fields[\"Field Added\"]}&scope=panel",
                     "targetBlank": false
                   }
                 ]
@@ -683,7 +683,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "SELECT\n  table_name                                         AS \"Table\",\n  column_name                                        AS \"Field Added\",\n  TO_CHAR(created_at AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                       AS \"Ignored At\",\n  'Unignore'                                          AS \"Unignore\"\nFROM drift_ignores\nORDER BY created_at DESC, table_name, column_name"
+          "rawSql": "SELECT\n  table_name                                         AS \"Table\",\n  column_name                                        AS \"Field Added\",\n  CASE scope\n    WHEN 'schema' THEN 'schema.sql'\n    WHEN 'panel'  THEN 'visualization'\n    ELSE scope\n  END                                                AS \"Scope\",\n  scope                                              AS \"_scope\",\n  TO_CHAR(created_at AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                       AS \"Ignored At\",\n  'Unignore'                                          AS \"Unignore\"\nFROM drift_ignores\nORDER BY created_at DESC, table_name, column_name, scope"
         }
       ],
       "options": {
@@ -696,14 +696,20 @@
         },
         "overrides": [
           {
+            "matcher": { "id": "byName", "options": "_scope" },
+            "properties": [
+              { "id": "custom.hidden", "value": true }
+            ]
+          },
+          {
             "matcher": { "id": "byName", "options": "Unignore" },
             "properties": [
               {
                 "id": "links",
                 "value": [
                   {
-                    "title": "Restore this drift column to the tables above",
-                    "url": "http://localhost:3005/drift/unignore?table=${__data.fields.Table}&column=${__data.fields[\"Field Added\"]}",
+                    "title": "Restore this drift column to the table above",
+                    "url": "http://localhost:3005/drift/unignore?table=${__data.fields.Table}&column=${__data.fields[\"Field Added\"]}&scope=${__data.fields._scope}",
                     "targetBlank": false
                   }
                 ]

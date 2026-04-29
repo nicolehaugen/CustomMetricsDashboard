@@ -27,37 +27,46 @@ function ignoreResponse(res: express.Response, message: string) {
   );
 }
 
-// Add (table, column) to drift_ignores so it disappears from the
-// drift-detection tables. GET so it can be a plain cell-link in Grafana.
+// Add (table, column, scope) to drift_ignores so it disappears from the
+// matching drift-detection table. GET so it can be a plain cell-link in
+// Grafana. scope is one of: 'schema' | 'panel'.
 app.get('/drift/ignore', async (req, res) => {
   const table = String(req.query.table ?? '').trim();
   const column = String(req.query.column ?? '').trim();
+  const scope = String(req.query.scope ?? '').trim();
   if (!table || !column) return res.status(400).send('table and column are required');
+  if (scope !== 'schema' && scope !== 'panel') {
+    return res.status(400).send("scope must be 'schema' or 'panel'");
+  }
   try {
     await getPool().query(
-      `INSERT INTO drift_ignores (table_name, column_name) VALUES ($1, $2)
-       ON CONFLICT (table_name, column_name) DO NOTHING`,
-      [table, column]
+      `INSERT INTO drift_ignores (table_name, column_name, scope) VALUES ($1, $2, $3)
+       ON CONFLICT (table_name, column_name, scope) DO NOTHING`,
+      [table, column, scope]
     );
-    ignoreResponse(res, `Ignored ${table}.${column}`);
+    ignoreResponse(res, `Ignored ${table}.${column} (${scope})`);
   } catch (err) {
     console.error('[server] drift ignore failed:', err);
     res.status(500).send(`Failed to ignore ${table}.${column}: ${err}`);
   }
 });
 
-// Remove (table, column) from drift_ignores so it reappears in the
-// drift-detection tables.
+// Remove (table, column, scope) from drift_ignores so it reappears in
+// the matching drift-detection table.
 app.get('/drift/unignore', async (req, res) => {
   const table = String(req.query.table ?? '').trim();
   const column = String(req.query.column ?? '').trim();
+  const scope = String(req.query.scope ?? '').trim();
   if (!table || !column) return res.status(400).send('table and column are required');
+  if (scope !== 'schema' && scope !== 'panel') {
+    return res.status(400).send("scope must be 'schema' or 'panel'");
+  }
   try {
     await getPool().query(
-      `DELETE FROM drift_ignores WHERE table_name = $1 AND column_name = $2`,
-      [table, column]
+      `DELETE FROM drift_ignores WHERE table_name = $1 AND column_name = $2 AND scope = $3`,
+      [table, column, scope]
     );
-    ignoreResponse(res, `Unignored ${table}.${column}`);
+    ignoreResponse(res, `Unignored ${table}.${column} (${scope})`);
   } catch (err) {
     console.error('[server] drift unignore failed:', err);
     res.status(500).send(`Failed to unignore ${table}.${column}: ${err}`);
@@ -83,17 +92,29 @@ app.post('/sync', async (_req, res) => {
 app.listen(config.port, () => {
   console.log(`[server] Sync server running on port ${config.port}`);
   // Ensure the drift_ignores table exists for installs whose DB volume
-  // pre-dates this feature. Idempotent.
-  getPool()
-    .query(
+  // pre-dates this feature, and that it has the `scope` column. Idempotent.
+  (async () => {
+    const pool = getPool();
+    await pool.query(
       `CREATE TABLE IF NOT EXISTS drift_ignores (
          table_name TEXT NOT NULL,
          column_name TEXT NOT NULL,
          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
          PRIMARY KEY (table_name, column_name)
        )`
-    )
-    .catch(err => console.warn('[server] drift_ignores ensure failed:', err));
+    );
+    // Migrate older installs that don't have the scope column.
+    await pool.query(`ALTER TABLE drift_ignores ADD COLUMN IF NOT EXISTS scope TEXT`);
+    await pool.query(`UPDATE drift_ignores SET scope = 'panel' WHERE scope IS NULL`);
+    await pool.query(`ALTER TABLE drift_ignores ALTER COLUMN scope SET NOT NULL`);
+    // Replace the old PK with one that includes scope. The constraint
+    // name is the postgres default `<table>_pkey`.
+    await pool.query(`ALTER TABLE drift_ignores DROP CONSTRAINT IF EXISTS drift_ignores_pkey`);
+    await pool.query(
+      `ALTER TABLE drift_ignores ADD CONSTRAINT drift_ignores_pkey
+         PRIMARY KEY (table_name, column_name, scope)`
+    );
+  })().catch(err => console.warn('[server] drift_ignores ensure failed:', err));
   // Index dashboard SQL on startup so the "Drift not yet visualized" panel
   // has fresh data. Failures are non-fatal.
   const dashboardsDir = join(__dirname, '..', 'grafana', 'dashboards');
