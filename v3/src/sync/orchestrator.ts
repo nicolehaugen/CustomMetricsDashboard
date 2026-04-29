@@ -8,6 +8,7 @@ import { fetchDeployments } from '../github/deployments';
 import { fetchIssues } from '../github/issues';
 import { fetchWorkflowRuns } from '../github/workflow-runs';
 import { fetchCopilotEnterpriseMetrics } from '../github/copilot-enterprise-metrics';
+import { fetchCopilotOrganizationMetrics } from '../github/copilot-organization-metrics';
 import { fetchCopilotUserMetrics } from '../github/copilot-user-metrics';
 import { fetchCopilotSeats } from '../github/copilot-seats';
 import { config } from '../config';
@@ -15,7 +16,7 @@ import { config } from '../config';
 const DATA_TABLES = [
   'pull_requests', 'deployments', 'deployment_statuses', 'deployment_pr_links',
   'issues', 'workflow_runs',
-  'copilot_enterprise_daily', 'copilot_user_daily', 'copilot_seats',
+  'copilot_enterprise_daily', 'copilot_organization_daily', 'copilot_user_daily', 'copilot_seats',
 ];
 
 export async function runSync(): Promise<void> {
@@ -53,6 +54,14 @@ export async function runSync(): Promise<void> {
       console.log(`[sync] Copilot enterprise metrics: ${enterpriseMetrics.length}`);
     } catch (err: any) {
       console.warn(`[sync] Copilot enterprise metrics skipped: ${err?.status ?? err?.message}`);
+    }
+
+    let orgMetrics: Record<string, unknown>[] = [];
+    try {
+      orgMetrics = await fetchCopilotOrganizationMetrics(octokit, org);
+      console.log(`[sync] Copilot organization metrics: ${orgMetrics.length}`);
+    } catch (err: any) {
+      console.warn(`[sync] Copilot organization metrics skipped: ${err?.status ?? err?.message}`);
     }
 
     let userMetrics: Record<string, unknown>[] = [];
@@ -119,6 +128,14 @@ export async function runSync(): Promise<void> {
         await client.query('TRUNCATE copilot_enterprise_daily');
         await insertRows('copilot_enterprise_daily', enterpriseMetrics, columnMap['copilot_enterprise_daily'], client as any);
         recordCounts.copilot_enterprise_daily = enterpriseMetrics.length;
+      }
+
+      // Copilot Organization Daily
+      if (orgMetrics.length > 0) {
+        await drift('copilot_organization_daily', orgMetrics);
+        await client.query('TRUNCATE copilot_organization_daily');
+        await insertRows('copilot_organization_daily', orgMetrics, columnMap['copilot_organization_daily'], client as any);
+        recordCounts.copilot_organization_daily = orgMetrics.length;
       }
 
       // Copilot User Daily

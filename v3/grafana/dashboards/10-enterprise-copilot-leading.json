@@ -83,7 +83,35 @@
           "format": "table",
           "rawSql": "SELECT SUM((pull_requests->>'total_created')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "description": "Source: Copilot Metrics Reports API → `day_totals[].monthly_active_users` | Table: `copilot_enterprise_daily`"
     },
     {
       "id": 112,
