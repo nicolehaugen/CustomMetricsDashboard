@@ -1,6 +1,6 @@
 {
   "uid": "edu-organization-leading",
-  "title": "🏛️ Organization Copilot Leading Indicators [Edu]",
+  "title": "4 - 🏛️ Organization Copilot Leading Indicators [Edu]",
   "description": "Organization-level Copilot leading indicators focused on API-only fields (pull-request activity and Copilot code review engagement) that are NOT shown in the built-in Copilot Usage dashboard at /orgs/<org>/insights/copilot/usage.",
   "schemaVersion": 36,
   "version": 2,
@@ -36,13 +36,70 @@
   },
   "panels": [
     {
+      "id": 9,
+      "type": "stat",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 2
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT COALESCE('Live: ' || (SELECT value FROM app_config WHERE key = 'org') || '/' || (SELECT value FROM app_config WHERE key = 'repo'), 'Not yet synced') AS \"Data Source\""
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
       "id": 100,
       "type": "text",
       "title": "",
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 0,
+        "y": 2,
         "w": 24,
         "h": 14
       },
@@ -84,7 +141,7 @@
       "id": 111,
       "type": "stat",
       "title": "PRs Created (28d)",
-      "description": "pull_requests.total_created summed over the last 28 days.",
+      "description": "Source: Copilot Metrics Reports API → `day_totals[].monthly_active_users` | Table: `copilot_organization_daily`",
       "gridPos": {
         "x": 0,
         "y": 19,
@@ -128,8 +185,7 @@
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].monthly_active_users` | Table: `copilot_organization_daily`"
+      }
     },
     {
       "id": 112,
@@ -543,7 +599,7 @@
       "description": "Daily trend of active vs passive Copilot code review users.",
       "gridPos": {
         "x": 0,
-        "y": 110,
+        "y": 115,
         "w": 24,
         "h": 8
       },
@@ -565,7 +621,7 @@
       "title": "Copilot Code Review Engagement — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 118,
+        "y": 123,
         "w": 24,
         "h": 26
       },
@@ -581,7 +637,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 144,
+        "y": 149,
         "w": 24,
         "h": 1
       },
@@ -597,7 +653,7 @@
       "title": "Pull Request Merge & Lead Time — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 145,
+        "y": 150,
         "w": 24,
         "h": 1
       },
@@ -610,7 +666,7 @@
       "description": "pull_requests.total_merged summed over the last 28 days.",
       "gridPos": {
         "x": 0,
-        "y": 146,
+        "y": 151,
         "w": 8,
         "h": 5
       },
@@ -633,7 +689,7 @@
       "description": "pull_requests.total_merged_created_by_copilot summed over the last 28 days.",
       "gridPos": {
         "x": 8,
-        "y": 146,
+        "y": 151,
         "w": 8,
         "h": 5
       },
@@ -656,7 +712,7 @@
       "description": "Share of merged PRs that were created by Copilot.",
       "gridPos": {
         "x": 16,
-        "y": 146,
+        "y": 151,
         "w": 8,
         "h": 5
       },
@@ -708,7 +764,7 @@
       "description": "Daily trend of total merged PRs vs Copilot-authored merged PRs.",
       "gridPos": {
         "x": 0,
-        "y": 151,
+        "y": 156,
         "w": 24,
         "h": 8
       },
@@ -731,7 +787,7 @@
       "description": "Daily median minutes from PR creation to merge — overall vs Copilot-authored. Reveals lead-time drift between human-authored and Copilot-authored PRs.",
       "gridPos": {
         "x": 0,
-        "y": 159,
+        "y": 164,
         "w": 24,
         "h": 8
       },
@@ -759,7 +815,7 @@
       "title": "Pull Request Merge & Lead Time — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 167,
+        "y": 172,
         "w": 24,
         "h": 31
       },
@@ -775,7 +831,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 198,
+        "y": 203,
         "w": 24,
         "h": 1
       },
@@ -791,7 +847,7 @@
       "title": "PR Review Suggestions — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 199,
+        "y": 204,
         "w": 24,
         "h": 1
       },
@@ -804,7 +860,7 @@
       "description": "pull_requests.total_suggestions — review suggestions generated by any author.",
       "gridPos": {
         "x": 0,
-        "y": 200,
+        "y": 205,
         "w": 8,
         "h": 5
       },
@@ -827,7 +883,7 @@
       "description": "pull_requests.total_copilot_suggestions — review suggestions generated by Copilot.",
       "gridPos": {
         "x": 8,
-        "y": 200,
+        "y": 205,
         "w": 8,
         "h": 5
       },
@@ -850,7 +906,7 @@
       "description": "Share of PR review suggestions generated by Copilot.",
       "gridPos": {
         "x": 16,
-        "y": 200,
+        "y": 205,
         "w": 8,
         "h": 5
       },
@@ -902,7 +958,7 @@
       "description": "Daily trend of all review suggestions vs Copilot-generated suggestions.",
       "gridPos": {
         "x": 0,
-        "y": 205,
+        "y": 210,
         "w": 24,
         "h": 8
       },
@@ -924,7 +980,7 @@
       "title": "PR Review Suggestions — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 213,
+        "y": 218,
         "w": 24,
         "h": 25
       },
@@ -940,7 +996,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 238,
+        "y": 243,
         "w": 24,
         "h": 1
       },
@@ -956,7 +1012,7 @@
       "title": "Applied PR Suggestions (Apply Rate) — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 239,
+        "y": 244,
         "w": 24,
         "h": 1
       },
@@ -969,7 +1025,7 @@
       "description": "pull_requests.total_applied_suggestions — review suggestions applied (any author).",
       "gridPos": {
         "x": 0,
-        "y": 240,
+        "y": 245,
         "w": 8,
         "h": 5
       },
@@ -992,7 +1048,7 @@
       "description": "pull_requests.total_copilot_applied_suggestions — Copilot-generated suggestions that were applied.",
       "gridPos": {
         "x": 8,
-        "y": 240,
+        "y": 245,
         "w": 8,
         "h": 5
       },
@@ -1015,7 +1071,7 @@
       "description": "applied_copilot / generated_copilot — high values mean reviewers find Copilot's suggestions useful and accept them.",
       "gridPos": {
         "x": 16,
-        "y": 240,
+        "y": 245,
         "w": 8,
         "h": 5
       },
@@ -1067,7 +1123,7 @@
       "description": "Daily trend of Copilot suggestions generated vs applied. The gap reveals quality and engagement.",
       "gridPos": {
         "x": 0,
-        "y": 245,
+        "y": 250,
         "w": 24,
         "h": 8
       },
@@ -1089,7 +1145,7 @@
       "title": "Applied PR Suggestions — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 253,
+        "y": 258,
         "w": 24,
         "h": 25
       },
@@ -1105,7 +1161,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 278,
+        "y": 283,
         "w": 24,
         "h": 1
       },
@@ -1121,7 +1177,7 @@
       "title": "API-Only Adoption Signals (CLI, Suggestions, Interactions) — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 279,
+        "y": 284,
         "w": 24,
         "h": 1
       },
@@ -1134,7 +1190,7 @@
       "description": "daily_active_cli_users — unique users who used Copilot via the CLI on each day. CLI usage is independent of IDE active-user counts and is API-only.",
       "gridPos": {
         "x": 0,
-        "y": 280,
+        "y": 285,
         "w": 12,
         "h": 8
       },
@@ -1157,7 +1213,7 @@
       "description": "user_initiated_interaction_count — daily count of explicit prompts sent to Copilot. Excludes UI events like opening the chat panel or switching modes. API-only.",
       "gridPos": {
         "x": 12,
-        "y": 280,
+        "y": 285,
         "w": 12,
         "h": 8
       },
@@ -1180,7 +1236,7 @@
       "description": "loc_suggested_to_add_sum and loc_suggested_to_delete_sum — what Copilot proposed vs what was kept (compare with the LoC accepted metrics on the built-in dashboard).",
       "gridPos": {
         "x": 0,
-        "y": 288,
+        "y": 293,
         "w": 24,
         "h": 8
       },
@@ -1202,7 +1258,7 @@
       "title": "API-Only Adoption Signals — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 296,
+        "y": 301,
         "w": 24,
         "h": 21
       },
@@ -1210,6 +1266,52 @@
         "mode": "markdown",
         "content": "**Why these are here:** Each of these fields is **API-only** — none appear on the built-in Copilot Usage dashboard at `/orgs/<org>/insights/copilot/usage`.\n\n- `daily_active_cli_users` — CLI surface area is independent of IDE; growth here indicates terminal-driven workflows.\n- `user_initiated_interaction_count` — explicit prompts only. Distinct from `code_generation_activity_count` because one prompt can produce multiple generations.\n- `loc_suggested_to_add_sum` / `loc_suggested_to_delete_sum` — what Copilot *offered*, not what was kept. Compare with `loc_added_sum` / `loc_deleted_sum` on the built-in dashboard to estimate take-up rate.\n\n---\n\n### Underlying SQL\n\n**Daily Active CLI Users**\n\n```sql\nSELECT day AS time, daily_active_cli_users AS \"Daily Active CLI Users\"\nFROM copilot_organization_daily\nWHERE organization_id = '$organization_id' AND day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_organization_daily\nWHERE organization_id = '$organization_id')\nORDER BY day\n```\n\n**Total User-Initiated Interactions**\n\n```sql\nSELECT day AS time, user_initiated_interaction_count AS \"User-Initiated Interactions\"\nFROM copilot_organization_daily\nWHERE organization_id = '$organization_id' AND day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_organization_daily\nWHERE organization_id = '$organization_id')\nORDER BY day\n```\n\n**Lines of Code Suggested — Add vs Delete**\n\n```sql\nSELECT day AS time, loc_suggested_to_add_sum AS \"Suggested to Add\", loc_suggested_to_delete_sum AS \"Suggested to Delete\"\nFROM copilot_organization_daily\nWHERE organization_id = '$organization_id' AND day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_organization_daily\nWHERE organization_id = '$organization_id')\nORDER BY day\n```"
       }
+    },
+    {
+      "id": 307,
+      "type": "stat",
+      "title": "Weekly Active Code Review Users",
+      "description": "weekly_active_copilot_code_review_users — distinct users who actively engaged with Copilot code review in the last 7 days.",
+      "gridPos": {
+        "x": 0,
+        "y": 110,
+        "w": 12,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT weekly_active_copilot_code_review_users AS value FROM copilot_organization_daily WHERE organization_id = '$organization_id' AND weekly_active_copilot_code_review_users IS NOT NULL ORDER BY day DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "id": 308,
+      "type": "stat",
+      "title": "Weekly Passive Code Review Users",
+      "description": "weekly_passive_copilot_code_review_users — distinct users who had Copilot auto-assigned to review their PR in the last 7 days but did not engage.",
+      "gridPos": {
+        "x": 12,
+        "y": 110,
+        "w": 12,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT weekly_passive_copilot_code_review_users AS value FROM copilot_organization_daily WHERE organization_id = '$organization_id' AND weekly_passive_copilot_code_review_users IS NOT NULL ORDER BY day DESC LIMIT 1"
+        }
+      ]
     }
   ]
 }

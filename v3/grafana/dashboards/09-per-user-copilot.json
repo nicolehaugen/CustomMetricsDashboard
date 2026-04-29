@@ -1,6 +1,6 @@
 {
   "uid": "edu-per-user-copilot",
-  "title": "👤 Per-User Copilot Metrics [Edu]",
+  "title": "3 - 👤 Per-User Copilot Metrics [Edu]",
   "description": "Shows per-user Copilot activity metrics — interactions, code volume, acceptance rate, feature adoption, and daily trends — filtered to a selected user via the variable picker.",
   "schemaVersion": 36,
   "version": 7,
@@ -63,49 +63,18 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Live Data",
-                "result": {
-                  "color": "#73BF69",
-                  "index": 0
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Seed Data",
-                "result": {
-                  "color": "#FA6400",
-                  "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo Environment",
-                "result": {
-                  "color": "#5794F2",
-                  "index": 2
-                }
-              }
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red",
+                "color": "blue",
                 "value": null
               }
             ]
           },
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "blue"
           }
         },
         "overrides": []
@@ -739,7 +708,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  SUM(CASE WHEN used_agent THEN 1 ELSE 0 END) AS \"Agent Mode (IDE)\",\n  SUM(CASE WHEN used_chat THEN 1 ELSE 0 END) AS \"Chat\",\n  SUM(CASE WHEN used_cli THEN 1 ELSE 0 END) AS \"CLI\",\n  SUM(CASE WHEN used_copilot_code_review_active THEN 1 ELSE 0 END) AS \"Code Review (Active)\",\n  SUM(CASE WHEN used_copilot_code_review_passive THEN 1 ELSE 0 END) AS \"Code Review (Passive)\",\n  SUM(CASE WHEN used_copilot_coding_agent THEN 1 ELSE 0 END) AS \"Cloud Agent\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
+          "rawSql": "SELECT\n  SUM(CASE WHEN used_agent THEN 1 ELSE 0 END) AS \"Agent Mode (IDE)\",\n  SUM(CASE WHEN used_chat THEN 1 ELSE 0 END) AS \"Chat\",\n  SUM(CASE WHEN used_cli THEN 1 ELSE 0 END) AS \"CLI\",\n  SUM(CASE WHEN used_copilot_code_review_active THEN 1 ELSE 0 END) AS \"Code Review (Active)\",\n  SUM(CASE WHEN used_copilot_code_review_passive THEN 1 ELSE 0 END) AS \"Code Review (Passive)\",\n  SUM(CASE WHEN used_copilot_coding_agent THEN 1 ELSE 0 END) AS \"Cloud Agent (legacy)\",\n  SUM(CASE WHEN used_copilot_cloud_agent THEN 1 ELSE 0 END) AS \"Cloud Agent\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
           "format": "table"
         }
       ],
@@ -866,7 +835,7 @@
         },
         "showHeader": true
       },
-      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent` | Tables: `copilot_user_daily`"
+      "description": "Source: `GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent, used_copilot_cloud_agent` | Tables: `copilot_user_daily`"
     },
     {
       "id": 307,
@@ -881,7 +850,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nEach boolean column is converted into a day count using `SUM(CASE WHEN ... THEN 1 ELSE 0 END)` across all rows in the selected time range. The result is the number of days in the window where the selected user used each surface at least once.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Multiple surfaces (✅ on several) | Only completions — expand use-case awareness |\n\n### Feature Definitions\n\n| Feature | Column | Set `true` when... |\n|---|---|---|\n| **Agent Mode (IDE)** | `used_agent` | Developer used Copilot agent mode inside an IDE |\n| **Chat** | `used_chat` | Developer used Copilot Chat (IDE sidebar or web) |\n| **CLI** | `used_cli` | Developer used GitHub Copilot CLI (`gh copilot`) |\n| **Code Review (Active)** | `used_copilot_code_review_active` | Developer intentionally assigned Copilot as reviewer, re-requested a CCR review, or applied a CCR suggestion |\n| **Code Review (Passive)** | `used_copilot_code_review_passive` | Copilot auto-reviewed a PR via repo policy; developer did not interact. Active takes precedence if both occur. |\n| **Cloud Agent** | `used_copilot_coding_agent` | Developer assigned Copilot to a GitHub Issue or mentioned @copilot in a PR |\n\n### SQL Query\n\n```sql\nSELECT\n  SUM(CASE WHEN used_agent THEN 1 ELSE 0 END) AS \"Agent Mode (IDE)\",\n  SUM(CASE WHEN used_chat THEN 1 ELSE 0 END) AS \"Chat\",\n  SUM(CASE WHEN used_cli THEN 1 ELSE 0 END) AS \"CLI\",\n  SUM(CASE WHEN used_copilot_code_review_active THEN 1 ELSE 0 END) AS \"Code Review (Active)\",\n  SUM(CASE WHEN used_copilot_code_review_passive THEN 1 ELSE 0 END) AS \"Code Review (Passive)\",\n  SUM(CASE WHEN used_copilot_coding_agent THEN 1 ELSE 0 END) AS \"Cloud Agent\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `used_agent`, `used_chat`, `used_cli`, `used_copilot_code_review_active`, `used_copilot_code_review_passive`, `used_copilot_coding_agent`, `used_copilot_cloud_agent`\n\n### Database Table(s)\n\n`copilot_user_daily`\n\n### How It's Calculated\n\nEach boolean column is converted into a day count using `SUM(CASE WHEN ... THEN 1 ELSE 0 END)` across all rows in the selected time range. The result is the number of days in the window where the selected user used each surface at least once.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Multiple surfaces (✅ on several) | Only completions — expand use-case awareness |\n\n### Feature Definitions\n\n| Feature | Column | Set `true` when... |\n|---|---|---|\n| **Agent Mode (IDE)** | `used_agent` | Developer used Copilot agent mode inside an IDE |\n| **Chat** | `used_chat` | Developer used Copilot Chat (IDE sidebar or web) |\n| **CLI** | `used_cli` | Developer used GitHub Copilot CLI (`gh copilot`) |\n| **Code Review (Active)** | `used_copilot_code_review_active` | Developer intentionally assigned Copilot as reviewer, re-requested a CCR review, or applied a CCR suggestion |\n| **Code Review (Passive)** | `used_copilot_code_review_passive` | Copilot auto-reviewed a PR via repo policy; developer did not interact. Active takes precedence if both occur. |\n| **Cloud Agent (legacy)** | `used_copilot_coding_agent` | Developer assigned Copilot to a GitHub Issue or mentioned @copilot in a PR (pre-2026 field) |\n| **Cloud Agent** | `used_copilot_cloud_agent` | Newer per-user flag for Copilot cloud agent usage (2026-03-10 API). Prefer this for current data. |\n\n### SQL Query\n\n```sql\nSELECT\n  SUM(CASE WHEN used_agent THEN 1 ELSE 0 END) AS \"Agent Mode (IDE)\",\n  SUM(CASE WHEN used_chat THEN 1 ELSE 0 END) AS \"Chat\",\n  SUM(CASE WHEN used_cli THEN 1 ELSE 0 END) AS \"CLI\",\n  SUM(CASE WHEN used_copilot_code_review_active THEN 1 ELSE 0 END) AS \"Code Review (Active)\",\n  SUM(CASE WHEN used_copilot_code_review_passive THEN 1 ELSE 0 END) AS \"Code Review (Passive)\",\n  SUM(CASE WHEN used_copilot_coding_agent THEN 1 ELSE 0 END) AS \"Cloud Agent (legacy)\",\n  SUM(CASE WHEN used_copilot_cloud_agent THEN 1 ELSE 0 END) AS \"Cloud Agent\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
       }
     },
     {
@@ -1970,8 +1939,8 @@
     {
       "id": 331,
       "type": "stat",
-        "title": "CLI Output Tokens (28d)",
-        "description": "Total CLI output tokens over the selected time range.",
+      "title": "CLI Output Tokens (28d)",
+      "description": "Total CLI output tokens over the selected time range.",
       "gridPos": {
         "x": 0,
         "y": 350,
@@ -2218,44 +2187,119 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Sessions" },
+            "matcher": {
+              "id": "byName",
+              "options": "Sessions"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "#5794F2", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#5794F2",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Requests" },
+            "matcher": {
+              "id": "byName",
+              "options": "Requests"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "#73BF69", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Prompts" },
+            "matcher": {
+              "id": "byName",
+              "options": "Prompts"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "#FF9830", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FF9830",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Output Tokens" },
+            "matcher": {
+              "id": "byName",
+              "options": "Output Tokens"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "#B877D9", "mode": "fixed" } },
-              { "id": "custom.axisPlacement", "value": "right" },
-              { "id": "custom.lineStyle", "value": { "dash": [4, 4], "fill": "dash" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#B877D9",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    4,
+                    4
+                  ],
+                  "fill": "dash"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Prompt Tokens" },
+            "matcher": {
+              "id": "byName",
+              "options": "Prompt Tokens"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "#F2495C", "mode": "fixed" } },
-              { "id": "custom.axisPlacement", "value": "right" },
-              { "id": "custom.lineStyle", "value": { "dash": [4, 4], "fill": "dash" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#F2495C",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    4,
+                    4
+                  ],
+                  "fill": "dash"
+                }
+              }
             ]
           }
         ]
       },
       "options": {
-        "tooltip": { "mode": "multi", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom" }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
       }
     },
     {
