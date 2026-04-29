@@ -87,7 +87,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "# 🏢 Enterprise Copilot Leading Indicators\n\n## Why leading indicators?\n\nThe [GitHub Engineering System Success Playbook (ESSP)](https://github.com/resources/insights/engineering-system-success-playbook) recommends balancing **leading** and **lagging** indicators — and pairing each lagging metric with a companion leading metric — to drive engineering system improvements ([ESSP e-book, p. *Leading versus lagging metrics*](https://assets.ctfassets.net/wfutmusr1t3h/59IWCIRvx0KfHbh6B7bv62/d9f55b94ab43fe91e9ed183d73882954/2025-05-28-GitHub-ESSP-Ebook-EZ-Version012.pdf)):\n\n- **Lagging indicators** — outcomes measured *after* work is completed (e.g., deployment frequency, mean time to recovery). Important for long-term results, but gains take time to be realized.\n- **Leading indicators** — signals close to the source of friction that *predict* downstream outcomes. For example, improvements in code-review time alongside developer confidence in code review can signal future improvements in deployment speed and quality.\n\n> *\"To truly measure progress, it's important to complement each of the 12 engineering success metrics with leading indicators that reflect the team's day-to-day coding activities and the points of friction to be addressed, allowing for proactive adjustments.\"* — GitHub ESSP\n\nThe SPACE **Communication & Collaboration** domain (code review, PR throughput, review engagement) is a key source of leading indicators when those are your friction points.\n\n## What this dashboard shows\n\nThis dashboard surfaces **enterprise-scoped, API-only Copilot metrics** that act as leading indicators for the lagging DORA metrics on the other dashboards in this stack. They are intentionally **complementary to** — not duplicative of — the built-in Copilot Usage dashboard at `https://github.com/enterprises/<enterprise>/insights/copilot/usage?period=28d` (which already covers DAU/WAU/MAU, lines added/deleted, completions suggested/accepted, and language/IDE breakdowns).\n\nFields are sourced from [Copilot usage metrics → Pull request activity fields (API only)](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics#pull-request-activity-fields-api-only) plus the API-only Copilot code-review engagement fields. Each comparison section shows the enterprise-wide total, the Copilot-attributed count, and a percentage — so you can see both *volume* and *share* at a glance, with a daily time-series to reveal trends the 28-day rollups can hide.\n\n| Leading indicator (this dashboard) | Lagging metric it informs |\n|---|---|\n| PRs created / created by Copilot, daily trend | Deployment frequency, change volume |\n| PRs reviewed / reviewed by Copilot | Lead time for changes, review throughput |\n| Active vs passive code-review engagement | Review quality, developer confidence |\n| Median minutes to merge — all vs Copilot-authored | Lead time for changes |\n| Copilot suggestion apply rate | Review effectiveness, change failure rate |"
+        "content": "# 🏢 Enterprise Copilot Leading Indicators\n\n## Why leading indicators?\n\nThe [GitHub Engineering System Success Playbook (ESSP)](https://github.com/resources/insights/engineering-system-success-playbook) recommends balancing **leading** and **lagging** indicators — and pairing each lagging metric with a companion leading metric — to drive engineering system improvements ([ESSP e-book, p. *Leading versus lagging metrics*](https://assets.ctfassets.net/wfutmusr1t3h/59IWCIRvx0KfHbh6B7bv62/d9f55b94ab43fe91e9ed183d73882954/2025-05-28-GitHub-ESSP-Ebook-EZ-Version012.pdf)):\n\n- **Lagging indicators** — outcomes measured *after* work is completed (e.g., deployment frequency, mean time to recovery). Important for long-term results, but gains take time to be realized.\n- **Leading indicators** — signals close to the source of friction that *predict* downstream outcomes. For example, improvements in code-review time alongside developer confidence in code review can signal future improvements in deployment speed and quality.\n\n## What this dashboard shows\n\nThis dashboard surfaces **enterprise-scoped, API-only Copilot metrics** that act as leading indicators for the lagging DORA metrics on the other dashboards in this stack. They are intentionally **complementary to** — not duplicative of — the built-in Copilot Usage dashboard at `https://github.com/enterprises/<enterprise>/insights/copilot/usage?period=28d` (which already covers DAU/WAU/MAU, lines added/deleted, completions suggested/accepted, and language/IDE breakdowns).\n\nFields are sourced from [Copilot usage metrics → Pull request activity fields (API only)](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics#pull-request-activity-fields-api-only) plus the API-only Copilot code-review engagement fields. Each comparison section shows the enterprise-wide total, the Copilot-attributed count, and a percentage — so you can see both *volume* and *share* at a glance, with a daily time-series to reveal trends the 28-day rollups can hide.\n\n| Leading indicator (this dashboard) | Lagging metric it informs |\n|---|---|\n| PRs created / created by Copilot, daily trend | Deployment frequency, change volume |\n| PRs reviewed / reviewed by Copilot | Lead time for changes, review throughput |\n| Active vs passive code-review engagement | Review quality, developer confidence |\n| Median minutes to merge — all vs Copilot-authored | Lead time for changes |\n| Copilot suggestion apply rate | Review effectiveness, change failure rate |"
       }
     },
     {
@@ -1294,6 +1294,142 @@
           "rawSql": "SELECT MAX(weekly_passive_copilot_code_review_users) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '6 days' FROM copilot_enterprise_daily)"
         }
       ]
+    },
+    {
+      "id": 309,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 308,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 310,
+      "type": "row",
+      "collapsed": false,
+      "title": "Copilot Cloud Agent Engagement (DAU / WAU / MAU) — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 312,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 311,
+      "type": "stat",
+      "title": "Daily Active Cloud Agent Users",
+      "description": "daily_active_copilot_cloud_agent_users — distinct enterprise users who triggered the Copilot Cloud Agent on the most recent day in the selected range.",
+      "gridPos": {
+        "x": 0,
+        "y": 313,
+        "w": 8,
+        "h": 6
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT MAX(daily_active_copilot_cloud_agent_users) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 312,
+      "type": "stat",
+      "title": "Weekly Active Cloud Agent Users (7d)",
+      "description": "weekly_active_copilot_cloud_agent_users — distinct enterprise users who triggered the Cloud Agent in the last 7 days.",
+      "gridPos": {
+        "x": 8,
+        "y": 313,
+        "w": 8,
+        "h": 6
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT MAX(weekly_active_copilot_cloud_agent_users) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 313,
+      "type": "stat",
+      "title": "Monthly Active Cloud Agent Users (28d)",
+      "description": "monthly_active_copilot_cloud_agent_users — distinct enterprise users who triggered the Cloud Agent in the last 28 days.",
+      "gridPos": {
+        "x": 16,
+        "y": 313,
+        "w": 8,
+        "h": 6
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT MAX(monthly_active_copilot_cloud_agent_users) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 314,
+      "type": "timeseries",
+      "title": "Cloud Agent Active Users — Daily (DAU / WAU / MAU)",
+      "description": "Daily values of all three rolling-window active-user counts for the Copilot Cloud Agent.",
+      "gridPos": {
+        "x": 0,
+        "y": 319,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, daily_active_copilot_cloud_agent_users AS \"DAU\", weekly_active_copilot_cloud_agent_users AS \"WAU (7d)\", monthly_active_copilot_cloud_agent_users AS \"MAU (28d)\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
+        }
+      ]
+    },
+    {
+      "id": 315,
+      "type": "text",
+      "title": "Copilot Cloud Agent Engagement — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 327,
+        "w": 24,
+        "h": 18
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### Copilot Cloud Agent Engagement (DAU / WAU / MAU)\n\n**API source** — `GET /enterprises/{enterprise}/copilot/metrics/reports/organization-28-day/latest` (2026-03-10), fields `daily_active_copilot_cloud_agent_users`, `weekly_active_copilot_cloud_agent_users`, `monthly_active_copilot_cloud_agent_users`.\n\n**What it measures** — Distinct enterprise members who triggered at least one Copilot Cloud Agent task in the last 1 / 7 / 28 days. The Cloud Agent is the asynchronous \"coding agent that runs in the cloud and opens PRs\", distinct from in-IDE chat or completion.\n\n**Calculation** — Pre-aggregated by GitHub. The stat panels show `MAX` of each window across the dashboard time range; the timeseries plots the value reported per day.\n\n**How to interpret**\n\n| Signal | Healthy | Action needed |\n|---|---|---|\n| MAU grows month-over-month | ✅ Cloud Agent adoption expanding | — |\n| WAU/MAU stickiness ≥ 0.4 | ✅ Returning users | < 0.2 — one-shot novelty; investigate enablement / docs |\n| DAU near 0 while seats grow | ⚠️ Awareness gap | Run enablement; share Cloud Agent demo |\n\n---\n\n### Underlying SQL\n\n**Daily Active Cloud Agent Users**\n\n```sql\nSELECT MAX(daily_active_copilot_cloud_agent_users) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)\n```\n\n**Weekly Active Cloud Agent Users (7d)**\n\n```sql\nSELECT MAX(weekly_active_copilot_cloud_agent_users) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)\n```\n\n**Monthly Active Cloud Agent Users (28d)**\n\n```sql\nSELECT MAX(monthly_active_copilot_cloud_agent_users) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)\n```\n\n**Cloud Agent Active Users — Daily (DAU / WAU / MAU)**\n\n```sql\nSELECT day AS time,\n  daily_active_copilot_cloud_agent_users   AS \"DAU\",\n  weekly_active_copilot_cloud_agent_users  AS \"WAU (7d)\",\n  monthly_active_copilot_cloud_agent_users AS \"MAU (28d)\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)\nORDER BY day\n```"
+      }
     }
   ]
 }
