@@ -2,6 +2,15 @@
 
 **Local-only educational dashboard** combining DORA (Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery) metrics with GitHub Copilot adoption and usage leading indicators to assess engineering success against the [GitHub Engineering System Success Playbook](https://github.com/resources/insights/engineering-system-success-playbook).
 
+## Goals
+
+This project is intended as a hands-on way to:
+
+1. **Familiarize yourself with the GitHub Copilot Metrics API** (and the supporting GitHub REST APIs for PRs, deployments, workflow runs, and issues) and see how each endpoint correlates to the metric objectives outlined in the GitHub Engineering System Success Playbook.
+2. **Show concrete example visualizations and SQL queries** for each metric, so the dashboards double as a reference for how to translate raw API payloads into DORA + Copilot leading indicators.
+
+Every panel includes a Learning Guide text block that documents its API source, calculation, and the exact SQL used — the dashboards are meant to be read as much as viewed.
+
 ## Quick Start
 
 ### Prerequisites
