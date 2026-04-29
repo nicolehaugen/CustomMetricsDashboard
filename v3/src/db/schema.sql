@@ -28,6 +28,30 @@ CREATE TABLE IF NOT EXISTS app_config (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Index of every Grafana panel's rawSql, populated at server start.
+-- Used by the "Drift not yet visualized" panel to find drift columns
+-- that do not appear in any dashboard SQL.
+CREATE TABLE IF NOT EXISTS dashboard_panel_sql (
+  dashboard_uid  TEXT NOT NULL,
+  panel_id       INT  NOT NULL,
+  panel_title    TEXT,
+  raw_sql        TEXT NOT NULL,
+  indexed_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (dashboard_uid, panel_id)
+);
+
+-- Index of every (table, column) pair declared in this schema.sql file,
+-- populated at server start by parsing the file inside the container.
+-- Used by the "Drift not yet in schema.sql" panel to find drift columns
+-- that have been auto-applied at runtime but never codified into
+-- version control.
+CREATE TABLE IF NOT EXISTS schema_columns (
+  table_name   TEXT NOT NULL,
+  column_name  TEXT NOT NULL,
+  indexed_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (table_name, column_name)
+);
+
 -- ─── DORA: Pull Requests ─────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS pull_requests (

@@ -54,7 +54,16 @@ Insert new columns into the `CREATE TABLE` block:
   monthly_active_copilot_cloud_agent_users BIGINT,
 ```
 
-## Step 4 — Rebuild and relaunch
+## Step 4 — Rebuild and relaunch (REQUIRED)
+
+`schema.sql` is **baked into the sync-server Docker image** via `COPY . .` in `v3/Dockerfile`. A plain `docker-compose restart` reuses the old image and your edits will not take effect — both the database init script and the runtime `schema_columns` indexer will still see the old file. Always use `--build`:
+
+```bash
+cd v3
+docker-compose up -d --build sync-server
+```
+
+If the postgres volume is fresh (no existing data), bring the whole stack down and back up so the init script reruns with the new schema:
 
 ```bash
 cd v3
@@ -62,25 +71,38 @@ docker-compose down
 docker-compose up -d --build
 ```
 
-Wait for all containers to be healthy. The `--build` flag ensures the new schema.sql is baked into the image.
+Wait for all containers to be healthy.
 
 ## Step 5 — Verify columns exist
 
 ```bash
-docker exec v3-postgres-1 psql -U postgres -d dora_metrics \
-  -c "\d <table>" | grep "<new_column_name>"
+docker exec v3-postgres-1 psql -U postgres -d metrics \
+  -c "\d <table>" | Select-String "<new_column_name>"
 ```
 
 Run this for each new column. All must appear in the output.
+
+Then confirm the runtime `schema_columns` index picked up the edit (this is what the **Drift columns not yet in schema.sql** panel on the Overview dashboard reads from):
+
+```bash
+docker exec v3-postgres-1 psql -U postgres -d metrics \
+  -c "SELECT column_name FROM schema_columns WHERE table_name = '<table>' AND column_name = '<new_column_name>';"
+```
+
+If the row is missing, the sync-server was not rebuilt — repeat Step 4.
 
 ## Step 6 — Run validation
 
 ```bash
 cd v3
-npm run build
+npm test && npm run lint && npm run build
 ```
 
-Build must pass. Schema.sql changes are SQL-only and don't affect TypeScript compilation, but this confirms nothing else broke.
+All three must pass before committing. Schema.sql changes are SQL-only and don't affect TypeScript compilation, but this confirms nothing else broke.
+
+## Step 7 — Hand off (optional)
+
+If the user wants the new columns surfaced in a dashboard, the next step is the [`drift-to-metric-plan`](../drift-to-metric-plan/SKILL.md) skill, which profiles the column and drafts a panel proposal. This skill does **not** auto-invoke it.
 
 ## Rules
 
