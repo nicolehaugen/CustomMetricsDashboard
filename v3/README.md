@@ -19,6 +19,9 @@ Every panel includes a Learning Guide text block that documents its API source, 
 - **GitHub Classic Personal Access Token** (PAT) with scopes: `repo`, `read:org`, `admin:org`, `actions`, `copilot`
   - Token must have Enterprise Owner role if syncing Copilot metrics from an Enterprise
 - **GitHub targets**: an Enterprise slug, Organization, and Repository to measure
+  - An **enterprise slug** is the URL-safe identifier in `https://github.com/enterprises/<slug>` (e.g. `octocat-industries`). It is *not* the same as an organization login — an enterprise wraps one or more orgs. Find it under **Enterprise settings** or in the URL when viewing your enterprise account. The REST API expects this value wherever the docs say `{enterprise}` (e.g. `GET /enterprises/{enterprise}/copilot/metrics/...`).
+  - An **organization slug** is the login shown in `https://github.com/<org>` (e.g. `octodemo`).
+  - A **repository slug** is just the repo name from `https://github.com/<org>/<repo>` (no owner prefix).
 
 ### 1. Setup
 
