@@ -3,7 +3,7 @@
   "title": "📊 Engineering Overview [v3]",
   "description": "Welcome page — dashboard index, architecture overview, schema drift status, and data sync controls.",
   "schemaVersion": 36,
-  "version": 2,
+  "version": 3,
   "refresh": "5m",
   "time": {
     "from": "now-28d",
@@ -393,21 +393,22 @@
         "x": 0,
         "y": 44,
         "w": 24,
-        "h": 3
+        "h": 5
       },
       "options": {
         "mode": "html",
-        "content": "<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Why does schema drift happen?</strong>\nThe GitHub API occasionally adds new fields to its responses. On each sync, this app compares incoming API fields against the current database columns.\nIf a new field is found, it automatically runs <code>ALTER TABLE ADD COLUMN</code> — the live database is updated immediately, no restart needed.\n</p>\n<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Live DB vs schema.sql</strong>\nThe automatic migration keeps the <em>live database</em> current, but it does <strong style=\"color:#e88\">not</strong> update the checked-in <code>v3/src/db/schema.sql</code> file.\nThe counter below shows how many columns have been auto-added to the live database but are still missing from that file.\nUntil schema.sql is updated, a fresh database rebuild will be missing those columns.\n</p>\n<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">How to update schema.sql</strong>\n</p>\n<ol style=\"color:#aaa;font-size:13px;margin:2px 12px 6px 28px\">\n<li>Check the <em>Drift History</em> table below to identify which tables and fields were auto-added.</li>\n<li>Open <code>v3/src/db/schema.sql</code> and add each missing column to the matching <code>CREATE TABLE</code> block using the type shown in the drift log.</li>\n<li>Commit: <code>git add v3/src/db/schema.sql &amp;&amp; git commit -m \"chore: sync schema.sql with auto-migrated columns\"</code></li>\n<li>No database rebuild needed — the columns already exist in the live DB.</li>\n</ol>"
+        "content": "<div style=\"color:#aaa;font-size:13px;margin:2px 12px;line-height:1.35\">\n<strong style=\"color:#ddd\">Schema drift</strong> happens when the GitHub API adds new fields. On each sync the app auto-runs <code>ALTER TABLE ADD COLUMN</code>, so the live DB stays current — but two follow-ups remain, tracked by the tables below:\n<ul style=\"margin:2px 0 2px 22px;padding:0\">\n<li><strong style=\"color:#ddd\">not yet in schema.sql</strong> — codify the columns in <code>v3/src/db/schema.sql</code> so fresh rebuilds include them.</li>\n<li><strong style=\"color:#ddd\">not yet visualized</strong> — no Grafana panel references them yet.</li>\n</ul>\nSee the <em>Workflow</em> section at the bottom to clear both.\n</div>"
       }
     },
     {
-      "id": 11,
+      "id": 426,
       "type": "stat",
-      "title": "Columns not in schema.sql",
+      "title": "schema.sql definition",
+      "description": "Counts drift columns (across all syncs) that exist in the live database but are not yet codified in schema.sql. Zero means a fresh rebuild will recreate every drift column.",
       "gridPos": {
         "x": 0,
-        "y": 47,
-        "w": 24,
+        "y": 49,
+        "w": 12,
         "h": 4
       },
       "datasource": {
@@ -422,7 +423,7 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "WITH latest AS (\n  SELECT schema_drift\n  FROM sync_jobs\n  WHERE status = 'success'\n  ORDER BY id DESC LIMIT 1\n),\nall_drift AS (\n  SELECT DISTINCT\n    (entry->>'table') || '.' || (col->>'field') AS col_key\n  FROM latest,\n    jsonb_array_elements(latest.schema_drift) AS entry,\n    jsonb_array_elements(entry->'auto_applied') AS col\n  WHERE latest.schema_drift IS NOT NULL AND latest.schema_drift != '[]'::jsonb\n)\nSELECT COALESCE(COUNT(*)::int, 0) AS \"Columns not in schema.sql\" FROM all_drift"
+          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table' AS table_name,\n    col->>'field'   AS column_name\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n)\nSELECT COALESCE(COUNT(*)::int, 0) AS \"Missing from schema.sql\"\nFROM drift_cols dc\nLEFT JOIN schema_columns s\n  ON s.table_name = dc.table_name AND s.column_name = dc.column_name\nWHERE s.column_name IS NULL"
         }
       ],
       "options": {
@@ -445,7 +446,7 @@
               "type": "value",
               "options": {
                 "0": {
-                  "text": "✓ Up to date",
+                  "text": "✓ All columns codified",
                   "color": "semi-dark-green",
                   "index": 0
                 }
@@ -474,12 +475,87 @@
       }
     },
     {
-      "id": 52,
+      "id": 427,
+      "type": "stat",
+      "title": "Visualization",
+      "description": "Counts drift columns (across all syncs) that no Grafana panel's SQL references. Zero means every drift column is surfaced somewhere in a dashboard.",
+      "gridPos": {
+        "x": 12,
+        "y": 49,
+        "w": 12,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table' AS table_name,\n    col->>'field'   AS column_name\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n),\nreferenced AS (\n  SELECT DISTINCT dc.table_name, dc.column_name\n  FROM drift_cols dc\n  JOIN dashboard_panel_sql d\n    ON d.raw_sql ILIKE '%' || dc.column_name || '%'\n)\nSELECT COALESCE(COUNT(*)::int, 0) AS \"Not visualized\"\nFROM drift_cols dc\nLEFT JOIN referenced r\n  ON r.table_name = dc.table_name AND r.column_name = dc.column_name\nWHERE r.column_name IS NULL"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "✓ All columns visualized",
+                  "color": "semi-dark-green",
+                  "index": 0
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "—"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 425,
       "type": "table",
-      "title": "Drift History (last 10 syncs)",
+      "title": "Drift columns not yet in schema.sql",
+      "description": "Columns added at runtime by applyDrift() that have not been codified into v3/src/db/schema.sql. Until they are, a fresh database build will not include them — fix by running the schema-drift-apply skill.",
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 53,
         "w": 24,
         "h": 8
       },
@@ -495,25 +571,73 @@
             "uid": "PostgreSQL"
           },
           "format": "table",
-          "rawSql": "-- One row per drifted table per sync job; 'None' for clean syncs\nSELECT\n  j.id                                                   AS \"Job\",\n  TO_CHAR(j.started_at AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                          AS \"Synced At\",\n  entry->>'table'                                        AS \"Table\",\n  (\n    SELECT string_agg(col->>'field', ', '\n           ORDER BY col->>'field')\n    FROM jsonb_array_elements(entry->'auto_applied') col\n  )                                                      AS \"Columns Added\"\nFROM sync_jobs j,\n     jsonb_array_elements(j.schema_drift) entry\nWHERE j.schema_drift IS NOT NULL\n  AND j.schema_drift <> '[]'::jsonb\n  AND jsonb_array_length(\n        COALESCE(entry->'auto_applied', '[]'::jsonb)) > 0\n\nUNION ALL\n\nSELECT\n  j.id                                                   AS \"Job\",\n  TO_CHAR(j.started_at AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                          AS \"Synced At\",\n  '(none)'                                               AS \"Table\",\n  'None'                                                 AS \"Columns Added\"\nFROM sync_jobs j\nWHERE j.schema_drift IS NULL\n   OR j.schema_drift = '[]'::jsonb\n   OR NOT EXISTS (\n        SELECT 1\n        FROM jsonb_array_elements(j.schema_drift) e\n        WHERE jsonb_array_length(\n                COALESCE(e->'auto_applied', '[]'::jsonb)) > 0\n      )\n\nORDER BY 1 DESC, 3\nLIMIT 30"
+          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table'        AS table_name,\n    col->>'field'          AS column_name,\n    MAX(j.started_at)      AS last_seen\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n  GROUP BY 1, 2\n)\nSELECT\n  dc.table_name                                         AS \"Table\",\n  dc.column_name                                        AS \"Column\",\n  TO_CHAR(dc.last_seen AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                         AS \"First Seen\",\n  '⚠️ run schema-drift-apply skill'                     AS \"Status\"\nFROM drift_cols dc\nLEFT JOIN schema_columns s\n  ON s.table_name = dc.table_name AND s.column_name = dc.column_name\nWHERE s.column_name IS NULL\nORDER BY dc.last_seen DESC, dc.table_name, dc.column_name"
         }
       ],
       "options": {
         "showHeader": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "values": false,
-          "fields": ""
-        },
         "frameIndex": 0
       },
       "fieldConfig": {
-        "overrides": [],
-        "defaults": {}
+        "defaults": {
+          "noValue": "✓ All drift columns are codified in schema.sql"
+        },
+        "overrides": []
       },
       "transformations": []
+    },
+    {
+      "id": 423,
+      "type": "table",
+      "title": "Drift columns not yet visualized",
+      "description": "Columns added by applyDrift() that no panel's rawSql references. A drift column is fully resolved only when (a) it is in schema.sql AND (b) at least one dashboard panel uses it.",
+      "gridPos": {
+        "x": 0,
+        "y": 61,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "WITH drift_cols AS (\n  SELECT DISTINCT\n    entry->>'table'        AS table_name,\n    col->>'field'          AS column_name,\n    MAX(j.started_at)      AS last_seen\n  FROM sync_jobs j,\n       jsonb_array_elements(j.schema_drift) entry,\n       jsonb_array_elements(entry->'auto_applied') col\n  WHERE j.schema_drift IS NOT NULL\n    AND j.schema_drift <> '[]'::jsonb\n  GROUP BY 1, 2\n),\nreferenced AS (\n  SELECT DISTINCT dc.table_name, dc.column_name\n  FROM drift_cols dc\n  JOIN dashboard_panel_sql d\n    ON d.raw_sql ILIKE '%' || dc.column_name || '%'\n)\nSELECT\n  dc.table_name                                         AS \"Table\",\n  dc.column_name                                        AS \"Column\",\n  TO_CHAR(dc.last_seen AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                         AS \"First Seen\",\n  '⚠️ no panel references this column'                  AS \"Status\"\nFROM drift_cols dc\nLEFT JOIN referenced r\n  ON r.table_name = dc.table_name AND r.column_name = dc.column_name\nWHERE r.column_name IS NULL\nORDER BY dc.last_seen DESC, dc.table_name, dc.column_name"
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "frameIndex": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "✓ All drift columns are referenced by at least one panel"
+        },
+        "overrides": []
+      },
+      "transformations": []
+    },
+    {
+      "id": 421,
+      "type": "text",
+      "title": "Workflow — When New Columns Appear",
+      "gridPos": {
+        "x": 0,
+        "y": 69,
+        "w": 24,
+        "h": 30
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Auto-migration keeps the live database current, but turning a new API field into a useful metric is a **human-in-the-loop** workflow. **Each agent-driven step below requires human validation before moving on** — the agent infers types from naming conventions and infers metric shape from column profiles, but only you can confirm:\n\n- the inferred PostgreSQL **column types are correct** (e.g., is `*_count` really `BIGINT`, or is it a UUID-shaped `TEXT`?),\n- the proposed **visualization is meaningful and accurate** (right aggregation, right time grain, right caveats), and\n- the change belongs in this product at all (some new API fields are noise, not signal).\n\nFollow these steps when the *Drift columns not yet in schema.sql* or *Drift columns not yet visualized* tables above show new columns.\n\n### 1. Detect\nWatch the two tables above — **Drift columns not yet in schema.sql** and **Drift columns not yet visualized**. Any row in either table is a column the GitHub API recently returned, that `applyDrift()` has added to the live database, and that still needs to be codified or surfaced.\n\n### 2. Codify the schema\nAsk the agent: **“run the `schema-drift-apply` skill for table `<table>` fields `<field1>, <field2>`.”**\nThe skill patches `v3/src/db/schema.sql`, **rebuilds the sync-server Docker image**, and verifies the columns. Rows clear from the *Drift columns not yet in schema.sql* table above only after the rebuild — a plain `docker-compose restart` is not enough because `schema.sql` is COPY'd into the image.\n\n👁️ **Validate before approving:** the agent infers PostgreSQL types from the column name (e.g. `*_count` → `BIGINT`, `*_at` → `TIMESTAMPTZ`). Confirm each inferred type matches the actual API payload — a misclassified column will silently truncate or reject data on the next sync.\n\n### 3. Propose a metric\nAsk the agent: **“run the `drift-to-metric-plan` skill for table `<table>` fields `<field1>, <field2>`.”**\nThe skill profiles the column in the live DB, classifies it (counter, adoption %, JSONB breakdown, recency, etc.), picks a target dashboard, and prints a Markdown panel proposal — draft SQL, suggested visualization, Learning Guide content, and any caveats. **It does not edit any dashboard JSON.**\n\n### 4. Review\nRead the proposal carefully. **This is the most important human checkpoint.** Confirm the SQL aggregation matches what the field actually represents, the visualization type fits the data shape, and the Learning Guide accurately describes the metric's caveats and limitations. Reject or revise anything that looks like a plausible-but-wrong inference. The skill will offer alternatives when classification is ambiguous.\n\n### 5. Implement\nIf you approve a panel, ask the agent to apply it to the chosen dashboard JSON. Then:\n- Run the `playwright-screenshots` skill to capture before/after PNGs into `v3/screenshots/`. **Visually verify the rendered chart matches expectations** before committing.\n- From `v3/`, run `npm test && npm run lint && npm run build`. All three must pass.\n- Run `docker-compose up -d --build sync-server` from `v3/` so the new dashboard JSON gets re-indexed into `dashboard_panel_sql`. The *Drift columns not yet visualized* table above will then drop the row.\n\n### 6. Ship\nOpen a pull request that includes the `schema.sql` change, the dashboard JSON change, and the screenshots so reviewers can visually verify the impact.\n\n---\n\n❗ **Both skills are local-only.** They never push code, force-merge, or open PRs on their own. Every step above is gated by you.\n\n⚠️ **Caveat:** both the schema definition and `.json` dashboard files are baked into the Docker image. Editing them requires `docker-compose up -d --build sync-server` from `v3/` — a plain `restart` reuses the old image and the *Drift columns not yet in schema.sql* and *Drift columns not yet visualized* tables above will look unchanged.\n\n📚 Skill files: `.github/skills/schema-drift-apply/SKILL.md` and `.github/skills/drift-to-metric-plan/SKILL.md`."
+      }
     }
   ]
 }
