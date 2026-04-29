@@ -1,9 +1,9 @@
 {
   "uid": "edu-enterprise-leading",
   "title": "🏢 Enterprise Copilot Leading Indicators [Edu]",
-  "description": "Enterprise-level Copilot leading indicators — adoption, code volume, interactions, and full pull request activity (all API fields) — aggregated across the enterprise.",
+  "description": "Enterprise-level Copilot leading indicators focused on API-only fields (pull-request activity and Copilot code review engagement) that are NOT shown in the built-in Copilot Usage dashboard at /enterprises/<enterprise>/insights/copilot/usage.",
   "schemaVersion": 36,
-  "version": 1,
+  "version": 2,
   "refresh": "5m",
   "time": {
     "from": "now-28d",
@@ -18,211 +18,20 @@
   },
   "panels": [
     {
-      "id": 1,
-      "type": "stat",
+      "id": 100,
+      "type": "text",
       "title": "",
-      "description": "Data mode banner — shows whether this dashboard displays live GitHub data (green), synthetic seed data (amber), or demo data (blue).",
+      "transparent": true,
       "gridPos": {
         "x": 0,
         "y": 0,
         "w": 24,
-        "h": 2
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT COALESCE('Live: ' || (SELECT value FROM app_config WHERE key = 'org') || '/' || (SELECT value FROM app_config WHERE key = 'repo'), 'Not yet synced') AS \"Data Source\"",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Live",
-                "result": {
-                  "color": "#73BF69",
-                  "index": 0
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Seed",
-                "result": {
-                  "color": "#FA6400",
-                  "index": 1
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": "Demo",
-                "result": {
-                  "color": "#5794F2",
-                  "index": 2
-                }
-              }
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "dark-red",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "/.*/",
-          "values": false
-        },
-        "colorMode": "background_solid",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "textMode": "value",
-        "wideLayout": true
-      },
-      "transparent": false
-    },
-    {
-      "id": 2,
-      "type": "text",
-      "title": "",
-      "gridPos": {
-        "x": 0,
-        "y": 2,
-        "w": 24,
-        "h": 11
+        "h": 14
       },
       "options": {
         "mode": "markdown",
-        "content": "# 🏢 Enterprise Copilot Leading Indicators\n\n**Enterprise-Scope Copilot Adoption, Code Volume, and Pull Request Activity**\n\nThis dashboard surfaces enterprise-aggregate data from the GitHub Copilot Metrics Reports API (`enterprise-28-day` report). It shows how the entire enterprise is using Copilot — broken down by adoption metrics (active users), code volume (lines suggested/added/deleted), interaction counts, and pull request activity (creation, review, merge, suggestions — including activity performed by Copilot itself).\n\n## What it Measures\n\nEach metric below corresponds to a field in the [Copilot usage metrics API](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics). The Pull Request Activity section reflects every `pull_requests.*` field documented as **API only** by GitHub.\n\n## Why it Matters\n\nThese are *leading indicators* — they predict whether your DORA outcomes will improve. Healthy adoption + healthy PR activity → faster lead time, more deployments. Stagnant adoption → upcoming DORA decline.\n\n> ⚠️ **Note on scope-level differences:** Per GitHub's documentation, organization- and enterprise-level reports may show different totals due to differences in user deduplication and attribution timing."
-      },
-      "transparent": true,
-      "description": "🏢 Enterprise Copilot Leading Indicators [Edu]"
-    },
-    {
-      "id": 400,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 13,
-        "w": 24,
-        "h": 3
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "## Adoption"
+        "content": "# 🏢 Enterprise Copilot Leading Indicators\n\n## Why leading indicators?\n\nThe [GitHub Engineering System Success Playbook (ESSP)](https://github.com/resources/insights/engineering-system-success-playbook) recommends balancing **leading** and **lagging** indicators — and pairing each lagging metric with a companion leading metric — to drive engineering system improvements ([ESSP e-book, p. *Leading versus lagging metrics*](https://assets.ctfassets.net/wfutmusr1t3h/59IWCIRvx0KfHbh6B7bv62/d9f55b94ab43fe91e9ed183d73882954/2025-05-28-GitHub-ESSP-Ebook-EZ-Version012.pdf)):\n\n- **Lagging indicators** — outcomes measured *after* work is completed (e.g., deployment frequency, mean time to recovery). Important for long-term results, but gains take time to be realized.\n- **Leading indicators** — signals close to the source of friction that *predict* downstream outcomes. For example, improvements in code-review time alongside developer confidence in code review can signal future improvements in deployment speed and quality.\n\n> *\"To truly measure progress, it's important to complement each of the 12 engineering success metrics with leading indicators that reflect the team's day-to-day coding activities and the points of friction to be addressed, allowing for proactive adjustments.\"* — GitHub ESSP\n\nThe SPACE **Communication & Collaboration** domain (code review, PR throughput, review engagement) is a key source of leading indicators when those are your friction points.\n\n## What this dashboard shows\n\nThis dashboard surfaces **enterprise-scoped, API-only Copilot metrics** that act as leading indicators for the lagging DORA metrics on the other dashboards in this stack. They are intentionally **complementary to** — not duplicative of — the built-in Copilot Usage dashboard at `https://github.com/enterprises/<enterprise>/insights/copilot/usage?period=28d` (which already covers DAU/WAU/MAU, lines added/deleted, completions suggested/accepted, and language/IDE breakdowns).\n\nFields are sourced from [Copilot usage metrics → Pull request activity fields (API only)](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics#pull-request-activity-fields-api-only) plus the API-only Copilot code-review engagement fields. Each comparison section shows the enterprise-wide total, the Copilot-attributed count, and a percentage — so you can see both *volume* and *share* at a glance, with a daily time-series to reveal trends the 28-day rollups can hide.\n\n| Leading indicator (this dashboard) | Lagging metric it informs |\n|---|---|\n| PRs created / created by Copilot, daily trend | Deployment frequency, change volume |\n| PRs reviewed / reviewed by Copilot | Lead time for changes, review throughput |\n| Active vs passive code-review engagement | Review quality, developer confidence |\n| Median minutes to merge — all vs Copilot-authored | Lead time for changes |\n| Copilot suggestion apply rate | Review effectiveness, change failure rate |"
       }
-    },
-    {
-      "id": 401,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 16,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 200,
-      "type": "row",
-      "title": "Daily Active Users (peak in range) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 17,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 100,
-      "type": "stat",
-      "title": "Daily Active Users (peak in range)",
-      "gridPos": {
-        "x": 0,
-        "y": 18,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT MAX(daily_active_users) AS \"Daily Active Users (peak in range)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].daily_active_users` | Table: `copilot_enterprise_daily`"
     },
     {
       "id": 300,
@@ -231,25 +40,9 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 14,
         "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].daily_active_users`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nMaximum daily active user count observed during the selected window. A user is \"daily active\" if they had any Copilot activity that calendar day.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Trends upward as adoption grows | Flat or declining — investigate adoption blockers |\n\n### SQL Query\n\n```sql\nSELECT MAX(daily_active_users) AS \"Daily Active Users (peak in range)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 402,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 36,
-        "w": 24,
-        "h": 1
+        "h": 4
       },
       "options": {
         "mode": "markdown",
@@ -257,27 +50,28 @@
       }
     },
     {
-      "id": 201,
+      "id": 110,
       "type": "row",
-      "title": "Weekly Active Users (peak in range) — Learning Guide",
+      "collapsed": false,
+      "title": "Pull Request Creation — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 37,
+        "y": 18,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
       "panels": []
     },
     {
-      "id": 101,
+      "id": 111,
       "type": "stat",
-      "title": "Weekly Active Users (peak in range)",
+      "title": "PRs Created (28d)",
+      "description": "pull_requests.total_created summed over the last 28 days.",
       "gridPos": {
         "x": 0,
-        "y": 38,
-        "w": 24,
-        "h": 4
+        "y": 19,
+        "w": 8,
+        "h": 5
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -286,111 +80,8 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT MAX(weekly_active_users) AS \"Weekly Active Users (peak in range)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].weekly_active_users` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 301,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 42,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].weekly_active_users`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nMaximum weekly active user count observed in the window — number of unique users active during a rolling 7-day window.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Steadily climbing or stable near seat count | Far below seat count — large idle population |\n\n### SQL Query\n\n```sql\nSELECT MAX(weekly_active_users) AS \"Weekly Active Users (peak in range)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 403,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 56,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 202,
-      "type": "row",
-      "title": "Monthly Active Users — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 57,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 102,
-      "type": "stat",
-      "title": "Monthly Active Users",
-      "gridPos": {
-        "x": 0,
-        "y": 58,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT MAX(monthly_active_users) AS \"Monthly Active Users\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_created')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
         }
       ],
       "fieldConfig": {
@@ -423,29 +114,126 @@
       "description": "Source: Copilot Metrics Reports API → `day_totals[].monthly_active_users` | Table: `copilot_enterprise_daily`"
     },
     {
-      "id": 302,
-      "type": "text",
-      "title": "",
-      "transparent": true,
+      "id": 112,
+      "type": "stat",
+      "title": "PRs Created by Copilot (28d)",
+      "description": "pull_requests.total_created_by_copilot summed over the last 28 days.",
+      "gridPos": {
+        "x": 8,
+        "y": 19,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_created_by_copilot')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 113,
+      "type": "gauge",
+      "title": "% Created by Copilot",
+      "description": "Share of PRs created by Copilot vs total PRs created in the last 28 days.",
+      "gridPos": {
+        "x": 16,
+        "y": 19,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "green",
+                "value": 50
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT ROUND(100.0 * SUM((pull_requests->>'total_created_by_copilot')::int) / NULLIF(SUM((pull_requests->>'total_created')::int), 0), 1) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 114,
+      "type": "timeseries",
+      "title": "PRs Created — Daily (Total vs Copilot)",
+      "description": "Daily trend of total PRs created vs PRs created by Copilot. Reveals adoption ramp over time.",
       "gridPos": {
         "x": 0,
-        "y": 62,
+        "y": 24,
         "w": 24,
-        "h": 14
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, (pull_requests->>'total_created')::int AS \"Total Created\", (pull_requests->>'total_created_by_copilot')::int AS \"Created by Copilot\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
+        }
+      ]
+    },
+    {
+      "id": 115,
+      "type": "text",
+      "title": "Pull Request Creation — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 27
       },
       "options": {
         "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].monthly_active_users`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nMaximum monthly active user count in the window. Represents licensed users active in the rolling 28-day period.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Approaches assigned-seat count | Significantly below seats — license waste |\n\n### SQL Query\n\n```sql\nSELECT MAX(monthly_active_users) AS \"Monthly Active Users\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
+        "content": "**API source:** `pull_requests.total_created` and `pull_requests.total_created_by_copilot` from the enterprise `Copilot usage metrics` API (28-day report).\n\n**Calculation:**\n- Stat panels sum each field across the last 28 days.\n- Percent gauge: `SUM(total_created_by_copilot) / NULLIF(SUM(total_created), 0) * 100`.\n\n**SQL pattern:**\n```sql\nSELECT (pull_requests->>'total_created')::int FROM copilot_enterprise_daily\n```\n\n**Why time-series:** The 28-day total hides whether Copilot-authored PR creation is *trending up* (adoption working) or *flat* (rollout stalled). The daily trend is the primary signal for measuring Copilot Coding Agent adoption.\n\n---\n\n### Underlying SQL\n\n**PRs Created (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_created')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**PRs Created by Copilot (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_created_by_copilot')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**% Created by Copilot**\n\n```sql\nSELECT ROUND(100.0 * SUM((pull_requests->>'total_created_by_copilot')::int) / NULLIF(SUM((pull_requests->>'total_created')::int), 0), 1) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**PRs Created — Daily (Total vs Copilot)**\n\n```sql\nSELECT day AS time, (pull_requests->>'total_created')::int AS \"Total Created\", (pull_requests->>'total_created_by_copilot')::int AS \"Created by Copilot\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```"
       }
     },
     {
-      "id": 404,
+      "id": 301,
       "type": "text",
       "title": "",
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 76,
+        "y": 59,
         "w": 24,
         "h": 1
       },
@@ -455,27 +243,28 @@
       }
     },
     {
-      "id": 203,
+      "id": 120,
       "type": "row",
-      "title": "Monthly Active Agent Users — Learning Guide",
+      "collapsed": false,
+      "title": "Pull Request Review — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 77,
+        "y": 60,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
       "panels": []
     },
     {
-      "id": 103,
+      "id": 121,
       "type": "stat",
-      "title": "Monthly Active Agent Users",
+      "title": "PRs Reviewed (28d)",
+      "description": "pull_requests.total_reviewed summed over the last 28 days.",
       "gridPos": {
         "x": 0,
-        "y": 78,
-        "w": 24,
-        "h": 4
+        "y": 61,
+        "w": 8,
+        "h": 5
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -484,42 +273,288 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT MAX(monthly_active_agent_users) AS \"Monthly Active Agent Users\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_reviewed')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
         }
-      ],
+      ]
+    },
+    {
+      "id": 122,
+      "type": "stat",
+      "title": "PRs Reviewed by Copilot (28d)",
+      "description": "pull_requests.total_reviewed_by_copilot summed over the last 28 days.",
+      "gridPos": {
+        "x": 8,
+        "y": 61,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_reviewed_by_copilot')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 123,
+      "type": "gauge",
+      "title": "% Reviewed by Copilot",
+      "description": "Share of PR review days where Copilot reviewed (vs total review days). Note: a PR may be reviewed on multiple days.",
+      "gridPos": {
+        "x": 16,
+        "y": 61,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
-          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "green",
+                "value": 50
               }
             ]
           }
         },
         "overrides": []
       },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT ROUND(100.0 * SUM((pull_requests->>'total_reviewed_by_copilot')::int) / NULLIF(SUM((pull_requests->>'total_reviewed')::int), 0), 1) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 124,
+      "type": "timeseries",
+      "title": "PRs Reviewed — Daily (Total vs Copilot)",
+      "description": "Daily trend of total PRs reviewed vs PRs reviewed by Copilot.",
+      "gridPos": {
+        "x": 0,
+        "y": 66,
+        "w": 24,
+        "h": 8
       },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].monthly_active_agent_users` | Table: `copilot_enterprise_daily`"
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, (pull_requests->>'total_reviewed')::int AS \"Total Reviewed\", (pull_requests->>'total_reviewed_by_copilot')::int AS \"Reviewed by Copilot\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
+        }
+      ]
+    },
+    {
+      "id": 125,
+      "type": "text",
+      "title": "Pull Request Review — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 74,
+        "w": 24,
+        "h": 25
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**API source:** `pull_requests.total_reviewed` and `pull_requests.total_reviewed_by_copilot`.\n\n**Important:** A PR is counted on **every day** it receives a review action (so totals can exceed unique-PR counts). Within a single day each PR is counted at most once.\n\n**Calculation:**\n- Stat panels sum each field across the last 28 days.\n- Percent gauge: `SUM(total_reviewed_by_copilot) / NULLIF(SUM(total_reviewed), 0) * 100`.\n\n**Why time-series:** Reveals whether Copilot review usage is sustained or sporadic. A flat-line at zero indicates Copilot code review is not enabled or not being requested.\n\n---\n\n### Underlying SQL\n\n**PRs Reviewed (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_reviewed')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**PRs Reviewed by Copilot (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_reviewed_by_copilot')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**% Reviewed by Copilot**\n\n```sql\nSELECT ROUND(100.0 * SUM((pull_requests->>'total_reviewed_by_copilot')::int) / NULLIF(SUM((pull_requests->>'total_reviewed')::int), 0), 1) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**PRs Reviewed — Daily (Total vs Copilot)**\n\n```sql\nSELECT day AS time, (pull_requests->>'total_reviewed')::int AS \"Total Reviewed\", (pull_requests->>'total_reviewed_by_copilot')::int AS \"Reviewed by Copilot\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```"
+      }
+    },
+    {
+      "id": 302,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": {
+        "x": 0,
+        "y": 99,
+        "w": 24,
+        "h": 1
+      },
+      "options": {
+        "mode": "markdown",
+        "content": ""
+      }
+    },
+    {
+      "id": 130,
+      "type": "row",
+      "collapsed": false,
+      "title": "Copilot Code Review Engagement (Active vs Passive) — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 100,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 131,
+      "type": "stat",
+      "title": "Monthly Active Code Review Users",
+      "description": "monthly_active_copilot_code_review_users — users who manually requested a Copilot review or applied a Copilot review suggestion in the 28-day window.",
+      "gridPos": {
+        "x": 0,
+        "y": 101,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT MAX(monthly_active_copilot_code_review_users) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 132,
+      "type": "stat",
+      "title": "Monthly Passive Code Review Users",
+      "description": "monthly_passive_copilot_code_review_users — users who had Copilot auto-assigned to review their PR but did not actively engage.",
+      "gridPos": {
+        "x": 8,
+        "y": 101,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT MAX(monthly_passive_copilot_code_review_users) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 133,
+      "type": "gauge",
+      "title": "Active Engagement Rate",
+      "description": "active / (active + passive) — high values mean developers actively use Copilot reviews; low values mean Copilot is auto-assigning but being ignored.",
+      "gridPos": {
+        "x": 16,
+        "y": 101,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 25
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT ROUND(100.0 * MAX(monthly_active_copilot_code_review_users) / NULLIF(MAX(monthly_active_copilot_code_review_users) + MAX(monthly_passive_copilot_code_review_users), 0), 1) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 134,
+      "type": "timeseries",
+      "title": "Daily Code Review Users — Active vs Passive",
+      "description": "Daily trend of active vs passive Copilot code review users.",
+      "gridPos": {
+        "x": 0,
+        "y": 106,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, daily_active_copilot_code_review_users AS \"Active\", daily_passive_copilot_code_review_users AS \"Passive\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
+        }
+      ]
+    },
+    {
+      "id": 135,
+      "type": "text",
+      "title": "Copilot Code Review Engagement — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 114,
+        "w": 24,
+        "h": 24
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**API fields (API only — not in built-in dashboard):**\n- `daily_active_copilot_code_review_users` / `monthly_active_copilot_code_review_users` — actively engaged (manually requested a review or applied a review suggestion).\n- `daily_passive_copilot_code_review_users` / `monthly_passive_copilot_code_review_users` — auto-assigned but did not engage.\n\n**Active Engagement Rate** = `active / (active + passive)`. A high passive count with low active rate is a leading indicator that Copilot reviews are being ignored — a coaching/enablement opportunity.\n\n**Why time-series:** Shows whether engagement is improving as teams adopt the feature, or whether passive auto-assignments are growing without corresponding active use.\n\n---\n\n### Underlying SQL\n\n**Monthly Active Code Review Users**\n\n```sql\nSELECT MAX(monthly_active_copilot_code_review_users) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**Monthly Passive Code Review Users**\n\n```sql\nSELECT MAX(monthly_passive_copilot_code_review_users) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**Active Engagement Rate**\n\n```sql\nSELECT ROUND(100.0 * MAX(monthly_active_copilot_code_review_users) / NULLIF(MAX(monthly_active_copilot_code_review_users) + MAX(monthly_passive_copilot_code_review_users), 0), 1) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**Daily Code Review Users — Active vs Passive**\n\n```sql\nSELECT day AS time, daily_active_copilot_code_review_users AS \"Active\", daily_passive_copilot_code_review_users AS \"Passive\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```"
+      }
     },
     {
       "id": 303,
@@ -528,23 +563,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 82,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].monthly_active_agent_users`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nMaximum count of users who used Copilot agent mode in the IDE during the rolling 28-day window.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Growing as agent adoption matures | Near zero — users not exploring agent capabilities |\n\n### SQL Query\n\n```sql\nSELECT MAX(monthly_active_agent_users) AS \"Monthly Active Agent Users\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 405,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 96,
+        "y": 138,
         "w": 24,
         "h": 1
       },
@@ -554,27 +573,28 @@
       }
     },
     {
-      "id": 204,
+      "id": 140,
       "type": "row",
-      "title": "Monthly Active Chat Users — Learning Guide",
+      "collapsed": false,
+      "title": "Pull Request Merge & Lead Time — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 97,
+        "y": 139,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
       "panels": []
     },
     {
-      "id": 104,
+      "id": 141,
       "type": "stat",
-      "title": "Monthly Active Chat Users",
+      "title": "PRs Merged (28d)",
+      "description": "pull_requests.total_merged summed over the last 28 days.",
       "gridPos": {
         "x": 0,
-        "y": 98,
-        "w": 24,
-        "h": 4
+        "y": 140,
+        "w": 8,
+        "h": 5
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -583,42 +603,152 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT MAX(monthly_active_chat_users) AS \"Monthly Active Chat Users\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_merged')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
         }
-      ],
+      ]
+    },
+    {
+      "id": 142,
+      "type": "stat",
+      "title": "PRs Merged that Copilot Created (28d)",
+      "description": "pull_requests.total_merged_created_by_copilot summed over the last 28 days.",
+      "gridPos": {
+        "x": 8,
+        "y": 140,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_merged_created_by_copilot')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 143,
+      "type": "gauge",
+      "title": "% Merged that Copilot Created",
+      "description": "Share of merged PRs that were created by Copilot.",
+      "gridPos": {
+        "x": 16,
+        "y": 140,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
-          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "green",
+                "value": 50
               }
             ]
           }
         },
         "overrides": []
       },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT ROUND(100.0 * SUM((pull_requests->>'total_merged_created_by_copilot')::int) / NULLIF(SUM((pull_requests->>'total_merged')::int), 0), 1) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 144,
+      "type": "timeseries",
+      "title": "PRs Merged — Daily (Total vs Copilot-Authored)",
+      "description": "Daily trend of total merged PRs vs Copilot-authored merged PRs.",
+      "gridPos": {
+        "x": 0,
+        "y": 145,
+        "w": 24,
+        "h": 8
       },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].monthly_active_chat_users` | Table: `copilot_enterprise_daily`"
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, (pull_requests->>'total_merged')::int AS \"Total Merged\", (pull_requests->>'total_merged_created_by_copilot')::int AS \"Copilot-Authored Merged\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
+        }
+      ]
+    },
+    {
+      "id": 145,
+      "type": "timeseries",
+      "title": "Median Minutes to Merge — All vs Copilot-Authored",
+      "description": "Daily median minutes from PR creation to merge — overall vs Copilot-authored. Reveals lead-time drift between human-authored and Copilot-authored PRs.",
+      "gridPos": {
+        "x": 0,
+        "y": 153,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "m"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, (pull_requests->>'median_minutes_to_merge')::numeric AS \"All PRs\", (pull_requests->>'median_minutes_to_merge_copilot_authored')::numeric AS \"Copilot-Authored\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
+        }
+      ]
+    },
+    {
+      "id": 146,
+      "type": "text",
+      "title": "Pull Request Merge & Lead Time — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 161,
+        "w": 24,
+        "h": 28
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**API source:** `pull_requests.total_merged`, `pull_requests.total_merged_created_by_copilot`, `pull_requests.median_minutes_to_merge`, `pull_requests.median_minutes_to_merge_copilot_authored`.\n\n**Calculation:** Each PR is counted on the day it was merged (one-time event). Median values are *daily medians* reported by GitHub — do not average them across days; chart them as a trend.\n\n**Why two time-series:** The *count* trend shows merge throughput; the *median minutes to merge* trend reveals whether Copilot-authored PRs are getting through review faster or slower than human-authored ones over time. A widening gap is a leading signal worth investigating.\n\n---\n\n### Underlying SQL\n\n**PRs Merged (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_merged')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**PRs Merged that Copilot Created (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_merged_created_by_copilot')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**% Merged that Copilot Created**\n\n```sql\nSELECT ROUND(100.0 * SUM((pull_requests->>'total_merged_created_by_copilot')::int) / NULLIF(SUM((pull_requests->>'total_merged')::int), 0), 1) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**PRs Merged — Daily (Total vs Copilot-Authored)**\n\n```sql\nSELECT day AS time, (pull_requests->>'total_merged')::int AS \"Total Merged\", (pull_requests->>'total_merged_created_by_copilot')::int AS \"Copilot-Authored Merged\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```\n\n**Median Minutes to Merge — All vs Copilot-Authored**\n\n```sql\nSELECT day AS time, (pull_requests->>'median_minutes_to_merge')::numeric AS \"All PRs\", (pull_requests->>'median_minutes_to_merge_copilot_authored')::numeric AS \"Copilot-Authored\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```"
+      }
     },
     {
       "id": 304,
@@ -627,23 +757,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 102,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].monthly_active_chat_users`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nMaximum count of users who used Copilot chat (any mode) in the IDE during the rolling 28-day window.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Most active users also use chat | Chat usage lagging behind completions |\n\n### SQL Query\n\n```sql\nSELECT MAX(monthly_active_chat_users) AS \"Monthly Active Chat Users\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 406,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 116,
+        "y": 189,
         "w": 24,
         "h": 1
       },
@@ -653,27 +767,28 @@
       }
     },
     {
-      "id": 205,
+      "id": 150,
       "type": "row",
-      "title": "Daily Active CLI Users (peak in range) — Learning Guide",
+      "collapsed": false,
+      "title": "PR Review Suggestions — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 117,
+        "y": 190,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
       "panels": []
     },
     {
-      "id": 105,
+      "id": 151,
       "type": "stat",
-      "title": "Daily Active CLI Users (peak in range)",
+      "title": "Total PR Review Suggestions (28d)",
+      "description": "pull_requests.total_suggestions — review suggestions generated by any author.",
       "gridPos": {
         "x": 0,
-        "y": 118,
-        "w": 24,
-        "h": 4
+        "y": 191,
+        "w": 8,
+        "h": 5
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -682,42 +797,123 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT MAX(daily_active_cli_users) AS \"Daily Active CLI Users (peak in range)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_suggestions')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
         }
-      ],
+      ]
+    },
+    {
+      "id": 152,
+      "type": "stat",
+      "title": "Copilot PR Suggestions (28d)",
+      "description": "pull_requests.total_copilot_suggestions — review suggestions generated by Copilot.",
+      "gridPos": {
+        "x": 8,
+        "y": 191,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_copilot_suggestions')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 153,
+      "type": "gauge",
+      "title": "% Suggestions from Copilot",
+      "description": "Share of PR review suggestions generated by Copilot.",
+      "gridPos": {
+        "x": 16,
+        "y": 191,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
-          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "green",
+                "value": 50
               }
             ]
           }
         },
         "overrides": []
       },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT ROUND(100.0 * SUM((pull_requests->>'total_copilot_suggestions')::int) / NULLIF(SUM((pull_requests->>'total_suggestions')::int), 0), 1) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 154,
+      "type": "timeseries",
+      "title": "PR Review Suggestions — Daily (Total vs Copilot)",
+      "description": "Daily trend of all review suggestions vs Copilot-generated suggestions.",
+      "gridPos": {
+        "x": 0,
+        "y": 196,
+        "w": 24,
+        "h": 8
       },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].daily_active_cli_users` | Table: `copilot_enterprise_daily`"
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, (pull_requests->>'total_suggestions')::int AS \"Total\", (pull_requests->>'total_copilot_suggestions')::int AS \"Copilot\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
+        }
+      ]
+    },
+    {
+      "id": 155,
+      "type": "text",
+      "title": "PR Review Suggestions — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 204,
+        "w": 24,
+        "h": 23
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**API source:** `pull_requests.total_suggestions` (any author) and `pull_requests.total_copilot_suggestions` (Copilot only).\n\n**Calculation:** Sums of suggestions generated each day; the percent gauge is `copilot / total`.\n\n**Pair this with the Applied Suggestions section below** — high suggestion volume with a low apply rate suggests the suggestions are noisy or low-quality. High volume + high apply rate is the signal of healthy Copilot review adoption.\n\n---\n\n### Underlying SQL\n\n**Total PR Review Suggestions (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_suggestions')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**Copilot PR Suggestions (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_copilot_suggestions')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**% Suggestions from Copilot**\n\n```sql\nSELECT ROUND(100.0 * SUM((pull_requests->>'total_copilot_suggestions')::int) / NULLIF(SUM((pull_requests->>'total_suggestions')::int), 0), 1) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**PR Review Suggestions — Daily (Total vs Copilot)**\n\n```sql\nSELECT day AS time, (pull_requests->>'total_suggestions')::int AS \"Total\", (pull_requests->>'total_copilot_suggestions')::int AS \"Copilot\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```"
+      }
     },
     {
       "id": 305,
@@ -726,39 +922,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 122,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].daily_active_cli_users`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nMaximum count of users who used `gh copilot` (CLI) on any single day in the window. Independent of IDE activity.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Non-zero indicates CLI adoption | Always zero — CLI not promoted to users |\n\n### SQL Query\n\n```sql\nSELECT MAX(daily_active_cli_users) AS \"Daily Active CLI Users (peak in range)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 407,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 136,
-        "w": 24,
-        "h": 3
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "## Code Volume"
-      }
-    },
-    {
-      "id": 408,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 139,
+        "y": 227,
         "w": 24,
         "h": 1
       },
@@ -768,27 +932,28 @@
       }
     },
     {
-      "id": 206,
+      "id": 160,
       "type": "row",
-      "title": "Lines of Code Suggested to Add (28d) — Learning Guide",
+      "collapsed": false,
+      "title": "Applied PR Suggestions (Apply Rate) — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 140,
+        "y": 228,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
       "panels": []
     },
     {
-      "id": 106,
+      "id": 161,
       "type": "stat",
-      "title": "Lines of Code Suggested to Add (28d)",
+      "title": "Applied Suggestions — All (28d)",
+      "description": "pull_requests.total_applied_suggestions — review suggestions applied (any author).",
       "gridPos": {
         "x": 0,
-        "y": 141,
-        "w": 24,
-        "h": 4
+        "y": 229,
+        "w": 8,
+        "h": 5
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -797,42 +962,123 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM(loc_suggested_to_add_sum) AS \"Lines of Code Suggested to Add (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_applied_suggestions')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
         }
-      ],
+      ]
+    },
+    {
+      "id": 162,
+      "type": "stat",
+      "title": "Applied Copilot Suggestions (28d)",
+      "description": "pull_requests.total_copilot_applied_suggestions — Copilot-generated suggestions that were applied.",
+      "gridPos": {
+        "x": 8,
+        "y": 229,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT SUM((pull_requests->>'total_copilot_applied_suggestions')::int) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 163,
+      "type": "gauge",
+      "title": "Copilot Suggestion Apply Rate",
+      "description": "applied_copilot / generated_copilot — high values mean reviewers find Copilot's suggestions useful and accept them.",
+      "gridPos": {
+        "x": 16,
+        "y": 229,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
-          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "green",
+                "value": 40
               }
             ]
           }
         },
         "overrides": []
       },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawSql": "SELECT ROUND(100.0 * SUM((pull_requests->>'total_copilot_applied_suggestions')::int) / NULLIF(SUM((pull_requests->>'total_copilot_suggestions')::int), 0), 1) AS value FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily)"
+        }
+      ]
+    },
+    {
+      "id": 164,
+      "type": "timeseries",
+      "title": "Copilot Suggestions — Daily (Generated vs Applied)",
+      "description": "Daily trend of Copilot suggestions generated vs applied. The gap reveals quality and engagement.",
+      "gridPos": {
+        "x": 0,
+        "y": 234,
+        "w": 24,
+        "h": 8
       },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].loc_suggested_to_add_sum` | Table: `copilot_enterprise_daily`"
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, (pull_requests->>'total_copilot_suggestions')::int AS \"Generated\", (pull_requests->>'total_copilot_applied_suggestions')::int AS \"Applied\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
+        }
+      ]
+    },
+    {
+      "id": 165,
+      "type": "text",
+      "title": "Applied PR Suggestions — Learning Guide",
+      "gridPos": {
+        "x": 0,
+        "y": 242,
+        "w": 24,
+        "h": 23
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**API source:** `pull_requests.total_applied_suggestions` (any author) and `pull_requests.total_copilot_applied_suggestions` (Copilot only).\n\n**Apply Rate:** `total_copilot_applied_suggestions / NULLIF(total_copilot_suggestions, 0) * 100` — the most actionable single number on this dashboard. A low rate (< 10%) suggests Copilot's review feedback is being dismissed; investigate signal quality, model selection, or reviewer workflow.\n\n**Why time-series:** Generated-vs-applied gap over time shows whether reviewer trust in Copilot suggestions is growing, shrinking, or stable.\n\n---\n\n### Underlying SQL\n\n**Applied Suggestions — All (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_applied_suggestions')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**Applied Copilot Suggestions (28d)**\n\n```sql\nSELECT SUM((pull_requests->>'total_copilot_applied_suggestions')::int) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**Copilot Suggestion Apply Rate**\n\n```sql\nSELECT ROUND(100.0 * SUM((pull_requests->>'total_copilot_applied_suggestions')::int) / NULLIF(SUM((pull_requests->>'total_copilot_suggestions')::int), 0), 1) AS value\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\n```\n\n**Copilot Suggestions — Daily (Generated vs Applied)**\n\n```sql\nSELECT day AS time, (pull_requests->>'total_copilot_suggestions')::int AS \"Generated\", (pull_requests->>'total_copilot_applied_suggestions')::int AS \"Applied\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```"
+      }
     },
     {
       "id": 306,
@@ -841,23 +1087,7 @@
       "transparent": true,
       "gridPos": {
         "x": 0,
-        "y": 145,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].loc_suggested_to_add_sum`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nTotal lines of code Copilot suggested to add (completions, inline chat, chat panel — excludes agent edits).\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Grows with active usage | Flat — usage stalled |\n\n### SQL Query\n\n```sql\nSELECT SUM(loc_suggested_to_add_sum) AS \"Lines of Code Suggested to Add (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 409,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 159,
+        "y": 265,
         "w": 24,
         "h": 1
       },
@@ -867,27 +1097,28 @@
       }
     },
     {
-      "id": 207,
+      "id": 170,
       "type": "row",
-      "title": "Lines of Code Suggested to Delete (28d) — Learning Guide",
+      "collapsed": false,
+      "title": "API-Only Adoption Signals (CLI, Suggestions, Interactions) — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 160,
+        "y": 266,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
       "panels": []
     },
     {
-      "id": 107,
-      "type": "stat",
-      "title": "Lines of Code Suggested to Delete (28d)",
+      "id": 171,
+      "type": "timeseries",
+      "title": "Daily Active CLI Users",
+      "description": "daily_active_cli_users — unique users who used Copilot via the CLI on each day. CLI usage is independent of IDE active-user counts and is API-only.",
       "gridPos": {
         "x": 0,
-        "y": 161,
-        "w": 24,
-        "h": 4
+        "y": 267,
+        "w": 12,
+        "h": 8
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -896,97 +1127,21 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM(loc_suggested_to_delete_sum) AS \"Lines of Code Suggested to Delete (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, daily_active_cli_users AS \"Daily Active CLI Users\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
         }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].loc_suggested_to_delete_sum` | Table: `copilot_enterprise_daily`"
+      ]
     },
     {
-      "id": 307,
-      "type": "text",
-      "title": "",
-      "transparent": true,
+      "id": 172,
+      "type": "timeseries",
+      "title": "Total User-Initiated Interactions",
+      "description": "user_initiated_interaction_count — daily count of explicit prompts sent to Copilot. Excludes UI events like opening the chat panel or switching modes. API-only.",
       "gridPos": {
-        "x": 0,
-        "y": 165,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].loc_suggested_to_delete_sum`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nTotal lines Copilot suggested to delete (future support planned — may report 0).\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Non-zero in agent/edit-heavy orgs | N/A — feature still rolling out |\n\n### SQL Query\n\n```sql\nSELECT SUM(loc_suggested_to_delete_sum) AS \"Lines of Code Suggested to Delete (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 410,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 179,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 208,
-      "type": "row",
-      "title": "Lines of Code Added (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 180,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 108,
-      "type": "stat",
-      "title": "Lines of Code Added (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 181,
-        "w": 24,
-        "h": 4
+        "x": 12,
+        "y": 267,
+        "w": 12,
+        "h": 8
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -995,97 +1150,21 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM(loc_added_sum) AS \"Lines of Code Added (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, user_initiated_interaction_count AS \"User-Initiated Interactions\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
         }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].loc_added_sum` | Table: `copilot_enterprise_daily`"
+      ]
     },
     {
-      "id": 308,
-      "type": "text",
-      "title": "",
-      "transparent": true,
+      "id": 173,
+      "type": "timeseries",
+      "title": "Lines of Code Suggested — Add vs Delete",
+      "description": "loc_suggested_to_add_sum and loc_suggested_to_delete_sum — what Copilot proposed vs what was kept (compare with the LoC accepted metrics on the built-in dashboard).",
       "gridPos": {
         "x": 0,
-        "y": 185,
+        "y": 275,
         "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].loc_added_sum`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nTotal lines actually added to the editor — accepted completions, applied chat code blocks, and agent/edit mode writes.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Significant fraction of `loc_suggested_to_add_sum` | Far below suggested — low acceptance |\n\n### SQL Query\n\n```sql\nSELECT SUM(loc_added_sum) AS \"Lines of Code Added (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 411,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 199,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 209,
-      "type": "row",
-      "title": "Lines of Code Deleted (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 200,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 109,
-      "type": "stat",
-      "title": "Lines of Code Deleted (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 201,
-        "w": 24,
-        "h": 4
+        "h": 8
       },
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1094,1574 +1173,24 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM(loc_deleted_sum) AS \"Lines of Code Deleted (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, loc_suggested_to_add_sum AS \"Suggested to Add\", loc_suggested_to_delete_sum AS \"Suggested to Delete\" FROM copilot_enterprise_daily WHERE day >= (SELECT MAX(day) - INTERVAL '27 days' FROM copilot_enterprise_daily) ORDER BY day"
         }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].loc_deleted_sum` | Table: `copilot_enterprise_daily`"
+      ]
     },
     {
-      "id": 309,
+      "id": 174,
       "type": "text",
-      "title": "",
-      "transparent": true,
+      "title": "API-Only Adoption Signals — Learning Guide",
       "gridPos": {
         "x": 0,
-        "y": 205,
+        "y": 283,
         "w": 24,
-        "h": 14
+        "h": 20
       },
       "options": {
         "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].loc_deleted_sum`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nTotal lines deleted from the editor (currently from agent edits).\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Indicates agent/edit mode in use | Zero — agent/edit mode not adopted |\n\n### SQL Query\n\n```sql\nSELECT SUM(loc_deleted_sum) AS \"Lines of Code Deleted (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 412,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 219,
-        "w": 24,
-        "h": 3
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "## Interactions"
-      }
-    },
-    {
-      "id": 413,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 222,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 210,
-      "type": "row",
-      "title": "Total User-Initiated Interactions (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 223,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 110,
-      "type": "stat",
-      "title": "Total User-Initiated Interactions (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 224,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM(user_initiated_interaction_count) AS \"Total User-Initiated Interactions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].user_initiated_interaction_count` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 310,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 228,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].user_initiated_interaction_count`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nSum of explicit prompts users sent to Copilot — chat messages, accept actions, etc. Does not count opening the panel or switching modes.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Grows week-over-week | Flat or declining — explore blockers |\n\n### SQL Query\n\n```sql\nSELECT SUM(user_initiated_interaction_count) AS \"Total User-Initiated Interactions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 414,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 242,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 211,
-      "type": "row",
-      "title": "Code Generation Activities (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 243,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 111,
-      "type": "stat",
-      "title": "Code Generation Activities (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 244,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM(code_generation_activity_count) AS \"Code Generation Activities (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].code_generation_activity_count` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 311,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 248,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].code_generation_activity_count`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nNumber of distinct Copilot output events generated — each code block from a single prompt counts separately.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Higher than interaction count (one prompt → many blocks) | Lower than interactions — short responses or low engagement |\n\n### SQL Query\n\n```sql\nSELECT SUM(code_generation_activity_count) AS \"Code Generation Activities (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 415,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 262,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 212,
-      "type": "row",
-      "title": "Code Acceptance Activities (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 263,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 112,
-      "type": "stat",
-      "title": "Code Acceptance Activities (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 264,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM(code_acceptance_activity_count) AS \"Code Acceptance Activities (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].code_acceptance_activity_count` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 312,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 268,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].code_acceptance_activity_count`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nNumber of suggestions or code blocks accepted by users — apply-to-file, insert-at-cursor, copy button. Excludes manual OS clipboard.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Strong fraction of generation activities | Very low ratio — relevance issues |\n\n### SQL Query\n\n```sql\nSELECT SUM(code_acceptance_activity_count) AS \"Code Acceptance Activities (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n```"
-      }
-    },
-    {
-      "id": 416,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 282,
-        "w": 24,
-        "h": 3
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "## Pull Request Activity"
-      }
-    },
-    {
-      "id": 417,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 285,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 213,
-      "type": "row",
-      "title": "PRs Created (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 286,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 113,
-      "type": "stat",
-      "title": "PRs Created (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 287,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_created')::bigint) AS \"PRs Created (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_created'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_created` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 313,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 291,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_created`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nTotal pull requests created on each day in the window. Creation is a one-time event — each PR counted only on its creation day.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Steady or growing PR throughput | Sharp drop — investigate workflow blockers |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_created')::bigint) AS \"PRs Created (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_created'\n```"
-      }
-    },
-    {
-      "id": 418,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 305,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 214,
-      "type": "row",
-      "title": "PRs Reviewed (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 306,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 114,
-      "type": "stat",
-      "title": "PRs Reviewed (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 307,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_reviewed')::bigint) AS \"PRs Reviewed (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_reviewed'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_reviewed` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 314,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 311,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_reviewed`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nPull requests reviewed each day. A PR may be counted on multiple days if it receives reviews on multiple days; once per day per PR.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Tracks closely with PRs created | Reviews lagging — review bottleneck |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_reviewed')::bigint) AS \"PRs Reviewed (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_reviewed'\n```"
-      }
-    },
-    {
-      "id": 419,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 325,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 215,
-      "type": "row",
-      "title": "PRs Merged (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 326,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 115,
-      "type": "stat",
-      "title": "PRs Merged (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 327,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_merged')::bigint) AS \"PRs Merged (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_merged'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_merged` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 315,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 331,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_merged`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nPull requests merged each day. One-time event — each PR counted only on merge day.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Consistent flow into main branch | Significantly lower than created — backlog growing |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_merged')::bigint) AS \"PRs Merged (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_merged'\n```"
-      }
-    },
-    {
-      "id": 420,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 345,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 216,
-      "type": "row",
-      "title": "Median Minutes to Merge (28d avg) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 346,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 116,
-      "type": "stat",
-      "title": "Median Minutes to Merge (28d avg)",
-      "gridPos": {
-        "x": 0,
-        "y": 347,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT AVG((pull_requests->>'median_minutes_to_merge')::numeric) AS \"Median Minutes to Merge (28d avg)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'median_minutes_to_merge'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "m",
-          "decimals": 1,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.median_minutes_to_merge` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 316,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 351,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.median_minutes_to_merge`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nAverage of the daily median minutes between PR creation and merge for PRs merged that day. Median reduces the impact of long-running outliers.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Lower is better — fast merge cycle | Climbing — review or CI bottleneck |\n\n### SQL Query\n\n```sql\nSELECT AVG((pull_requests->>'median_minutes_to_merge')::numeric) AS \"Median Minutes to Merge (28d avg)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'median_minutes_to_merge'\n```"
-      }
-    },
-    {
-      "id": 421,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 365,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 217,
-      "type": "row",
-      "title": "PR Review Suggestions (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 366,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 117,
-      "type": "stat",
-      "title": "PR Review Suggestions (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 367,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_suggestions')::bigint) AS \"PR Review Suggestions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_suggestions'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_suggestions` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 317,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 371,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_suggestions`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nTotal PR review suggestions generated each day, regardless of author (humans + Copilot).\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Active code review culture | Near zero — reviewers leaving narrative comments only |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_suggestions')::bigint) AS \"PR Review Suggestions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_suggestions'\n```"
-      }
-    },
-    {
-      "id": 422,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 385,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 218,
-      "type": "row",
-      "title": "PR Applied Suggestions (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 386,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 118,
-      "type": "stat",
-      "title": "PR Applied Suggestions (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 387,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_applied_suggestions')::bigint) AS \"PR Applied Suggestions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_applied_suggestions'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_applied_suggestions` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 318,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 391,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_applied_suggestions`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nTotal PR review suggestions that were applied each day, regardless of author.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Strong fraction of total suggestions | Low ratio — suggestions ignored or low-quality |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_applied_suggestions')::bigint) AS \"PR Applied Suggestions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_applied_suggestions'\n```"
-      }
-    },
-    {
-      "id": 423,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 405,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 219,
-      "type": "row",
-      "title": "PRs Created by Copilot (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 406,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 119,
-      "type": "stat",
-      "title": "PRs Created by Copilot (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 407,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_created_by_copilot')::bigint) AS \"PRs Created by Copilot (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_created_by_copilot'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_created_by_copilot` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 319,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 411,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_created_by_copilot`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nPull requests created by Copilot (coding agent / autofix) each day.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Increasing as autonomous PR usage matures | Zero — Copilot agent not creating PRs |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_created_by_copilot')::bigint) AS \"PRs Created by Copilot (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_created_by_copilot'\n```"
-      }
-    },
-    {
-      "id": 424,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 425,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 220,
-      "type": "row",
-      "title": "PRs Reviewed by Copilot (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 426,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 120,
-      "type": "stat",
-      "title": "PRs Reviewed by Copilot (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 427,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_reviewed_by_copilot')::bigint) AS \"PRs Reviewed by Copilot (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_reviewed_by_copilot'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_reviewed_by_copilot` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 320,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 431,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_reviewed_by_copilot`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nPull requests reviewed by Copilot each day. May count a single PR on multiple days if reviewed on multiple days.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Indicates Copilot code review adoption | Zero — Copilot reviewer not enabled or assigned |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_reviewed_by_copilot')::bigint) AS \"PRs Reviewed by Copilot (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_reviewed_by_copilot'\n```"
-      }
-    },
-    {
-      "id": 425,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 445,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 221,
-      "type": "row",
-      "title": "PRs Merged that Copilot Created (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 446,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 121,
-      "type": "stat",
-      "title": "PRs Merged that Copilot Created (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 447,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_merged_created_by_copilot')::bigint) AS \"PRs Merged that Copilot Created (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_merged_created_by_copilot'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_merged_created_by_copilot` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 321,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 451,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_merged_created_by_copilot`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nNumber of Copilot-authored PRs that merged each day. One-time event.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Healthy fraction of Copilot-created PRs | Many created, few merged — Copilot PR quality issue |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_merged_created_by_copilot')::bigint) AS \"PRs Merged that Copilot Created (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_merged_created_by_copilot'\n```"
-      }
-    },
-    {
-      "id": 426,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 465,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 222,
-      "type": "row",
-      "title": "Median Minutes to Merge — Copilot Authored (28d avg) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 466,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 122,
-      "type": "stat",
-      "title": "Median Minutes to Merge — Copilot Authored (28d avg)",
-      "gridPos": {
-        "x": 0,
-        "y": 467,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT AVG((pull_requests->>'median_minutes_to_merge_copilot_authored')::numeric) AS \"Median Minutes to Merge — Copilot Authored (28d avg)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'median_minutes_to_merge_copilot_authored'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "m",
-          "decimals": 1,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.median_minutes_to_merge_copilot_authored` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 322,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 471,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.median_minutes_to_merge_copilot_authored`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nAverage of the daily median minutes from creation to merge for Copilot-authored PRs merged that day.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Comparable to or faster than overall median | Much higher — Copilot PRs need extensive rework |\n\n### SQL Query\n\n```sql\nSELECT AVG((pull_requests->>'median_minutes_to_merge_copilot_authored')::numeric) AS \"Median Minutes to Merge — Copilot Authored (28d avg)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'median_minutes_to_merge_copilot_authored'\n```"
-      }
-    },
-    {
-      "id": 427,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 485,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 223,
-      "type": "row",
-      "title": "Copilot PR Suggestions (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 486,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 123,
-      "type": "stat",
-      "title": "Copilot PR Suggestions (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 487,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_copilot_suggestions')::bigint) AS \"Copilot PR Suggestions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_copilot_suggestions'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_copilot_suggestions` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 323,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 491,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_copilot_suggestions`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nPR review suggestions generated by Copilot each day.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Growing as Copilot code review adoption rises | Zero — review enrollment may be off |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_copilot_suggestions')::bigint) AS \"Copilot PR Suggestions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_copilot_suggestions'\n```"
-      }
-    },
-    {
-      "id": 428,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 505,
-        "w": 24,
-        "h": 1
-      },
-      "options": {
-        "mode": "markdown",
-        "content": ""
-      }
-    },
-    {
-      "id": 224,
-      "type": "row",
-      "title": "Copilot Applied PR Suggestions (28d) — Learning Guide",
-      "gridPos": {
-        "x": 0,
-        "y": 506,
-        "w": 24,
-        "h": 1
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 124,
-      "type": "stat",
-      "title": "Copilot Applied PR Suggestions (28d)",
-      "gridPos": {
-        "x": 0,
-        "y": 507,
-        "w": 24,
-        "h": 4
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT SUM((pull_requests->>'total_copilot_applied_suggestions')::bigint) AS \"Copilot Applied PR Suggestions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_copilot_applied_suggestions'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "description": "Source: Copilot Metrics Reports API → `day_totals[].pull_requests.total_copilot_applied_suggestions` | Table: `copilot_enterprise_daily`"
-    },
-    {
-      "id": 324,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "x": 0,
-        "y": 511,
-        "w": 24,
-        "h": 14
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/copilot/reference/copilot-usage-metrics/copilot-usage-metrics)\n\nCopilot Metrics Reports API (2026-03-10) → `day_totals[].pull_requests.total_copilot_applied_suggestions`\n\n### Database Table\n\n`copilot_enterprise_daily`\n\n### How It's Calculated\n\nPR review suggestions generated by Copilot that were applied each day.\n\n### How to Interpret\n\n| Healthy Signal | Action Needed |\n|---|---|\n| Strong fraction of Copilot suggestions accepted | Low ratio — Copilot reviewer suggestions ignored |\n\n### SQL Query\n\n```sql\nSELECT SUM((pull_requests->>'total_copilot_applied_suggestions')::bigint) AS \"Copilot Applied PR Suggestions (28d)\"\nFROM copilot_enterprise_daily\nWHERE 1=1\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND pull_requests ? 'total_copilot_applied_suggestions'\n```"
+        "content": "**Why these are here:** Each of these fields is **API-only** — none appear on the built-in Copilot Usage dashboard at `/orgs/<org>/insights/copilot/usage`.\n\n- `daily_active_cli_users` — CLI surface area is independent of IDE; growth here indicates terminal-driven workflows.\n- `user_initiated_interaction_count` — explicit prompts only. Distinct from `code_generation_activity_count` because one prompt can produce multiple generations.\n- `loc_suggested_to_add_sum` / `loc_suggested_to_delete_sum` — what Copilot *offered*, not what was kept. Compare with `loc_added_sum` / `loc_deleted_sum` on the built-in dashboard to estimate take-up rate.\n\n---\n\n### Underlying SQL\n\n**Daily Active CLI Users**\n\n```sql\nSELECT day AS time, daily_active_cli_users AS \"Daily Active CLI Users\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```\n\n**Total User-Initiated Interactions**\n\n```sql\nSELECT day AS time, user_initiated_interaction_count AS \"User-Initiated Interactions\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```\n\n**Lines of Code Suggested — Add vs Delete**\n\n```sql\nSELECT day AS time, loc_suggested_to_add_sum AS \"Suggested to Add\", loc_suggested_to_delete_sum AS \"Suggested to Delete\"\nFROM copilot_enterprise_daily\nWHERE day >= (SELECT MAX(day) - INTERVAL '27 days'\nFROM copilot_enterprise_daily)\nORDER BY day\n```"
       }
     }
   ]
