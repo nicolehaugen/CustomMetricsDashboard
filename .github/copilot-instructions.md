@@ -24,7 +24,7 @@ Run `npm run lint` and `npm run build` from `v2/` to confirm the environment is 
 
 
 
-GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact. The **active version is `v2/`**; `v1/` is legacy and should not be extended.
+GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact. The **active version is `v2/`**.
 
 ## Commands (run from inside `v2/`)
 
