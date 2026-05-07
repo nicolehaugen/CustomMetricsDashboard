@@ -30,13 +30,11 @@ environment.
 
 3. **Verify the token** by running:
    ```bash
-   cd v3 && gh auth status 2>&1 || true
-   ```
-   Then test the token with a quick API call:
-   ```bash
+   cd v3
+   set -a; . ./.env; set +a
    curl -s -o /dev/null -w "%{http_code}" \
      -H "Authorization: Bearer $GITHUB_TOKEN" \
-     https://api.github.com/orgs/<org>
+     https://api.github.com/orgs/$GITHUB_ORG
    ```
    Report whether the response is `200` (success) or an error code.
 
