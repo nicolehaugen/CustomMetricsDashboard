@@ -1,7 +1,6 @@
 # Custom DORA + Copilot Impact Dashboard — Implementation Plan v2
 
 > **Version**: 2.1 — Full rebuild from scratch  
-> **Supersedes**: `ImplementationPlan.md` (v1)  
 > **Key changes**: Raw-first ELT architecture; exact API field names; 28-day Copilot window; no deprecated endpoints; one dashboard per DORA pillar; panel descriptions with caveats; data mode indicator (seed/demo/live)
 
 ---
