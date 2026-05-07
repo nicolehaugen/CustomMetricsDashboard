@@ -122,7 +122,7 @@ Implementation, screenshots, and tests run only after the user explicitly choose
 
 - **Never edit dashboard JSON.** This skill is read-only and proposal-only.
 - **Never invent column names.** Use the exact API field names. The repo uses source-faithful naming.
-- **Default scope is `v3/`.** Only target `v2/` if the user explicitly asks.
+- **Default scope is `v3/`.**
 - **Every proposed panel must include a Learning Guide** in the four-panel pattern.
 - **Add a ⚠️ caveat** when the metric is a proxy (e.g., Copilot author attribution) or label-dependent (`incident`, `hotfix`, `bugfix`, `rollback`).
 - **Use one-liner shell commands.** Multi-line PowerShell may execute only the first line in this environment (see user memory).

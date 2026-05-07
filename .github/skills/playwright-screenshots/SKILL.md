@@ -1,6 +1,6 @@
 ---
 name: playwright-screenshots
-description: "**WORKFLOW SKILL** — Capture before/after Grafana dashboard screenshots when JSON, SQL, or seed data changes. Saves PNGs to v2/screenshots/ for PR visual review. WHEN: \"take dashboard screenshots\", \"capture before and after\", \"screenshot dashboard changes\", \"visual diff dashboards\", \"commit dashboard screenshots\". INVOKES: Playwright MCP, git. FOR SINGLE OPERATIONS: Use Playwright MCP directly."
+description: "**WORKFLOW SKILL** — Capture before/after Grafana dashboard screenshots when JSON, SQL, or seed data changes. Saves PNGs to v3/screenshots/ for PR visual review. WHEN: \"take dashboard screenshots\", \"capture before and after\", \"screenshot dashboard changes\", \"visual diff dashboards\", \"commit dashboard screenshots\". INVOKES: Playwright MCP, git. FOR SINGLE OPERATIONS: Use Playwright MCP directly."
 ---
 
 # Playwright Dashboard Screenshots
@@ -12,18 +12,18 @@ Capture before/after screenshots of Grafana dashboards and commit them to the PR
 Docker-compose stack running with seeded data:
 
 ```bash
-cd v2 && docker-compose up -d && npm run seed
+cd v3 && docker-compose up -d
 ```
 
 ## Procedure
 
 ### 1. Identify affected dashboards
 
-Use `git diff --name-only` to find changed files under `v2/grafana/dashboards/`. If seed data or schema changed, treat all dashboards as affected. Dashboard UIDs are in each JSON file's `"uid"` field.
+Use `git diff --name-only` to find changed files under `v3/grafana/dashboards/`. If seed data or schema changed, treat all dashboards as affected. Dashboard UIDs are in each JSON file's `"uid"` field.
 
 ### 2. Capture "before" screenshots
 
-For each affected dashboard, navigate to `http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk`. Use `waitForLoadState('load')` + `waitForTimeout(3000)` — **never** `networkidle` (Grafana WebSocket blocks it). Scroll the full page, then save to `v2/screenshots/before-<uid>.png`.
+For each affected dashboard, navigate to `http://admin:admin@localhost:3006/d/<uid>?orgId=1&kiosk`. Use `waitForLoadState('load')` + `waitForTimeout(3000)` — **never** `networkidle` (Grafana WebSocket blocks it). Scroll the full page, then save to `v3/screenshots/before-<uid>.png`.
 
 ### 3. Apply changes
 
@@ -31,12 +31,12 @@ Edit dashboard JSON, SQL, or seed data. Grafana auto-provisions on reload.
 
 ### 4. Capture "after" screenshots
 
-Repeat step 2, saving to `v2/screenshots/after-<uid>.png`.
+Repeat step 2, saving to `v3/screenshots/after-<uid>.png`.
 
 ### 5. Commit and summarize
 
 ```bash
-git add v2/screenshots/{before,after}-*.png
+git add v3/screenshots/{before,after}-*.png
 git commit -m "docs: add before/after dashboard screenshots"
 ```
 
@@ -44,6 +44,6 @@ Use `report_progress` to push. Update the PR description with before/after pairs
 
 ## Error Handling
 
-- **Grafana not running**: Start the stack with `docker-compose up -d` from `v2/`
-- **Empty panels**: Run `npm run seed`; verify `v2-postgres-1` is healthy
-- **Missing directory**: Create `v2/screenshots/` before saving
+- **Grafana not running**: Start the stack with `docker-compose up -d` from `v3/`
+- **Empty panels**: Trigger a sync with `npm run sync`; verify `v3-postgres-1` is healthy
+- **Missing directory**: Create `v3/screenshots/` before saving

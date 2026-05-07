@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: v2
+        working-directory: v3
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: v2/package-lock.json
+          cache-dependency-path: v3/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -35,10 +35,10 @@ jobs:
           GITHUB_REPO=placeholder
           PG_HOST=postgres
           PG_PORT=5432
-          PG_DATABASE=dora_metrics
+          PG_DATABASE=metrics
           PG_USER=postgres
           PG_PASSWORD=postgres
-          PORT=3003
+          PORT=3005
           DATA_MODE=seed
           DATA_SOURCE_LABEL=ci
           DATA_SOURCE_URL=https://github.com
@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "Waiting for PostgreSQL to be ready..."
           for i in $(seq 1 30); do
-            if docker compose exec -T postgres pg_isready -U postgres -d dora_metrics; then
+            if docker compose exec -T postgres pg_isready -U postgres -d metrics; then
               echo "PostgreSQL is ready"
               break
             fi
@@ -65,22 +65,13 @@ jobs:
           done
 
       - name: Apply database schema
-        run: docker compose exec -T postgres psql -U postgres -d dora_metrics < src/db/schema.sql
-
-      - name: Seed database
-        run: npm run seed
-        env:
-          PG_HOST: localhost
-          PG_PORT: 5432
-          PG_DATABASE: dora_metrics
-          PG_USER: postgres
-          PG_PASSWORD: postgres
+        run: docker compose exec -T postgres psql -U postgres -d metrics < src/db/schema.sql
 
       - name: Wait for Grafana
         run: |
           echo "Waiting for Grafana to be ready..."
           for i in $(seq 1 30); do
-            if curl -sf http://localhost:3004/api/health > /dev/null 2>&1; then
+            if curl -sf http://localhost:3006/api/health > /dev/null 2>&1; then
               echo "Grafana is ready"
               break
             fi
