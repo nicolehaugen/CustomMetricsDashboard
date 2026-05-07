@@ -1,6 +1,6 @@
 ---
 name: setup-env
-description: "**WORKFLOW SKILL** — Configure v3/.env with GitHub PAT, org, repo, optional enterprise slug, then verify the token via GitHub API. WHEN: 'set up env', 'configure PAT', 'set GitHub token', 'create .env', 'configure GitHub credentials', 'verify my token'. INVOKES: edits to v3/.env, curl against api.github.com. FOR SINGLE OPERATIONS: edit v3/.env directly if you already have values."
+description: "**WORKFLOW SKILL** — Configure v3/.env with GitHub PAT, org, repo, required enterprise slug, then verify the token via GitHub API. WHEN: 'set up env', 'configure PAT', 'set GitHub token', 'create .env', 'configure GitHub credentials', 'verify my token'. INVOKES: edits to v3/.env, curl against api.github.com. FOR SINGLE OPERATIONS: edit v3/.env directly if you already have values."
 ---
 
 # Setup .env — Configure GitHub PAT and target environment
@@ -18,8 +18,11 @@ Ask one question at a time:
   Enterprise Copilot metrics also require Enterprise Owner role.
 - **GitHub Organization slug** (e.g. `my-org`)
 - **GitHub Repository name** (e.g. `my-repo`)
-- **Enterprise slug** *(optional)* — only needed for enterprise-level Copilot
-  metrics endpoints. Leave blank if not applicable.
+- **Enterprise slug** *(required)* — the v3 sync server (`v3/src/config.ts`)
+  fails fast on startup if `GITHUB_ENTERPRISE` is missing. Use the URL-safe
+  slug from `https://github.com/enterprises/<slug>`. If the user does not have
+  an enterprise, they must still provide a placeholder value to start the
+  server, but enterprise Copilot metrics endpoints will return 404.
 
 If `v3/.env` already exists and has a non-placeholder `GITHUB_TOKEN`, warn the
 user that the existing token will be overwritten and ask for confirmation
@@ -34,7 +37,7 @@ before proceeding.
   GITHUB_TOKEN=<PAT>
   GITHUB_ORG=<org>
   GITHUB_REPO=<repo>
-  GITHUB_ENTERPRISE=<enterprise>   # blank if not provided
+  GITHUB_ENTERPRISE=<enterprise>   # required — v3 config.ts throws if unset
   ```
 
 - Leave all other variables (PostgreSQL, PORT, etc.) at their existing values
