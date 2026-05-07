@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\//, '')), '..');
-const dashDir = path.join(repoRoot, 'v3', 'grafana', 'dashboards');
+const dashDir = path.join(repoRoot, 'grafana', 'dashboards');
 
 function load(p) { return JSON.parse(fs.readFileSync(p, 'utf8')); }
 function save(p, obj) { fs.writeFileSync(p, JSON.stringify(obj, null, 2) + '\n'); }
