@@ -59,7 +59,7 @@ Report whether the response is `200` (success) or an error code.
 
 - Never commit `v3/.env` to source control (it is gitignored).
 - After changing the token, restart the sync server to pick up new values:
-  `docker-compose restart sync-server` from `v3/`.
+  `docker compose restart sync-server` from `v3/`.
 - Required PAT scopes: `repo`, `read:org`, `admin:org`, `actions`, `copilot`.
 
 ## Important
