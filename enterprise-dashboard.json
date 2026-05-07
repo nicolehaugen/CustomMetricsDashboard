@@ -1,0 +1,520 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Welcome page ΓÇö dashboard index, architecture overview, schema drift status, and data sync controls.",
+  "id": 6,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT COALESCE('Live: ' || (SELECT value FROM app_config WHERE key = 'org') || '/' || (SELECT value FROM app_config WHERE key = 'repo'), 'Not yet synced') AS \"Data Source\"",
+          "refId": "A"
+        }
+      ],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "gridPos": {
+        "h": 20,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      },
+      "id": 1,
+      "options": {
+        "content": "## ≡ƒôï Dashboard Index\n\n| # | Dashboard | Purpose | Tags |\n|---|---|---|---|\n| 1 | [≡ƒÜÇ Deployment Frequency](/d/edu-deployment-frequency) | How often code ships to production | DORA, Throughput |\n| 2 | [ΓÅ▒∩╕Å Lead Time for Changes](/d/edu-lead-time) | Time from first commit to production deployment | DORA, Throughput |\n| 3 | [≡ƒöÑ Change Failure Rate](/d/edu-change-failure-rate) | % of deployments that cause an incident | DORA, Stability |\n| 4 | [≡ƒÅÑ Mean Time to Recovery](/d/edu-mean-time-to-recovery) | Time to resolve an incident after it opens | DORA, Stability |\n| 5 | [≡ƒñû Copilot Adoption](/d/edu-copilot-adoption) | Active seats, acceptance rate, usage by editor | Copilot |\n| 6 | [≡ƒÆ╗ Copilot Code Impact](/d/edu-copilot-code-impact) | Lines suggested vs accepted, LoC trends | Copilot |\n| 7 | [≡ƒö¼ DORA ├ù Copilot](/d/edu-dora-vs-copilot) | Deployment freq & lead time split by Copilot users vs non-users | DORA, Copilot |\n| 8 | [≡ƒæñ Per-User Copilot Metrics](/d/edu-per-user-copilot) | Acceptance rate and activity per developer | Copilot |\n\n---\n\n## ≡ƒÅù∩╕Å Why ELT ΓÇö not ETL\n\nMost production dashboards use **ETL** (Extract ΓåÆ **Transform** ΓåÆ Load): data is reshaped by application code before it ever reaches the database. That keeps queries simple, but it hides what the underlying API actually returns ΓÇö intermediate column names, flattened structures, and computed fields make it hard to understand what you're really measuring or to adapt the pipeline to a new org.\n\nThis tool is built for **learning**, not production hardening. It uses **ELT** (Extract ΓåÆ Load ΓåÆ **Transform**):\n\n| Step | Where it happens | What it means |\n|---|---|---|\n| **Extract** | `src/github/*.ts` | Fetch raw JSON from the GitHub API via Octokit |\n| **Load** | PostgreSQL | Store fields verbatim ΓÇö column names match the API field names exactly |\n| **Transform** | Grafana SQL panels | All aggregations, joins, and calculations live here, in plain SQL |\n\nBecause the schema mirrors the API, you can read a dashboard SQL panel and trace every field back to the GitHub documentation. There are no hidden mappings or invented column names.\n\n```\nGitHub API  ΓåÆ  Octokit SDK (TypeScript)  ΓåÆ  PostgreSQL  ΓåÆ  Grafana SQL\n               src/github/*.ts               db/schema.sql   dashboards/*.json\n```\n\n**Auto-migration** ΓÇö when GitHub adds a new field, the next sync detects it and runs `ALTER TABLE ADD COLUMN` automatically to update the local PostgresSQL; however, it doesn't update the schema definition checked into source code. The _Schema Drift_ section below tracks what has been added.\n\n**Data refresh** ΓÇö click **Refresh Data Now** to pull the latest 28-day rolling window from GitHub.\n\n## ΓÜÖ∩╕Å Environment\n\n| Variable | Purpose |\n|---|---|\n| `GITHUB_TOKEN` | Classic PAT ΓÇö needs `repo`, `read:org`, `admin:org` scopes |\n| `GITHUB_ENTERPRISE` | Enterprise slug (e.g. `Octodemo`) |\n| `GITHUB_ORG` | Organisation name |\n| `GITHUB_REPO` | Repository name |",
+        "mode": "markdown"
+      },
+      "title": "",
+      "type": "text"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 60,
+      "panels": [],
+      "title": "Data Sync",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 61,
+      "options": {
+        "content": "<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Why is a sync needed?</strong>\nData is pulled from the GitHub API in a rolling 28-day window and stored locally in PostgreSQL. It does <em>not</em> update automatically.\nClick <strong>Refresh Data Now</strong> to fetch the latest PRs, deployments, workflow runs, issues, and Copilot metrics (~15ΓÇô30 s).\nThe sync history table below shows recent jobs, their status, and how many records were written.\n</p>",
+        "mode": "html"
+      },
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "FAILED": {
+                  "color": "red",
+                  "index": 1
+                },
+                "RUNNING": {
+                  "color": "blue",
+                  "index": 2
+                },
+                "SUCCESS": {
+                  "color": "semi-dark-green",
+                  "index": 0
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "id": 101,
+      "options": {
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT UPPER(status) AS \"Last Sync Status\" FROM sync_jobs ORDER BY started_at DESC LIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Sync Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "id": 31,
+      "options": {
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT COALESCE((SELECT SUM(v::int) FROM jsonb_each_text(records_synced) x(k,v)), 0)::bigint AS \"Records Synced\" FROM sync_jobs ORDER BY started_at DESC LIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Records Synced (last run)",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 31
+      },
+      "id": 100,
+      "options": {
+        "content": "<div style=\"text-align:center;padding:16px\"><button onclick=\"this.disabled=true;this.textContent='RefreshingΓÇª (~15s)';fetch('http://localhost:3005/sync',{method:'POST'}).then(()=>location.reload()).catch(e=>{this.disabled=false;this.textContent='≡ƒöä Refresh Data Now';alert('Sync failed: '+e)})\" style=\"background:#0077cc;color:white;padding:10px 24px;border-radius:4px;cursor:pointer;font-weight:bold;border:none;font-size:14px\">≡ƒöä Refresh Data Now</button><p style=\"color:#888;font-size:12px;margin-top:8px\">Calls POST /sync ┬╖ sync server on localhost:3005</p></div>",
+        "mode": "html"
+      },
+      "targets": [],
+      "title": "Refresh Data",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 31
+      },
+      "id": 30,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT TO_CHAR(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI') || ' UTC' AS \"Last Sync\" FROM sync_jobs ORDER BY started_at DESC LIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Sync Time",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      },
+      "id": 102,
+      "options": {
+        "frameIndex": 0,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "SELECT id AS \"Job\", status AS \"Status\", TO_CHAR(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI') AS \"Started\", COALESCE((SELECT SUM(v::int) FROM jsonb_each_text(records_synced) x(k,v)), 0)::bigint AS \"Records\" FROM sync_jobs ORDER BY id DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Sync History",
+      "transformations": [],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "id": 50,
+      "panels": [],
+      "title": "Schema Drift",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 51,
+      "options": {
+        "content": "<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Why does schema drift happen?</strong>\nThe GitHub API occasionally adds new fields to its responses. On each sync, this app compares incoming API fields against the current database columns.\nIf a new field is found, it automatically runs <code>ALTER TABLE ADD COLUMN</code> ΓÇö the live database is updated immediately, no restart needed.\n</p>\n<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Live DB vs schema.sql</strong>\nThe automatic migration keeps the <em>live database</em> current, but it does <strong style=\"color:#e88\">not</strong> update the checked-in <code>src/db/schema.sql</code> file.\nThe counter below shows how many columns have been auto-added to the live database but are still missing from that file.\nUntil schema.sql is updated, a fresh database rebuild will be missing those columns.\n</p>\n<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">How to update schema.sql</strong>\n</p>\n<ol style=\"color:#aaa;font-size:13px;margin:2px 12px 6px 28px\">\n<li>Check the <em>Drift History</em> table below to identify which tables and fields were auto-added.</li>\n<li>Open <code>src/db/schema.sql</code> and add each missing column to the matching <code>CREATE TABLE</code> block using the type shown in the drift log.</li>\n<li>Commit: <code>git add src/db/schema.sql &amp;&amp; git commit -m \"chore: sync schema.sql with auto-migrated columns\"</code></li>\n<li>No database rebuild needed ΓÇö the columns already exist in the live DB.</li>\n</ol>",
+        "mode": "html"
+      },
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "semi-dark-green",
+                  "index": 0,
+                  "text": "Γ£ô Up to date"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "ΓÇö",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "WITH latest AS (\n  SELECT schema_drift\n  FROM sync_jobs\n  WHERE status = 'success'\n  ORDER BY id DESC LIMIT 1\n),\nall_drift AS (\n  SELECT DISTINCT\n    (entry->>'table') || '.' || (col->>'field') AS col_key\n  FROM latest,\n    jsonb_array_elements(latest.schema_drift) AS entry,\n    jsonb_array_elements(entry->'auto_applied') AS col\n  WHERE latest.schema_drift IS NOT NULL AND latest.schema_drift != '[]'::jsonb\n)\nSELECT COALESCE(COUNT(*)::int, 0) AS \"Columns not in schema.sql\" FROM all_drift",
+          "refId": "A"
+        }
+      ],
+      "title": "Columns not in schema.sql",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "id": 52,
+      "options": {
+        "frameIndex": 0,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "PostgreSQL"
+          },
+          "format": "table",
+          "rawSql": "-- One row per drifted table per sync job; 'None' for clean syncs\nSELECT\n  j.id                                                   AS \"Job\",\n  TO_CHAR(j.started_at AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                          AS \"Synced At\",\n  entry->>'table'                                        AS \"Table\",\n  (\n    SELECT string_agg(col->>'field', ', '\n           ORDER BY col->>'field')\n    FROM jsonb_array_elements(entry->'auto_applied') col\n  )                                                      AS \"Columns Added\"\nFROM sync_jobs j,\n     jsonb_array_elements(j.schema_drift) entry\nWHERE j.schema_drift IS NOT NULL\n  AND j.schema_drift <> '[]'::jsonb\n  AND jsonb_array_length(\n        COALESCE(entry->'auto_applied', '[]'::jsonb)) > 0\n\nUNION ALL\n\nSELECT\n  j.id                                                   AS \"Job\",\n  TO_CHAR(j.started_at AT TIME ZONE 'UTC',\n          'YYYY-MM-DD HH24:MI')                          AS \"Synced At\",\n  '(none)'                                               AS \"Table\",\n  'None'                                                 AS \"Columns Added\"\nFROM sync_jobs j\nWHERE j.schema_drift IS NULL\n   OR j.schema_drift = '[]'::jsonb\n   OR NOT EXISTS (\n        SELECT 1\n        FROM jsonb_array_elements(j.schema_drift) e\n        WHERE jsonb_array_length(\n                COALESCE(e->'auto_applied', '[]'::jsonb)) > 0\n      )\n\nORDER BY 1 DESC, 3\nLIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Drift History (last 10 syncs)",
+      "transformations": [],
+      "type": "table"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 36,
+  "tags": [
+    "overview",
+    "edu"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-28d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "title": "≡ƒôè Engineering Overview ",
+  "uid": "overview",
+  "version": 49
+}

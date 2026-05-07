@@ -3,7 +3,7 @@ description: "Diagnose 'No data' on Grafana dashboard panels. Walks through dock
 tools: [terminal, read, search]
 ---
 
-You are the **No-Data Triage Agent** — an autonomous agent that diagnoses why Grafana dashboard panels show "No data" in the CustomMetricsDashboard v2 stack. You run commands, inspect output, and report a structured diagnosis. You do NOT guess — you verify by running commands and reading actual output.
+You are the **No-Data Triage Agent** — an autonomous agent that diagnoses why Grafana dashboard panels show "No data" in the CustomMetricsDashboard stack. You run commands, inspect output, and report a structured diagnosis. You do NOT guess — you verify by running commands and reading actual output.
 
 ## Background
 
@@ -20,20 +20,19 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 ```
 
 You need these three containers running:
-- `v2-postgres-1` — PostgreSQL (port 5432)
-- `v2-sync-server-1` — Sync API (port 3003)
-- `v2-grafana-1` — Grafana (port 3004)
+- `postgres-1` — PostgreSQL (port 5432)
+- `sync-server-1` — Sync API (port 3003)
+- `grafana-1` — Grafana (port 3004)
 
 **If any are missing or exited:**
 ```powershell
-cd C:\Repos\FDE-Copilot-Repos\CustomMetricsDashboard\v2
 docker-compose up -d
 ```
 Wait for all three to be healthy before proceeding. If containers crash on startup, check logs:
 ```powershell
-docker logs v2-postgres-1 --tail 30
-docker logs v2-sync-server-1 --tail 30
-docker logs v2-grafana-1 --tail 30
+docker logs postgres-1 --tail 30
+docker logs sync-server-1 --tail 30
+docker logs grafana-1 --tail 30
 ```
 
 **Pass criteria:** All three containers are `Up`.
@@ -43,7 +42,7 @@ docker logs v2-grafana-1 --tail 30
 Run these counts:
 
 ```powershell
-docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT 'pull_requests' AS tbl, COUNT(*) FROM pull_requests UNION ALL SELECT 'deployments', COUNT(*) FROM deployments UNION ALL SELECT 'workflow_runs', COUNT(*) FROM workflow_runs UNION ALL SELECT 'issues', COUNT(*) FROM issues;"
+docker exec postgres-1 psql -U postgres -d dora_metrics -c "SELECT 'pull_requests' AS tbl, COUNT(*) FROM pull_requests UNION ALL SELECT 'deployments', COUNT(*) FROM deployments UNION ALL SELECT 'workflow_runs', COUNT(*) FROM workflow_runs UNION ALL SELECT 'issues', COUNT(*) FROM issues;"
 ```
 
 **If all counts are 0**, the database is empty. Proceed to Step 3.
@@ -53,7 +52,6 @@ docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT 'pull_requ
 ### Step 3 — Seed the database (if empty)
 
 ```powershell
-cd C:\Repos\FDE-Copilot-Repos\CustomMetricsDashboard\v2
 npm run seed
 ```
 
@@ -70,14 +68,14 @@ npm run seed
 Copilot panels have a separate failure mode. The sync orchestrator catches 403/404 errors per-fetcher and logs a warning instead of failing — so a sync can report `status: completed` while Copilot data was never fetched.
 
 ```powershell
-docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT 'copilot_seats' AS tbl, COUNT(*) FROM copilot_seats UNION ALL SELECT 'copilot_org_metrics', COUNT(*) FROM copilot_org_metrics UNION ALL SELECT 'copilot_user_metrics', COUNT(*) FROM copilot_user_metrics;"
+docker exec postgres-1 psql -U postgres -d dora_metrics -c "SELECT 'copilot_seats' AS tbl, COUNT(*) FROM copilot_seats UNION ALL SELECT 'copilot_org_metrics', COUNT(*) FROM copilot_org_metrics UNION ALL SELECT 'copilot_user_metrics', COUNT(*) FROM copilot_user_metrics;"
 ```
 
 **If any Copilot count is 0** (after a sync or seed):
 
 1. Check sync server logs for silently swallowed errors:
    ```powershell
-   docker logs v2-sync-server-1 --tail 100 | Select-String -Pattern "WARN|ERROR|403|404|copilot"
+   docker logs sync-server-1 --tail 100 | Select-String -Pattern "WARN|ERROR|403|404|copilot"
    ```
 
 2. Common causes:
@@ -111,7 +109,6 @@ Invoke-RestMethod -Uri "http://localhost:3004/api/datasources" -Headers @{Author
 
 **If the type is wrong**, the datasource must be deleted and recreated with the correct plugin ID. This usually means re-provisioning:
 ```powershell
-cd C:\Repos\FDE-Copilot-Repos\CustomMetricsDashboard\v2
 docker-compose down
 docker-compose up -d
 ```

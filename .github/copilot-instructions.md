@@ -17,16 +17,16 @@ At the start of any session, verify these tools are available and install if mis
 npm list -g typescript-language-server --depth=0 || npm install -g typescript-language-server typescript
 
 # ESLint (installed as a local dev dependency)
-cd v2 && npm list eslint --depth=0 || npm install
+npm list eslint --depth=0 || npm install
 ```
 
-Run `npm run lint` and `npm run build` from `v2/` to confirm the environment is healthy before making changes.
+Run `npm run lint` and `npm run build` to confirm the environment is healthy before making changes.
 
 
 
-GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact. The **active version is `v2/`**; `v1/` is legacy and should not be extended.
+GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact.
 
-## Commands (run from inside `v2/`)
+## Commands
 
 ```bash
 npm run dev          # Start sync server (tsx, port 3001)
@@ -127,64 +127,64 @@ Use the **`sync-verifier` agent** whenever you need to trigger a sync or diagnos
 Key points to remember without the agent:
 - A sync job can report `status: completed` while Copilot data was never fetched (errors are swallowed per-fetcher). **Always check `records_synced`** — if any `copilot_*` count is 0, check server logs for `WARN`/`ERROR`.
   - Via API: `GET http://localhost:3003/api/sync/jobs/{jobId}`
-  - Via DB: `docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT id, status, records_synced FROM sync_jobs ORDER BY id DESC LIMIT 3;"`
+  - Via DB: `docker exec postgres-1 psql -U postgres -d dora_metrics -c "SELECT id, status, records_synced FROM sync_jobs ORDER BY id DESC LIMIT 3;"`
 - Raw dump files at `data/raw/<resource>/<YYYY-MM-DDTHH-MM-SS>.json` contain only the **incremental delta** since `last_synced_at`. An empty `[]` file on a second same-day sync is normal, not an error.
-- The sync server must run **inside docker-compose** (`docker-compose up -d` from `v2/`). Running `npm run dev` locally fails with a `PG_HOST` DNS error.
+- The sync server must run **inside docker-compose** (`docker-compose up -d`). Running `npm run dev` locally fails with a `PG_HOST` DNS error.
 - After changing `.env` (especially `GITHUB_TOKEN`), restart the server to pick up new values: `docker-compose restart sync-server` or `docker-compose up -d`.
 - After editing TypeScript source files, rebuild the image before syncing: `docker-compose up -d --build`. A plain restart uses the old compiled image.
 
 ### Dashboard validation (Playwright)
 
-When making changes to dashboard JSON, Grafana SQL, or seed data, always capture **before** and **after** screenshots. Screenshots are stored in `v2/screenshots/` and should be committed to the PR so reviewers can visually verify the impact.
+When making changes to dashboard JSON, Grafana SQL, or seed data, always capture **before** and **after** screenshots. Screenshots are stored in `screenshots/` and should be committed to the PR so reviewers can visually verify the impact.
 
 #### Cloud agent sessions (Playwright MCP available)
 
 **Playwright MCP is configured** — use it directly. Do NOT write Node.js scripts or install `@playwright/cli` separately.
 
-1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and save the screenshot as `v2/screenshots/before-<dashboard-slug>.png`.
+1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and save the screenshot as `screenshots/before-<dashboard-slug>.png`.
 2. **Make** the changes.
-3. **After** applying changes — reload and save `v2/screenshots/after-<dashboard-slug>.png`.
+3. **After** applying changes — reload and save `screenshots/after-<dashboard-slug>.png`.
 4. Commit both to the PR.
 
 #### Local agent sessions (no Playwright MCP)
 
-Use the Playwright CLI directly (from the repo root or `v2/`):
+Use the Playwright CLI directly (from the repo root):
 
 ```bash
 # Before making changes — capture current state
-npx playwright screenshot "http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk" v2/screenshots/before-<name>.png
+npx playwright screenshot "http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk" screenshots/before-<name>.png
 
 # After applying changes — capture updated state
-npx playwright screenshot "http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk" v2/screenshots/after-<name>.png
+npx playwright screenshot "http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk" screenshots/after-<name>.png
 ```
 
-Dashboard UIDs come from the `"uid"` field in `v2/grafana/dashboards/*.json`. Pass credentials in the URL (`admin:admin@`). Use `?kiosk` to hide the nav bar for cleaner screenshots.
+Dashboard UIDs come from the `"uid"` field in `grafana/dashboards/*.json`. Pass credentials in the URL (`admin:admin@`). Use `?kiosk` to hide the nav bar for cleaner screenshots.
 
 **Post-implementation: always prompt the user** using `ask_user` to offer visual validation before finishing:
 - Ask whether they want the docker-compose stack started so they can validate changes at **http://localhost:3004**.
-- If yes: run `docker-compose up -d` from `v2/` (add `--build` if TypeScript source files were changed). If the database is empty, run `npm run seed`. Confirm Grafana is reachable, then let the user know they can open http://localhost:3004.
+- If yes: run `docker-compose up -d` (add `--build` if TypeScript source files were changed). If the database is empty, run `npm run seed`. Confirm Grafana is reachable, then let the user know they can open http://localhost:3004.
 - If no: proceed to commit.
 
 **Grafana 11 table selectors:** Table cells render as `role="cell"` (not `role="gridcell"`). Use `[role="row"]:has([role="cell"])` for data row selectors. Do not use `waitForLoadState('networkidle')` — the WebSocket connection keeps it from resolving. Use `waitForLoadState('load')` + `waitForTimeout(3000)` instead.
 
 ### Dashboard "No data" triage
 Check in this order:
-1. `docker ps` — confirm `v2-postgres-1`, `v2-sync-server-1`, and `v2-grafana-1` are all running
-2. `docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT COUNT(*) FROM pull_requests;"` — if 0, run `npm run seed` from `v2/`
+1. `docker ps` — confirm `postgres-1`, `sync-server-1`, and `grafana-1` are all running
+2. `docker exec postgres-1 psql -U postgres -d dora_metrics -c "SELECT COUNT(*) FROM pull_requests;"` — if 0, run `npm run seed`
 3. For Copilot panels: check `copilot_seats` count — if 0, a silent 403/404 occurred (see sync-and-verify skill)
 4. Verify Grafana datasource type at http://localhost:3004/connections/datasources — Grafana 12 renamed it from `postgres` to `grafana-postgresql-datasource`; a mismatch silently breaks all panels
 
 ### TypeScript edit workflow
-After editing any `.ts` file, call `ide-get_diagnostics` before running a Docker build or `npm run build`. A language server provides instant feedback — use it to catch type and syntax errors before the slow rebuild cycle. When running as a cloud agent (no LSP available), run `npm run build` from `v2/` after TypeScript edits to catch errors before proceeding.
+After editing any `.ts` file, call `ide-get_diagnostics` before running a Docker build or `npm run build`. A language server provides instant feedback — use it to catch type and syntax errors before the slow rebuild cycle. When running as a cloud agent (no LSP available), run `npm run build` after TypeScript edits to catch errors before proceeding.
 
-**Before committing or considering any task done**, run from `v2/`:
+**Before committing or considering any task done**, run:
 ```bash
 npm test && npm run lint && npm run build
 ```
 All three must pass. Fix any failures before proceeding.
 
 ### PR testing requirements
-Every pull request must pass **both** test suites before merge. Run from `v2/`.
+Every pull request must pass **both** test suites before merge.
 
 1. **Unit tests** (`npm test`) — run after every code change. Fast, offline, no Docker needed. Tests live in `tests/**/*.test.ts`.
 2. **E2E tests** (`npm run test:e2e`) — run when changes affect dashboard JSON, Grafana SQL, seed data, or the sync pipeline. Requires the docker-compose stack running and the database seeded. Tests live in `tests/e2e/*.spec.ts`.
