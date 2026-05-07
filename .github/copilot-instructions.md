@@ -24,7 +24,7 @@ Run `npm run build` from `v3/` to confirm the environment is healthy before maki
 
 
 
-GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact. The **active version is `v3/`**; `v1/` is legacy and should not be extended.
+GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact. The **active version is `v3/`**.
 
 ## Commands (run from inside `v3/`)
 
