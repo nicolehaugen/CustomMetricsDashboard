@@ -186,4 +186,4 @@ Every pull request must pass tests before merge. Run from `v3/`.
 2. **E2E tests** (`npm run test:e2e`) — run when changes affect dashboard JSON, Grafana SQL, or the sync pipeline. Requires the docker-compose stack running. Tests live in `tests/e2e/*.spec.ts`.
 
 ### Required env vars
-`GITHUB_TOKEN`, `GITHUB_ORG`, `GITHUB_REPO`, `PG_HOST`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD`. Use a **Classic PAT** (not fine-grained) — Copilot org endpoints may not support fine-grained tokens. Required scopes: `repo`, `read:org`, `admin:org`, `actions`.
+`GITHUB_TOKEN`, `GITHUB_ENTERPRISE`, `GITHUB_ORG`, `GITHUB_REPO`, `PG_HOST`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD`. Set `GITHUB_ENTERPRISE` in your environment or compose env file before running `docker compose up`, or the stack may fail immediately at startup. Use a **Classic PAT** (not fine-grained) — Copilot org endpoints may not support fine-grained tokens. Required scopes: `repo`, `read:org`, `admin:org`, `actions`.
