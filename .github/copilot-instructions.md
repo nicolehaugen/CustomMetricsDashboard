@@ -121,8 +121,8 @@ When adding or reordering sections, ensure every section has a spacer panel prec
 Use the **`sync-verifier` agent** whenever you need to trigger a sync or diagnose missing data. It covers: starting the docker-compose stack, triggering the sync, reading `records_synced`, and prescribing fixes for silent 403/404 failures.
 
 Key points to remember without the agent:
-- A sync job can report `status: completed` while Copilot data was never fetched (errors are swallowed per-fetcher). **Always check `records_synced`** — if any `copilot_*` count is 0, check server logs for `WARN`/`ERROR`.
-  - Via API: `GET http://localhost:3005/api/sync/jobs/{jobId}`
+- Trigger a sync with the real v3 API: `POST http://localhost:3005/sync`. The response is immediate (for example `{ "status": "done" }`) and does **not** include a `jobId` or a `/api/sync/jobs/{jobId}` status link.
+- A sync can report success while Copilot data was never fetched (errors are swallowed per-fetcher). **Always check `records_synced`** in Postgres — if any `copilot_*` count is 0, check server logs for `WARN`/`ERROR`.
   - Via DB: `docker exec v3-postgres-1 psql -U postgres -d metrics -c "SELECT id, status, records_synced FROM sync_jobs ORDER BY id DESC LIMIT 3;"`
 - v3 does **not** write raw JSON dumps under `data/raw/`. For troubleshooting, rely on `records_synced` plus sync-server container logs instead of looking for dump files.
 - The sync server must run **inside docker-compose** (`docker-compose up -d` from `v3/`). Running `npm run dev` locally fails with a `PG_HOST` DNS error.
