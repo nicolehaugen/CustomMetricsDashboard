@@ -118,13 +118,13 @@ The spacer is a transparent text panel with `h: 4` and empty markdown content â€
 When adding or reordering sections, ensure every section has a spacer panel preceding it. Use sequential ids in the 3xx range for spacers.
 
 ### Syncing data
-Use the **`sync-verifier` agent** whenever you need to trigger a sync or diagnose missing data. It covers: starting the docker-compose stack, triggering the sync, reading `records_synced`, inspecting raw dump files, and prescribing fixes for silent 403/404 failures.
+Use the **`sync-verifier` agent** whenever you need to trigger a sync or diagnose missing data. It covers: starting the docker-compose stack, triggering the sync, reading `records_synced`, and prescribing fixes for silent 403/404 failures.
 
 Key points to remember without the agent:
 - A sync job can report `status: completed` while Copilot data was never fetched (errors are swallowed per-fetcher). **Always check `records_synced`** â€” if any `copilot_*` count is 0, check server logs for `WARN`/`ERROR`.
   - Via API: `GET http://localhost:3005/api/sync/jobs/{jobId}`
   - Via DB: `docker exec v3-postgres-1 psql -U postgres -d metrics -c "SELECT id, status, records_synced FROM sync_jobs ORDER BY id DESC LIMIT 3;"`
-- Raw dump files at `data/raw/<resource>/<YYYY-MM-DDTHH-MM-SS>.json` contain only the **incremental delta** since `last_synced_at`. An empty `[]` file on a second same-day sync is normal, not an error.
+- v3 does **not** write raw JSON dumps under `data/raw/`. For troubleshooting, rely on `records_synced` plus sync-server container logs instead of looking for dump files.
 - The sync server must run **inside docker-compose** (`docker-compose up -d` from `v3/`). Running `npm run dev` locally fails with a `PG_HOST` DNS error.
 - After changing `.env` (especially `GITHUB_TOKEN`), restart the server to pick up new values: `docker-compose restart sync-server` or `docker-compose up -d`.
 - After editing TypeScript source files, rebuild the image before syncing: `docker-compose up -d --build`. A plain restart uses the old compiled image.
