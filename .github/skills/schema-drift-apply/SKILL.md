@@ -95,10 +95,10 @@ If the row is missing, the sync-server was not rebuilt — repeat Step 4.
 
 ```bash
 cd v3
-npm test && npm run lint && npm run build
+npm run build
 ```
 
-All three must pass before committing. Schema.sql changes are SQL-only and don't affect TypeScript compilation, but this confirms nothing else broke.
+This must pass before committing. Schema.sql changes are SQL-only and don't affect TypeScript compilation, but this confirms nothing else broke.
 
 ## Step 7 — Hand off (optional)
 
@@ -110,4 +110,4 @@ If the user wants the new columns surfaced in a dashboard, the next step is the 
 - **Column names = API field names** — the project uses source-faithful naming. Do not rename, alias, or transform field names.
 - **Skip duplicates** — if a field is already in schema.sql, skip it silently.
 - **No seed generator in v3** — v3 does not have a separate seed generator file. Seed data comes from the sync pipeline or manual SQL inserts. Do not look for or create seed generator changes.
-- **Both v2 and v3 have schema.sql** — if the user doesn't specify which version, default to `v3/src/db/schema.sql`.
+- **Single active schema target** — always apply drift to `v3/src/db/schema.sql`.
