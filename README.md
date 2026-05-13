@@ -1,5 +1,7 @@
 # DORA + Copilot Metrics Learning Dashboard
 
+<!-- Test-only README change to validate PR-triggered CI workflows. -->
+
 **Local-only educational dashboard** combining DORA (Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery) metrics with GitHub Copilot adoption and usage leading indicators to assess engineering success against the [GitHub Engineering System Success Playbook](https://github.com/resources/insights/engineering-system-success-playbook).
 
 ## Goals
