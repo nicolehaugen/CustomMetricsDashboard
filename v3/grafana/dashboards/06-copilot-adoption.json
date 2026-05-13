@@ -1,6 +1,6 @@
 {
   "uid": "edu-copilot-adoption",
-  "title": "🤖 Copilot Adoption [v3]",
+  "title": "🤖 Copilot Adoption",
   "description": "Tracks GitHub Copilot seat provisioning, activation rates, and daily active user trends across the organization.",
   "schemaVersion": 36,
   "version": 1,

@@ -378,7 +378,7 @@
       },
       "id": 51,
       "options": {
-        "content": "<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Why does schema drift happen?</strong>\nThe GitHub API occasionally adds new fields to its responses. On each sync, this app compares incoming API fields against the current database columns.\nIf a new field is found, it automatically runs <code>ALTER TABLE ADD COLUMN</code> ΓÇö the live database is updated immediately, no restart needed.\n</p>\n<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Live DB vs schema.sql</strong>\nThe automatic migration keeps the <em>live database</em> current, but it does <strong style=\"color:#e88\">not</strong> update the checked-in <code>v3/src/db/schema.sql</code> file.\nThe counter below shows how many columns have been auto-added to the live database but are still missing from that file.\nUntil schema.sql is updated, a fresh database rebuild will be missing those columns.\n</p>\n<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">How to update schema.sql</strong>\n</p>\n<ol style=\"color:#aaa;font-size:13px;margin:2px 12px 6px 28px\">\n<li>Check the <em>Drift History</em> table below to identify which tables and fields were auto-added.</li>\n<li>Open <code>v3/src/db/schema.sql</code> and add each missing column to the matching <code>CREATE TABLE</code> block using the type shown in the drift log.</li>\n<li>Commit: <code>git add v3/src/db/schema.sql &amp;&amp; git commit -m \"chore: sync schema.sql with auto-migrated columns\"</code></li>\n<li>No database rebuild needed ΓÇö the columns already exist in the live DB.</li>\n</ol>",
+        "content": "<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Why does schema drift happen?</strong>\nThe GitHub API occasionally adds new fields to its responses. On each sync, this app compares incoming API fields against the current database columns.\nIf a new field is found, it automatically runs <code>ALTER TABLE ADD COLUMN</code> ΓÇö the live database is updated immediately, no restart needed.\n</p>\n<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">Live DB vs schema.sql</strong>\nThe automatic migration keeps the <em>live database</em> current, but it does <strong style=\"color:#e88\">not</strong> update the checked-in <code>src/db/schema.sql</code> file.\nThe counter below shows how many columns have been auto-added to the live database but are still missing from that file.\nUntil schema.sql is updated, a fresh database rebuild will be missing those columns.\n</p>\n<p style=\"color:#aaa;font-size:13px;margin:6px 12px\">\n<strong style=\"color:#ddd\">How to update schema.sql</strong>\n</p>\n<ol style=\"color:#aaa;font-size:13px;margin:2px 12px 6px 28px\">\n<li>Check the <em>Drift History</em> table below to identify which tables and fields were auto-added.</li>\n<li>Open <code>src/db/schema.sql</code> and add each missing column to the matching <code>CREATE TABLE</code> block using the type shown in the drift log.</li>\n<li>Commit: <code>git add src/db/schema.sql &amp;&amp; git commit -m \"chore: sync schema.sql with auto-migrated columns\"</code></li>\n<li>No database rebuild needed ΓÇö the columns already exist in the live DB.</li>\n</ol>",
         "mode": "html"
       },
       "title": "",
@@ -514,7 +514,7 @@
     "to": "now"
   },
   "timepicker": {},
-  "title": "≡ƒôè Engineering Overview [v3]",
-  "uid": "v3-overview",
+  "title": "≡ƒôè Engineering Overview",
+  "uid": "overview",
   "version": 49
 }
