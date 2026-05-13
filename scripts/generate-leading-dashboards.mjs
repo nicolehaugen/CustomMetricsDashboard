@@ -1,4 +1,4 @@
-// One-shot generator. Run with: node v3/scripts/generate-leading-dashboards.mjs
+// One-shot generator. Run with: node scripts/generate-leading-dashboards.mjs
 // Generates 10-enterprise-copilot-leading.json and 11-organization-copilot-leading.json
 // matching the 09-per-user-copilot.json format (banner + overview + per-metric
 // spacer/row/stat/text learning guide sections).
