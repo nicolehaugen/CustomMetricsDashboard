@@ -1,4 +1,4 @@
-# v3: DORA + Copilot Metrics Learning Dashboard
+# DORA + Copilot Metrics Learning Dashboard
 
 **Local-only educational dashboard** combining DORA (Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery) metrics with GitHub Copilot adoption and usage leading indicators to assess engineering success against the [GitHub Engineering System Success Playbook](https://github.com/resources/insights/engineering-system-success-playbook).
 
@@ -26,8 +26,7 @@ Every panel includes a Learning Guide text block that documents its API source, 
 ### 1. Setup
 
 ```bash
-# Clone and navigate to v3
-cd v3
+# Clone the repository
 
 # Create .env from template
 cp .env.example .env
@@ -52,9 +51,9 @@ docker compose ps
 Expected output:
 ```
 NAME                 STATUS
-v3-postgres-1        Up (healthy)
-v3-sync-server-1     Up
-v3-grafana-1         Up
+custom-metrics-dashboard-postgres-1        Up (healthy)
+custom-metrics-dashboard-sync-server-1     Up
+custom-metrics-dashboard-grafana-1         Up
 ```
 
 ### 3. Sync Your First Dataset
@@ -238,7 +237,7 @@ This dashboard provides the **leading indicators** (Copilot adoption & engagemen
 
 ## Environment Variables
 
-Create a `.env` file in `v3/` with the following:
+Create a `.env` file in the repo root with the following:
 
 ```bash
 # GitHub Credentials
@@ -330,8 +329,6 @@ Example cron (run every 6 hours):
 ### Local Setup (for extending or debugging)
 
 ```bash
-cd v3
-
 # Install dependencies
 npm install
 
@@ -348,7 +345,7 @@ npm run test:e2e
 ### Project Structure
 
 ```
-v3/
+.
 ├── src/
 │   ├── server.ts              # Express API (sync endpoint)
 │   ├── sync/
@@ -386,15 +383,15 @@ v3/
 
 2. **Check PostgreSQL has data:**
    ```bash
-   docker exec v3-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FROM sync_jobs;"
+   docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FROM sync_jobs;"
    ```
    If returns `0`, trigger a sync: `curl -X POST http://localhost:3005/api/sync`
 
 3. **Check Copilot metrics were fetched:**
    ```bash
-   docker exec v3-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FROM copilot_enterprise_daily_summary;"
+   docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FROM copilot_enterprise_daily_summary;"
    ```
-   If returns `0`, check sync server logs: `docker logs v3-sync-server-1 | grep -i copilot`
+   If returns `0`, check sync server logs: `docker logs custom-metrics-dashboard-sync-server-1 | grep -i copilot`
 
 4. **Verify Grafana datasource:**
    - Open http://localhost:3006/connections/datasources
@@ -411,7 +408,7 @@ v3/
 
 - Confirm `GITHUB_ENTERPRISE` in `.env` is set to a valid Enterprise slug
 - Verify the Enterprise has Copilot seats provisioned
-- Check sync logs: `docker logs v3-sync-server-1 | tail -50`
+- Check sync logs: `docker logs custom-metrics-dashboard-sync-server-1 | tail -50`
 
 ### Grafana won't start
 
@@ -441,5 +438,5 @@ For issues or suggestions:
 ---
 
 **Created: April 29, 2026**  
-**Version: v3**  
+**Version: current**  
 **Status: Learning / Evaluation Dashboard (Local Docker only)**

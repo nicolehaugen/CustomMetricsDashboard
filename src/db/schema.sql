@@ -1,5 +1,5 @@
 -- ╔══════════════════════════════════════════════════════════════╗
--- ║  SCHEMA: CustomMetricsDashboard v3                           ║
+-- ║  SCHEMA: CustomMetricsDashboard                           ║
 -- ║                                                              ║
 -- ║  Column names match GitHub API field names exactly.          ║
 -- ║  Scalar fields → typed columns.                              ║

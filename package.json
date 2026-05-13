@@ -1,7 +1,7 @@
 {
-  "name": "custom-metrics-dashboard-v3",
+  "name": "custom-metrics-dashboard",
   "version": "3.0.0",
-  "description": "DORA + Copilot Metrics Learning Dashboard v3",
+  "description": "DORA + Copilot Metrics Learning Dashboard",
   "scripts": {
     "dev": "tsx src/server.ts",
     "sync": "tsx src/sync/orchestrator.ts",
