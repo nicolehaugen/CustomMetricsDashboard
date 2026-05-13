@@ -1,3 +1,4 @@
+name: custom-metrics-dashboard
 version: '3.8'
 services:
   postgres:
