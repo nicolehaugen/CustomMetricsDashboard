@@ -1,0 +1,23 @@
+{
+  "universe_usage_history": [
+    {
+      "universe": "Blade Runner",
+      "used_at": "2026-05-12T14:19:13Z",
+      "agent_count": 5
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "2026-05-12-initial": {
+      "assignment_id": "2026-05-12-initial",
+      "universe": "Blade Runner",
+      "created_at": "2026-05-12T14:19:13Z",
+      "agents": {
+        "deckard": "Lead",
+        "batty": "Backend Dev",
+        "zhora": "Data/Grafana Engineer",
+        "rachael": "DevRel / UX Educator",
+        "pris": "Tester"
+      }
+    }
+  }
+}

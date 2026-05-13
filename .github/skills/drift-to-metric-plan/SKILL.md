@@ -5,12 +5,12 @@ description: "**WORKFLOW SKILL** — Read-only proposer that turns auto-discover
 
 # Drift to Metric Plan
 
-Take one or more API drift columns that have already been committed to `v3/src/db/schema.sql` and produce a **Markdown proposal** for a new Grafana panel covering them. The proposal is for human review; this skill never edits dashboard JSON.
+Take one or more API drift columns that have already been committed to `src/db/schema.sql` and produce a **Markdown proposal** for a new Grafana panel covering them. The proposal is for human review; this skill never edits dashboard JSON.
 
 ## Prerequisites
 
 - The columns must exist in the **live database** (auto-applied by `applyDrift()` on a previous sync).
-- The columns must exist in **`v3/src/db/schema.sql`** (committed via the `schema-drift-apply` skill). If they are not yet in `schema.sql`, stop and instruct the user to run `schema-drift-apply` first.
+- The columns must exist in **`src/db/schema.sql`** (committed via the `schema-drift-apply` skill). If they are not yet in `schema.sql`, stop and instruct the user to run `schema-drift-apply` first.
 
 ## Inputs
 
@@ -23,12 +23,12 @@ If any input is missing, ask the user with `vscode_askQuestions`. Default to the
 ## Step 1 — Confirm columns are in `schema.sql`
 
 ```bash
-grep -nE "<field1>|<field2>" v3/src/db/schema.sql
+grep -nE "<field1>|<field2>" src/db/schema.sql
 ```
 
 If any field is missing, stop. Tell the user:
 
-> Column `<field>` is not in `v3/src/db/schema.sql` yet. Run the `schema-drift-apply` skill first, then re-invoke this one.
+> Column `<field>` is not in `src/db/schema.sql` yet. Run the `schema-drift-apply` skill first, then re-invoke this one.
 
 ## Step 2 — Profile the column in the live DB
 
@@ -37,32 +37,32 @@ For each field, run a one-liner via `docker exec` (PowerShell-friendly — see u
 **Numeric / BIGINT / NUMERIC:**
 
 ```bash
-docker exec v3-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) AS rows, COUNT(\"<field>\") AS non_null, COUNT(DISTINCT \"<field>\") AS distinct_, MIN(\"<field>\") AS min_, MAX(\"<field>\") AS max_, ROUND(AVG(\"<field>\")::numeric, 2) AS avg_, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY \"<field>\") AS median_ FROM <table>;"
+docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) AS rows, COUNT(\"<field>\") AS non_null, COUNT(DISTINCT \"<field>\") AS distinct_, MIN(\"<field>\") AS min_, MAX(\"<field>\") AS max_, ROUND(AVG(\"<field>\")::numeric, 2) AS avg_, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY \"<field>\") AS median_ FROM <table>;"
 ```
 
 **Boolean (`used_*`):**
 
 ```bash
-docker exec v3-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FILTER (WHERE \"<field>\") AS true_count, COUNT(*) FILTER (WHERE NOT \"<field>\") AS false_count, COUNT(*) AS total FROM <table>;"
+docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FILTER (WHERE \"<field>\") AS true_count, COUNT(*) FILTER (WHERE NOT \"<field>\") AS false_count, COUNT(*) AS total FROM <table>;"
 ```
 
 **JSONB (`totals_by_*`, `pull_requests`, etc.):**
 
 ```bash
-docker exec v3-postgres-1 psql -U postgres -d metrics -c "SELECT DISTINCT key FROM <table>, jsonb_object_keys(\"<field>\") AS key WHERE \"<field>\" IS NOT NULL LIMIT 50;"
+docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT DISTINCT key FROM <table>, jsonb_object_keys(\"<field>\") AS key WHERE \"<field>\" IS NOT NULL LIMIT 50;"
 ```
 
 **Text / timestamp:**
 
 ```bash
-docker exec v3-postgres-1 psql -U postgres -d metrics -c "SELECT \"<field>\", COUNT(*) FROM <table> WHERE \"<field>\" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 5;"
+docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT \"<field>\", COUNT(*) FROM <table> WHERE \"<field>\" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 5;"
 ```
 
 Capture: row count, non-null count, distinct count, min/max/median (numeric), true ratio (boolean), top-level keys (JSONB), 5 sample values. If `non_null = 0`, note the field is empty in current data and recommend deferring panel creation until data populates.
 
 ## Step 3 — Classify the field
 
-Mirror `inferType()` in [v3/src/db/insert.ts](v3/src/db/insert.ts) plus name-based heuristics:
+Mirror `inferType()` in [src/db/insert.ts](src/db/insert.ts) plus name-based heuristics:
 
 | Field name pattern | Suggested visualization | Aggregation |
 |---|---|---|
@@ -78,10 +78,10 @@ If ambiguous (e.g., a numeric field with very low distinct count), present 2 can
 
 | Table | Default target dashboard |
 |---|---|
-| `copilot_enterprise_daily`, `copilot_enterprise_*` | [v3/grafana/dashboards/10-enterprise-copilot-leading.json](v3/grafana/dashboards/10-enterprise-copilot-leading.json) or [12-enterprise-lagging.json](v3/grafana/dashboards/12-enterprise-lagging.json) |
-| `copilot_organization_*` | [v3/grafana/dashboards/11-organization-copilot-leading.json](v3/grafana/dashboards/11-organization-copilot-leading.json) |
-| `copilot_user_daily`, `copilot_user_*` | [v3/grafana/dashboards/09-per-user-copilot.json](v3/grafana/dashboards/09-per-user-copilot.json) |
-| `copilot_seats`, generic Copilot | [v3/grafana/dashboards/06-copilot-adoption.json](v3/grafana/dashboards/06-copilot-adoption.json) |
+| `copilot_enterprise_daily`, `copilot_enterprise_*` | `grafana/dashboards/10-enterprise-copilot-leading.json` or `12-enterprise-lagging.json` |
+| `copilot_organization_*` | `grafana/dashboards/11-organization-copilot-leading.json` |
+| `copilot_user_daily`, `copilot_user_*` | `grafana/dashboards/09-per-user-copilot.json` |
+| `copilot_seats`, generic Copilot | `grafana/dashboards/06-copilot-adoption.json` |
 | `pull_requests`, `deployments`, `workflow_runs`, `issues` | Ask the user — there is no single default. |
 
 When two candidates look equally valid (e.g., leading vs lagging for an enterprise metric), ask via `vscode_askQuestions`.
@@ -108,7 +108,7 @@ Required sections:
 7. **Next steps** — explicit list:
    - "Approve which panel(s) to ship (option A / B / none)."
    - "If approved, the standard dashboard-edit workflow plus the `playwright-screenshots` skill captures before/after PNGs."
-   - "Run `npm test && npm run lint && npm run build` from `v3/` before committing."
+   - "Run `npm run build && npm run test:e2e` from repo root before committing."
 
 ## Step 6 — Stop and wait for approval
 
@@ -122,7 +122,7 @@ Implementation, screenshots, and tests run only after the user explicitly choose
 
 - **Never edit dashboard JSON.** This skill is read-only and proposal-only.
 - **Never invent column names.** Use the exact API field names. The repo uses source-faithful naming.
-- **Default scope is `v3/`.** Only target `v2/` if the user explicitly asks.
+- **Default scope is root.** All paths are relative to the repo root.
 - **Every proposed panel must include a Learning Guide** in the four-panel pattern.
 - **Add a ⚠️ caveat** when the metric is a proxy (e.g., Copilot author attribution) or label-dependent (`incident`, `hotfix`, `bugfix`, `rollback`).
 - **Use one-liner shell commands.** Multi-line PowerShell may execute only the first line in this environment (see user memory).
