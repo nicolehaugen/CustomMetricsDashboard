@@ -17,7 +17,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
 // Redirect target after Ignore / Unignore click — back to the Overview
 // dashboard. Grafana is on port 3006 in docker-compose.
-const OVERVIEW_URL = 'http://localhost:3006/d/v3-overview';
+const OVERVIEW_URL = 'http://localhost:3006/d/overview';
 
 function ignoreResponse(res: express.Response, message: string) {
   res.status(200).type('html').send(
