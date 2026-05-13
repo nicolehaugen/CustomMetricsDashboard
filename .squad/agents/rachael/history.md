@@ -18,3 +18,12 @@ All documentation updated to reflect promotion from v3/ to repo root:
 - All skill files updated: `drift-to-metric-plan`, `schema-drift-apply`, `playwright-screenshots`, `setup-env` — removed v3/ and v2/ path prefixes.
 - Team history files updated: removed "Active version is v3/" references in all `.squad/agents/*/history.md` files.
 - Deckard's migration scope learning updated to reflect completion.
+
+### 2026-05-12T20:01:50-05:00 — Team Orchestration Summary Recorded
+
+Scribe recorded full orchestration trace:
+- 5 orchestration logs written (Deckard, Batty, Zhora, Pris, Rachael)
+- 1 session log written (v3-promotion summary)
+- Decisions merged from 4 inbox files
+- Cross-agent history updates appended to all team members
+- All `.squad/` artifacts ready for commit
