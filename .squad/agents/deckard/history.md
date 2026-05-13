@@ -31,3 +31,14 @@ All team members delivered on the v3 promotion sprint:
 - Pris: 1 commit (E2E test rewrite)
 - Rachael: 28 files (copilot-instructions + agents + skills)
 - Zero conflicts, all workflows passing, team ready for validation phase.
+
+### 2026-05-13T02:18:00Z — CI Workflow Hardening Complete
+
+**Deckard (Lead) + Pris (Tester) Sprint Outcome:**
+
+✅ Fixed `.github/workflows/test.yml` — heredoc escaping, 30-minute timeout, pre-E2E typecheck  
+✅ Fixed `.github/workflows/playwright.yml` — docker-compose health detection, anonymous auth, report upload  
+✅ E2E smoke suite: 6 dashboards, 0 seed dependency, all tests passing on empty DB  
+✅ Both workflows trigger on PR to master (test.yml also on push) + manual dispatch (playwright.yml)  
+
+Master branch CI is hardened and ready for production merge gates.
