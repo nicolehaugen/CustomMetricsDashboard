@@ -10,35 +10,26 @@ Skip only if you are already in an isolated worktree (current branch is non-defa
 
 ## Setup Checks
 
-At the start of any session, verify these tools are available and install if missing:
+At the start of any session, verify TypeScript language server is available and install if missing:
 
 ```powershell
-# TypeScript language server (required for LSP diagnostics)
 npm list -g typescript-language-server --depth=0 || npm install -g typescript-language-server typescript
-
-# ESLint (installed as a local dev dependency)
-cd v2 && npm list eslint --depth=0 || npm install
 ```
 
-Run `npm run lint` and `npm run build` from `v2/` to confirm the environment is healthy before making changes.
+Run `npm run build` from the repo root to confirm the environment is healthy before making changes.
 
+GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact.
 
-
-GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact. The **active version is `v2/`**.
-
-## Commands (run from inside `v2/`)
+## Commands (run from repo root)
 
 ```bash
-npm run dev          # Start sync server (tsx, port 3001)
-npm test             # Unit tests (Vitest)
-npx vitest run tests/bridge-resolver.test.ts   # Single unit test file
+npm run dev          # Start sync server (tsx, port 3005)
 npm run test:e2e     # Playwright E2E (requires docker-compose stack running)
 npm run build        # TypeScript compile check (tsc)
-npm run seed         # Load synthetic data (offline, no PAT needed)
 npm run sync         # Trigger a live sync via the API
 ```
 
-Grafana runs at **http://localhost:3004** (admin/admin). Sync API at **http://localhost:3003**.
+Grafana runs at **http://localhost:3006** (admin/admin). Sync API at **http://localhost:3005**.
 
 ## Architecture
 
@@ -54,8 +45,7 @@ Key components:
 - **`src/sync/bridge-resolver.ts`** — Links deployments to PRs by SHA. Two strategies: `direct_sha` (deployment.sha = PR.merge_commit_sha) and `squash_fallback` (deployment.sha = PR.head_sha). Results stored in `deployment_pull_requests`.
 - **`src/sync/schema-check.ts`** — `assertSchemaMatch()` is called before inserting Copilot data to verify API keys match DB columns. Throws `SchemaMismatchError` if the schema is stale.
 - **`src/sync/state.ts`** — `sync_state` table tracks `last_synced_at` per resource for incremental fetches (PRs, issues, deployments, workflow runs use this; Copilot tables are always TRUNCATE + INSERT).
-- **`seed/`** — Synthetic data generator. `SEED_CONFIG` in `seed/config.ts` controls volumes. Uses `DATA_MODE=seed` so dashboards show the amber banner.
-- **`grafana/dashboards/`** — Eight numbered JSON files (00–07). Edit dashboard JSON directly; Grafana auto-provisions them on startup.
+- **`grafana/dashboards/`** — Dashboard JSON files. Edit dashboard JSON directly; Grafana auto-provisions them on startup.
 
 ## Key Conventions
 
@@ -126,78 +116,65 @@ Use the **`sync-verifier` agent** whenever you need to trigger a sync or diagnos
 
 Key points to remember without the agent:
 - A sync job can report `status: completed` while Copilot data was never fetched (errors are swallowed per-fetcher). **Always check `records_synced`** — if any `copilot_*` count is 0, check server logs for `WARN`/`ERROR`.
-  - Via API: `GET http://localhost:3003/api/sync/jobs/{jobId}`
-  - Via DB: `docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT id, status, records_synced FROM sync_jobs ORDER BY id DESC LIMIT 3;"`
+  - Via API: `GET http://localhost:3005/api/sync/jobs/{jobId}`
+  - Via DB: `docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT id, status, records_synced FROM sync_jobs ORDER BY id DESC LIMIT 3;"`
 - Raw dump files at `data/raw/<resource>/<YYYY-MM-DDTHH-MM-SS>.json` contain only the **incremental delta** since `last_synced_at`. An empty `[]` file on a second same-day sync is normal, not an error.
-- The sync server must run **inside docker-compose** (`docker-compose up -d` from `v2/`). Running `npm run dev` locally fails with a `PG_HOST` DNS error.
+- The sync server must run **inside docker-compose** (`docker-compose up -d` from repo root). Running `npm run dev` locally fails with a `PG_HOST` DNS error.
 - After changing `.env` (especially `GITHUB_TOKEN`), restart the server to pick up new values: `docker-compose restart sync-server` or `docker-compose up -d`.
 - After editing TypeScript source files, rebuild the image before syncing: `docker-compose up -d --build`. A plain restart uses the old compiled image.
 
 ### Dashboard validation (Playwright)
 
-When making changes to dashboard JSON, Grafana SQL, or seed data, always capture **before** and **after** screenshots. Screenshots are stored in `v2/screenshots/` and should be committed to the PR so reviewers can visually verify the impact.
+When making changes to dashboard JSON or Grafana SQL, always capture **before** and **after** screenshots. Screenshots are stored in `screenshots/` and should be committed to the PR so reviewers can visually verify the impact.
 
 #### Cloud agent sessions (Playwright MCP available)
 
 **Playwright MCP is configured** — use it directly. Do NOT write Node.js scripts or install `@playwright/cli` separately.
 
-1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and save the screenshot as `v2/screenshots/before-<dashboard-slug>.png`.
+1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and save the screenshot as `screenshots/before-<dashboard-slug>.png`.
 2. **Make** the changes.
-3. **After** applying changes — reload and save `v2/screenshots/after-<dashboard-slug>.png`.
+3. **After** applying changes — reload and save `screenshots/after-<dashboard-slug>.png`.
 4. Commit both to the PR.
 
 #### Local agent sessions (no Playwright MCP)
 
-Use the Playwright CLI directly (from the repo root or `v2/`):
+Use the Playwright CLI directly (from the repo root):
 
 ```bash
 # Before making changes — capture current state
-npx playwright screenshot "http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk" v2/screenshots/before-<name>.png
+npx playwright screenshot "http://admin:admin@localhost:3006/d/<uid>?orgId=1&kiosk" screenshots/before-<name>.png
 
 # After applying changes — capture updated state
-npx playwright screenshot "http://admin:admin@localhost:3004/d/<uid>?orgId=1&kiosk" v2/screenshots/after-<name>.png
+npx playwright screenshot "http://admin:admin@localhost:3006/d/<uid>?orgId=1&kiosk" screenshots/after-<name>.png
 ```
 
-Dashboard UIDs come from the `"uid"` field in `v2/grafana/dashboards/*.json`. Pass credentials in the URL (`admin:admin@`). Use `?kiosk` to hide the nav bar for cleaner screenshots.
+Dashboard UIDs come from the `"uid"` field in `grafana/dashboards/*.json`. Pass credentials in the URL (`admin:admin@`). Use `?kiosk` to hide the nav bar for cleaner screenshots.
 
 **Post-implementation: always prompt the user** using `ask_user` to offer visual validation before finishing:
-- Ask whether they want the docker-compose stack started so they can validate changes at **http://localhost:3004**.
-- If yes: run `docker-compose up -d` from `v2/` (add `--build` if TypeScript source files were changed). If the database is empty, run `npm run seed`. Confirm Grafana is reachable, then let the user know they can open http://localhost:3004.
+- Ask whether they want the docker-compose stack started so they can validate changes at **http://localhost:3006**.
+- If yes: run `docker-compose up -d` from repo root (add `--build` if TypeScript source files were changed). Confirm Grafana is reachable, then let the user know they can open http://localhost:3006.
 - If no: proceed to commit.
 
 **Grafana 11 table selectors:** Table cells render as `role="cell"` (not `role="gridcell"`). Use `[role="row"]:has([role="cell"])` for data row selectors. Do not use `waitForLoadState('networkidle')` — the WebSocket connection keeps it from resolving. Use `waitForLoadState('load')` + `waitForTimeout(3000)` instead.
 
 ### Dashboard "No data" triage
 Check in this order:
-1. `docker ps` — confirm `v2-postgres-1`, `v2-sync-server-1`, and `v2-grafana-1` are all running
-2. `docker exec v2-postgres-1 psql -U postgres -d dora_metrics -c "SELECT COUNT(*) FROM pull_requests;"` — if 0, run `npm run seed` from `v2/`
-3. For Copilot panels: check `copilot_seats` count — if 0, a silent 403/404 occurred (see sync-and-verify skill)
-4. Verify Grafana datasource type at http://localhost:3004/connections/datasources — Grafana 12 renamed it from `postgres` to `grafana-postgresql-datasource`; a mismatch silently breaks all panels
+1. `docker ps` — confirm `custom-metrics-dashboard-postgres-1`, `custom-metrics-dashboard-sync-server-1`, and `custom-metrics-dashboard-grafana-1` are all running
+2. `docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FROM pull_requests;"` — if 0, check sync logs
+3. For Copilot panels: check `copilot_seats` count — if 0, a silent 403/404 occurred (see sync-verifier agent)
+4. Verify Grafana datasource type at http://localhost:3006/connections/datasources — Grafana 12 renamed it from `postgres` to `grafana-postgresql-datasource`; a mismatch silently breaks all panels
 
 ### TypeScript edit workflow
-After editing any `.ts` file, call `ide-get_diagnostics` before running a Docker build or `npm run build`. A language server provides instant feedback — use it to catch type and syntax errors before the slow rebuild cycle. When running as a cloud agent (no LSP available), run `npm run build` from `v2/` after TypeScript edits to catch errors before proceeding.
+After editing any `.ts` file, call `ide-get_diagnostics` before running a Docker build or `npm run build`. A language server provides instant feedback — use it to catch type and syntax errors before the slow rebuild cycle. When running as a cloud agent (no LSP available), run `npm run build` from repo root after TypeScript edits to catch errors before proceeding.
 
-**Before committing or considering any task done**, run from `v2/`:
+**Before committing or considering any task done**, run from repo root:
 ```bash
-npm test && npm run lint && npm run build
+npm run build && npm run test:e2e
 ```
-All three must pass. Fix any failures before proceeding.
+Both must pass. Fix any failures before proceeding.
 
-### PR testing requirements
-Every pull request must pass **both** test suites before merge. Run from `v2/`.
-
-1. **Unit tests** (`npm test`) — run after every code change. Fast, offline, no Docker needed. Tests live in `tests/**/*.test.ts`.
-2. **E2E tests** (`npm run test:e2e`) — run when changes affect dashboard JSON, Grafana SQL, seed data, or the sync pipeline. Requires the docker-compose stack running and the database seeded. Tests live in `tests/e2e/*.spec.ts`.
-
-Unit tests mock `../src/db/connection` by defining `mockPool` before the `vi.mock(...)` call:
-```ts
-const mockPool = { query: vi.fn() };
-vi.mock('../src/db/connection', () => ({ getPool: vi.fn(() => mockPool) }));
-```
-The mock must be defined before the mock factory to satisfy Vitest hoisting.
-
-### Data mode banner
-Every dashboard reads from the `data_mode` table to display a colored banner (🟢 live / 🟠 seed / 🎮 demo). Set `DATA_MODE`, `DATA_SOURCE_LABEL`, and `DATA_SOURCE_URL` in `.env` to control it.
+### E2E testing requirements
+Run E2E tests (`npm run test:e2e`) when changes affect dashboard JSON, Grafana SQL, or the sync pipeline. The docker-compose stack must be running. Tests live in `tests/e2e/*.spec.ts`.
 
 ### Required env vars
-`GITHUB_TOKEN`, `GITHUB_ORG`, `GITHUB_REPO`, `PG_HOST`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD`. Use a **Classic PAT** (not fine-grained) — Copilot org endpoints may not support fine-grained tokens. Required scopes: `repo`, `read:org`, `admin:org`, `actions`.
+`GITHUB_TOKEN`, `GITHUB_ENTERPRISE`, `GITHUB_ORG`, `GITHUB_REPO`. Use a **Classic PAT** (not fine-grained) — Copilot org endpoints may not support fine-grained tokens. Required scopes: `repo`, `read:org`, `admin:org`, `actions`.

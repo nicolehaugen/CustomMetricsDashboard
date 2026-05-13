@@ -1,11 +1,11 @@
 ---
 name: schema-drift-apply
-description: "**WORKFLOW SKILL** — Apply discovered API drift columns to v3/src/db/schema.sql, rebuild, and relaunch the app. User provides the table name and new field names; skill infers PostgreSQL types from naming conventions, patches schema.sql, rebuilds Docker, and verifies columns exist. WHEN: \"update schema for drift\", \"add drift columns\", \"schema has new fields\", \"API added new columns\", \"apply drift to schema\", \"new API fields discovered\", \"sync found new columns\". INVOKES: file editing, docker-compose, psql. FOR SINGLE OPERATIONS: manually add columns to schema.sql."
+description: "**WORKFLOW SKILL** — Apply discovered API drift columns to src/db/schema.sql, rebuild, and relaunch the app. User provides the table name and new field names; skill infers PostgreSQL types from naming conventions, patches schema.sql, rebuilds Docker, and verifies columns exist. WHEN: \"update schema for drift\", \"add drift columns\", \"schema has new fields\", \"API added new columns\", \"apply drift to schema\", \"new API fields discovered\", \"sync found new columns\". INVOKES: file editing, docker-compose, psql. FOR SINGLE OPERATIONS: manually add columns to schema.sql."
 ---
 
 # Schema Drift Apply
 
-Commit discovered API drift columns into `v3/src/db/schema.sql` so fresh deployments include them without waiting for the first sync's `applyDrift()` call.
+Commit discovered API drift columns into `src/db/schema.sql` so fresh deployments include them without waiting for the first sync's `applyDrift()` call.
 
 ## Inputs (from user prompt)
 
@@ -15,7 +15,7 @@ Commit discovered API drift columns into `v3/src/db/schema.sql` so fresh deploym
 
 ## Step 1 — Infer PostgreSQL column types
 
-Use naming conventions matching the patterns in `v3/src/db/insert.ts inferType()`:
+Use naming conventions matching the patterns in `src/db/insert.ts inferType()`:
 
 | Field name pattern | PostgreSQL type | Examples |
 |---|---|---|
@@ -37,7 +37,7 @@ If ambiguous, ask the user.
 
 ## Step 2 — Read current schema.sql
 
-Read `v3/src/db/schema.sql` and locate the `CREATE TABLE IF NOT EXISTS <table>` block. Confirm the fields do not already exist (idempotent — skip any that are already defined).
+Read `src/db/schema.sql` and locate the `CREATE TABLE IF NOT EXISTS <table>` block. Confirm the fields do not already exist (idempotent — skip any that are already defined).
 
 ## Step 3 — Patch schema.sql
 
@@ -56,17 +56,15 @@ Insert new columns into the `CREATE TABLE` block:
 
 ## Step 4 — Rebuild and relaunch (REQUIRED)
 
-`schema.sql` is **baked into the sync-server Docker image** via `COPY . .` in `v3/Dockerfile`. A plain `docker-compose restart` reuses the old image and your edits will not take effect — both the database init script and the runtime `schema_columns` indexer will still see the old file. Always use `--build`:
+`schema.sql` is **baked into the sync-server Docker image** via `COPY . .` in `Dockerfile`. A plain `docker-compose restart` reuses the old image and your edits will not take effect — both the database init script and the runtime `schema_columns` indexer will still see the old file. Always use `--build`:
 
 ```bash
-cd v3
 docker-compose up -d --build sync-server
 ```
 
 If the postgres volume is fresh (no existing data), bring the whole stack down and back up so the init script reruns with the new schema:
 
 ```bash
-cd v3
 docker-compose down
 docker-compose up -d --build
 ```
@@ -76,7 +74,7 @@ Wait for all containers to be healthy.
 ## Step 5 — Verify columns exist
 
 ```bash
-docker exec v3-postgres-1 psql -U postgres -d metrics \
+docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics \
   -c "\d <table>" | Select-String "<new_column_name>"
 ```
 
@@ -85,7 +83,7 @@ Run this for each new column. All must appear in the output.
 Then confirm the runtime `schema_columns` index picked up the edit (this is what the **Drift columns not yet in schema.sql** panel on the Overview dashboard reads from):
 
 ```bash
-docker exec v3-postgres-1 psql -U postgres -d metrics \
+docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics \
   -c "SELECT column_name FROM schema_columns WHERE table_name = '<table>' AND column_name = '<new_column_name>';"
 ```
 
@@ -94,11 +92,10 @@ If the row is missing, the sync-server was not rebuilt — repeat Step 4.
 ## Step 6 — Run validation
 
 ```bash
-cd v3
-npm test && npm run lint && npm run build
+npm run build
 ```
 
-All three must pass before committing. Schema.sql changes are SQL-only and don't affect TypeScript compilation, but this confirms nothing else broke.
+This confirms nothing else broke. Schema.sql changes are SQL-only and don't affect TypeScript compilation.
 
 ## Step 7 — Hand off (optional)
 
@@ -109,5 +106,4 @@ If the user wants the new columns surfaced in a dashboard, the next step is the 
 - **Additive only** — never remove or rename columns. Drift is always forward.
 - **Column names = API field names** — the project uses source-faithful naming. Do not rename, alias, or transform field names.
 - **Skip duplicates** — if a field is already in schema.sql, skip it silently.
-- **No seed generator in v3** — v3 does not have a separate seed generator file. Seed data comes from the sync pipeline or manual SQL inserts. Do not look for or create seed generator changes.
-- **Both v2 and v3 have schema.sql** — if the user doesn't specify which version, default to `v3/src/db/schema.sql`. Only update `v2/src/db/schema.sql` if explicitly asked.
+- **Database name is `metrics`.** All `psql` commands must use `-d metrics`.

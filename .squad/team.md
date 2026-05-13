@@ -23,7 +23,6 @@
 ## Project Context
 
 - **Owner:** Nicole Haugen
-- **Project:** CustomMetricsDashboard — DORA + Copilot Metrics Learning Dashboard v3. Docker-based (PostgreSQL + Grafana + sync service) pulling from GitHub's metrics API.
+- **Project:** CustomMetricsDashboard — DORA + Copilot Metrics Learning Dashboard. Docker-based (PostgreSQL + Grafana + sync service) pulling from GitHub's metrics API.
 - **Stack:** TypeScript, Express, Octokit, PostgreSQL 16, Grafana 11, Docker Compose, Playwright (E2E)
-- **Active version:** v3/
 - **Created:** 2026-05-12
