@@ -1,8 +1,0 @@
-node_modules/
-dist/
-.env
-data/raw/**
-!data/raw/**/.gitkeep
-*.js.map
-screenshots/**
-!screenshots/.gitkeep
