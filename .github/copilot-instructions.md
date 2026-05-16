@@ -10,12 +10,6 @@ Skip only if you are already in an isolated worktree (current branch is non-defa
 
 ## Setup Checks
 
-At the start of any session, verify TypeScript language server is available and install if missing:
-
-```powershell
-npm list -g typescript-language-server --depth=0 || npm install -g typescript-language-server typescript
-```
-
 Run `npm run build` from the repo root to confirm the environment is healthy before making changes.
 
 GitHub data → PostgreSQL → Grafana. Measures the four DORA pillars plus Copilot adoption and code impact.
