@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 const DASHBOARDS = [
   { name: 'Overview', uid: 'overview' },
@@ -9,28 +9,17 @@ const DASHBOARDS = [
   { name: 'Enterprise Lagging Indicators', uid: 'edu-enterprise-lagging' },
 ];
 
-async function login(page: Page) {
-  await page.goto('/login');
-  await page.waitForLoadState('load');
-  await page.fill('[name="user"]', 'admin');
-  await page.fill('[name="password"]', 'admin');
-  await page.click('[type="submit"]');
-  await page.waitForLoadState('load');
-  await page.waitForTimeout(1000);
-  await expect(page).not.toHaveURL(/\/login/i);
-}
-
-test.beforeEach(async ({ page }) => {
-  await login(page);
-});
-
 for (const dashboard of DASHBOARDS) {
-  test(`${dashboard.name} dashboard renders`, async ({ page }) => {
-    const response = await page.goto(`/d/${dashboard.uid}?orgId=1`);
+  test(`${dashboard.name} dashboard renders`, async ({ page }, testInfo) => {
+    // Anonymous auth is enabled — navigate directly, no login needed
+    const response = await page.goto(`/d/${dashboard.uid}?orgId=1&kiosk`);
     expect(response?.ok()).toBeTruthy();
 
     await page.waitForLoadState('load');
     await page.waitForTimeout(3000);
+
+    // Verify we're not redirected to login
+    await expect(page).not.toHaveURL(/\/login/i, { timeout: 5000 });
 
     const title = await page.title();
     expect(title.trim().length).toBeGreaterThan(0);
@@ -39,5 +28,11 @@ for (const dashboard of DASHBOARDS) {
     const panels = page.locator('[data-panelid]');
     await expect(panels.first()).toBeVisible();
     expect(await panels.count()).toBeGreaterThan(0);
+
+    // Capture a screenshot of the rendered dashboard
+    await testInfo.attach(`${dashboard.uid}-screenshot`, {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: 'image/png',
+    });
   });
 }

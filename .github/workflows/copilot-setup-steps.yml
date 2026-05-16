@@ -33,6 +33,56 @@ jobs:
       - name: Install project dependencies
         run: npm ci
 
+      - name: Start docker-compose stack
+        run: |
+          # Create .env so docker-compose can start the sync-server
+          cat > .env <<EOF
+          GITHUB_TOKEN=${GH_SYNC_TOKEN}
+          GITHUB_ENTERPRISE=${GITHUB_ENTERPRISE}
+          GITHUB_ORG=${GITHUB_ORG}
+          GITHUB_REPO=${GITHUB_REPO}
+          PG_USER=postgres
+          PG_PASSWORD=postgres
+          PG_HOST=postgres
+          PG_PORT=5432
+          PG_DATABASE=metrics
+          PORT=3005
+          EOF
+          docker compose up -d --build
+        env:
+          GH_SYNC_TOKEN: ${{ secrets.GH_SYNC_TOKEN }}
+          GITHUB_ENTERPRISE: ${{ secrets.GITHUB_ENTERPRISE }}
+          GITHUB_ORG: ${{ secrets.GITHUB_ORG }}
+          GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
+
+      - name: Wait for Grafana to be ready
+        run: |
+          echo "Waiting for Grafana..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3006/api/health > /dev/null 2>&1; then
+              echo "Grafana is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Grafana failed to start"
+          docker compose logs grafana
+          exit 1
+
+      - name: Wait for Postgres to be ready
+        run: |
+          echo "Waiting for Postgres..."
+          for i in $(seq 1 30); do
+            if docker exec custom-metrics-dashboard-postgres-1 pg_isready -U postgres > /dev/null 2>&1; then
+              echo "Postgres is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Postgres failed to start"
+          docker compose logs postgres
+          exit 1
+
       - name: Install Sensei skill
         run: |
           mkdir -p "$HOME/.copilot/skills"
