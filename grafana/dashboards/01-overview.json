@@ -61,18 +61,39 @@
       },
       "fieldConfig": {
         "defaults": {
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^Live: .+/.+$",
+                "result": {
+                  "color": "#73BF69",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "^Not yet synced$",
+                "result": {
+                  "color": "#FF9830",
+                  "index": 1
+                }
+              }
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "dark-red",
                 "value": null
               }
             ]
           },
           "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
+            "mode": "thresholds"
           }
         },
         "overrides": []
