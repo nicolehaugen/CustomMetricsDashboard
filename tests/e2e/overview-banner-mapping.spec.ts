@@ -28,4 +28,18 @@ test('overview data source banner uses live/not-synced color mappings', async ()
       }),
     ]),
   );
+
+  const mappings = panel.fieldConfig.defaults.mappings as Array<{
+    type: string;
+    options: { pattern: string; result: { color: string } };
+  }>;
+  const resolveColor = (value: string) => {
+    const hit = mappings.find(
+      (m) => m.type === 'regex' && new RegExp(m.options.pattern).test(value),
+    );
+    return hit?.options.result.color ?? panel.fieldConfig.defaults.thresholds.steps[0].color;
+  };
+
+  expect(resolveColor('Live: my-org/my-repo')).toBe('#73BF69');
+  expect(resolveColor('Not yet synced')).toBe('#FF9830');
 });
