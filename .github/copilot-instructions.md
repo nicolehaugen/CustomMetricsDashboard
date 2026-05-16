@@ -119,16 +119,16 @@ Key points to remember without the agent:
 
 ### Dashboard validation (Playwright)
 
-When making changes to dashboard JSON or Grafana SQL, always capture **before** and **after** screenshots for visual review. **Do NOT commit screenshots into the repository** — save them to a temporary location and embed them in the PR description instead (see [Screenshots in PR descriptions](#screenshots-in-pr-descriptions) below).
+When making changes to dashboard JSON or Grafana SQL, always capture **before** and **after** screenshots for visual review and embed them in the PR description (see [Screenshots in PR descriptions](#screenshots-in-pr-descriptions) below). **Do not commit screenshot PNGs to the repository.**
 
 #### Cloud agent sessions (Playwright MCP available)
 
 **Playwright MCP is configured** — use it directly. Do NOT write Node.js scripts or install `@playwright/cli` separately.
 
-1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and save the screenshot to a temporary location.
+1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and capture the screenshot.
 2. **Make** the changes.
-3. **After** applying changes — reload and save the after screenshot.
-4. Embed both in the PR description (see screenshot URL format below).
+3. **After** applying changes — reload and capture the after screenshot.
+4. Embed both in the PR description under a `## Visual verification` section (see [Screenshots in PR descriptions](#screenshots-in-pr-descriptions)).
 
 #### Local agent sessions (no Playwright MCP)
 
@@ -142,7 +142,7 @@ npx playwright screenshot "http://admin:admin@localhost:3006/d/<uid>?orgId=1&kio
 npx playwright screenshot "http://admin:admin@localhost:3006/d/<uid>?orgId=1&kiosk" /tmp/after-<name>.png
 ```
 
-Dashboard UIDs come from the `"uid"` field in `grafana/dashboards/*.json`. Pass credentials in the URL (`admin:admin@`). Use `?kiosk` to hide the nav bar for cleaner screenshots.
+Dashboard UIDs come from the `"uid"` field in `grafana/dashboards/*.json`. Pass credentials in the URL (`admin:admin@`). Use `?kiosk` to hide the nav bar for cleaner screenshots. Local sessions cannot publish images to a PR body — leave the PNGs on disk for your own review; the user can attach them manually if needed.
 
 **Post-implementation: always prompt the user** using `ask_user` to offer visual validation before finishing:
 - Ask whether they want the docker-compose stack started so they can validate changes at **http://localhost:3006**.
@@ -151,15 +151,36 @@ Dashboard UIDs come from the `"uid"` field in `grafana/dashboards/*.json`. Pass 
 
 ### Screenshots in PR descriptions
 
-**Do NOT commit Playwright screenshots into the repository.** When you need to show a screenshot in a PR description, save it to a temporary location only, then embed it using a `raw.githubusercontent.com` URL pinned to the commit SHA:
+Cloud agents (GitHub Copilot coding agent) can upload binary screenshots directly and receive a `https://github.com/user-attachments/assets/<uuid>` URL — the same form GitHub returns when a human drags an image into the PR comment box. Use that native capability; do not hand-construct URLs.
 
-```
-https://raw.githubusercontent.com/<owner>/<repo>/<commit-sha>/<path>
-```
+**Required workflow when a task changes dashboard JSON, Grafana SQL, or any user-visible Grafana surface:**
 
-Do **not** use `https://github.com/<owner>/<repo>/blob/<branch>/<path>` — those links break when the branch is deleted on merge. Always pin to the commit SHA so links remain valid.
+1. Capture before/after screenshots with Playwright MCP.
+2. Edit the PR body to include a `## Visual verification` section with embedded image markdown, for example:
 
-If screenshots must be persisted (e.g. for documentation), place them under `docs/screenshots/` and keep them small (< 200 KB each).
+   ```markdown
+   ## Visual verification
+
+   **Before:**
+
+   ![Overview banner — before](https://github.com/user-attachments/assets/<uuid>)
+
+   **After:**
+
+   ![Overview banner — after](https://github.com/user-attachments/assets/<uuid>)
+   ```
+
+3. **Verify each URL returns HTTP 200** before finishing:
+   ```bash
+   curl -fsI "https://github.com/user-attachments/assets/<uuid>"
+   ```
+   If any URL fails, the upload did not complete — retry the upload, do not fabricate a URL.
+
+**Hard rules:**
+
+- Do **not** commit screenshot PNGs to the repository (no `screenshots/`, no `docs/screenshots/pr-<n>/`, no committed binaries).
+- Do **not** invent or hand-construct `raw.githubusercontent.com`, `github.com/<owner>/<repo>/blob/...`, or any other URL for an image you have not actually uploaded. If you cannot produce a real `user-attachments/assets/<uuid>` URL backed by a 200 response, omit the screenshot and say so plainly in the PR body (e.g. "Screenshot upload unavailable in this session — Playwright capture saved at `/tmp/<name>.png`").
+- Do **not** write the heading `## Visual verification` unless it is immediately followed by `![](...)` lines whose URLs each return HTTP 200. No placeholder prose like "Embedded above", "See attached", or "Screenshots: `path/to/file.png`".
 
 **Grafana 11 table selectors:** Table cells render as `role="cell"` (not `role="gridcell"`). Use `[role="row"]:has([role="cell"])` for data row selectors. Do not use `waitForLoadState('networkidle')` — the WebSocket connection keeps it from resolving. Use `waitForLoadState('load')` + `waitForTimeout(3000)` instead.
 
