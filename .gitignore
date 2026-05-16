@@ -12,3 +12,8 @@ node_modules/
 dist/
 .env
 data/raw/
+# Playwright + screenshot artifacts must never be committed.
+# Screenshots embed in PR bodies via user-attachments uploads (see .github/copilot-instructions.md).
+playwright-report/
+test-results/
+screenshots/

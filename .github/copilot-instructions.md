@@ -123,12 +123,15 @@ When making changes to dashboard JSON or Grafana SQL, always capture **before** 
 
 #### Cloud agent sessions (Playwright MCP available)
 
-**Playwright MCP is configured** — use it directly. Do NOT write Node.js scripts or install `@playwright/cli` separately.
+**Playwright MCP is a [default MCP server](https://docs.github.com/en/copilot/concepts/agents/cloud-agent/mcp-and-cloud-agent#default-mcp-servers) for every cloud-agent session** — it is always available, ships with its own bundled browser, and has access to `localhost` / `127.0.0.1` (which is exactly where Grafana runs at `http://localhost:3006`). Call its tools directly (`browser_navigate`, `browser_take_screenshot`). **Do NOT** run `npx playwright install`, do NOT write Node.js capture scripts, and do NOT use the project's own `@playwright/test` install for screenshots — that is a separate Playwright instance used by `npm run test:e2e` and is unrelated to screenshot capture.
 
-1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and capture the screenshot.
-2. **Make** the changes.
-3. **After** applying changes — reload and capture the after screenshot.
-4. Embed both in the PR description under a `## Visual verification` section (see [Screenshots in PR descriptions](#screenshots-in-pr-descriptions)).
+Order of operations is strict — the visual-verification step **must complete before** `npm run test:e2e` so that a test-suite failure cannot skip the screenshot embed:
+
+1. **Before** making changes — navigate to the affected Grafana dashboard URL with Playwright MCP, wait for panels to load, and capture the "before" screenshot.
+2. **Make** the changes (edit dashboard JSON / Grafana SQL).
+3. **After** applying changes — reload and capture the "after" screenshot.
+4. **Upload and embed** both screenshots in the PR description under a `## Visual verification` section using `https://github.com/user-attachments/assets/<uuid>` URLs (see [Screenshots in PR descriptions](#screenshots-in-pr-descriptions) for the exact format and verification rules).
+5. **Only then** run `npm run build && npm run test:e2e` and finalize the PR. If `test:e2e` fails, do not delete or skip the already-embedded screenshots — fix the test failure and re-run.
 
 #### Local agent sessions (no Playwright MCP)
 
