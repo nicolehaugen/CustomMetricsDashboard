@@ -65,7 +65,7 @@
             {
               "type": "regex",
               "options": {
-                "pattern": "^Live: .+/.+$",
+                "pattern": "^Live: [^/]+/[^/]+$",
                 "result": {
                   "color": "#73BF69",
                   "index": 0
@@ -87,7 +87,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red",
+                "color": "#FF9830",
                 "value": null
               }
             ]
