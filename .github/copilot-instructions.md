@@ -119,16 +119,16 @@ Key points to remember without the agent:
 
 ### Dashboard validation (Playwright)
 
-When making changes to dashboard JSON or Grafana SQL, always capture **before** and **after** screenshots. Screenshots are stored in `screenshots/` and should be committed to the PR so reviewers can visually verify the impact.
+When making changes to dashboard JSON or Grafana SQL, always capture **before** and **after** screenshots for visual review. **Do NOT commit screenshots into the repository** — save them to a temporary location and embed them in the PR description instead (see [Screenshots in PR descriptions](#screenshots-in-pr-descriptions) below).
 
 #### Cloud agent sessions (Playwright MCP available)
 
 **Playwright MCP is configured** — use it directly. Do NOT write Node.js scripts or install `@playwright/cli` separately.
 
-1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and save the screenshot as `screenshots/before-<dashboard-slug>.png`.
+1. **Before** making changes — navigate to the affected Grafana dashboard URL, wait for panels to load, and save the screenshot to a temporary location.
 2. **Make** the changes.
-3. **After** applying changes — reload and save `screenshots/after-<dashboard-slug>.png`.
-4. Commit both to the PR.
+3. **After** applying changes — reload and save the after screenshot.
+4. Embed both in the PR description (see screenshot URL format below).
 
 #### Local agent sessions (no Playwright MCP)
 
@@ -136,10 +136,10 @@ Use the Playwright CLI directly (from the repo root):
 
 ```bash
 # Before making changes — capture current state
-npx playwright screenshot "http://admin:admin@localhost:3006/d/<uid>?orgId=1&kiosk" screenshots/before-<name>.png
+npx playwright screenshot "http://admin:admin@localhost:3006/d/<uid>?orgId=1&kiosk" /tmp/before-<name>.png
 
 # After applying changes — capture updated state
-npx playwright screenshot "http://admin:admin@localhost:3006/d/<uid>?orgId=1&kiosk" screenshots/after-<name>.png
+npx playwright screenshot "http://admin:admin@localhost:3006/d/<uid>?orgId=1&kiosk" /tmp/after-<name>.png
 ```
 
 Dashboard UIDs come from the `"uid"` field in `grafana/dashboards/*.json`. Pass credentials in the URL (`admin:admin@`). Use `?kiosk` to hide the nav bar for cleaner screenshots.
@@ -148,6 +148,18 @@ Dashboard UIDs come from the `"uid"` field in `grafana/dashboards/*.json`. Pass 
 - Ask whether they want the docker-compose stack started so they can validate changes at **http://localhost:3006**.
 - If yes: run `docker-compose up -d` from repo root (add `--build` if TypeScript source files were changed). Confirm Grafana is reachable, then let the user know they can open http://localhost:3006.
 - If no: proceed to commit.
+
+### Screenshots in PR descriptions
+
+**Do NOT commit Playwright screenshots into the repository.** When you need to show a screenshot in a PR description, save it to a temporary location only, then embed it using a `raw.githubusercontent.com` URL pinned to the commit SHA:
+
+```
+https://raw.githubusercontent.com/<owner>/<repo>/<commit-sha>/<path>
+```
+
+Do **not** use `https://github.com/<owner>/<repo>/blob/<branch>/<path>` — those links break when the branch is deleted on merge. Always pin to the commit SHA so links remain valid.
+
+If screenshots must be persisted (e.g. for documentation), place them under `docs/screenshots/` and keep them small (< 200 KB each).
 
 **Grafana 11 table selectors:** Table cells render as `role="cell"` (not `role="gridcell"`). Use `[role="row"]:has([role="cell"])` for data row selectors. Do not use `waitForLoadState('networkidle')` — the WebSocket connection keeps it from resolving. Use `waitForLoadState('load')` + `waitForTimeout(3000)` instead.
 
