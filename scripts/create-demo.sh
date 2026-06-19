@@ -88,13 +88,12 @@ if [[ -z "$ISSUE_URL" ]]; then
     "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
 fi
 
-ISSUE_JSON="$(gh issue view "$ISSUE_URL" -R "$BOOTSTRAP_REPO" --json number,url 2>/dev/null)" || true
-if [[ -z "$ISSUE_JSON" ]]; then
+ISSUE_NUMBER="$(gh issue view "$ISSUE_URL" -R "$BOOTSTRAP_REPO" --jq '.number' 2>/dev/null)" || true
+if [[ -z "$ISSUE_NUMBER" ]]; then
   emit_error "ERR_GH_AUTH" \
-    "Failed to read newly created demo issue from $BOOTSTRAP_REPO" \
+    "Failed to read issue number from $ISSUE_URL" \
     "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
 fi
-ISSUE_NUMBER="$(printf '%s' "$ISSUE_JSON" | grep -o '"number":[0-9]*' | grep -o '[0-9]*')"
 log "Created issue #$ISSUE_NUMBER: $ISSUE_URL"
 
 # --- Poll for demo::provisioned label ----------------------------------------
@@ -109,14 +108,15 @@ while true; do
       "Re-run once ready: bash scripts/use-demo.sh --issue $ISSUE_NUMBER"
   fi
 
-  ISSUE_DATA="$(gh issue view "$ISSUE_NUMBER" -R "$BOOTSTRAP_REPO" --json labels,title 2>/dev/null)" || true
-  if [[ -z "$ISSUE_DATA" ]]; then
-    emit_error "ERR_GH_AUTH" \
-      "Failed to read issue #$ISSUE_NUMBER from $BOOTSTRAP_REPO" \
-      "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
+  POLL_RESULT="$(gh issue view "$ISSUE_NUMBER" -R "$BOOTSTRAP_REPO" \
+    --jq '(.labels | map(.name) | join(",")) + "|" + .title' 2>/dev/null)" || true
+  if [[ -z "$POLL_RESULT" ]]; then
+    log "Warning: failed to read issue status -- will retry"
+    sleep 30
+    continue
   fi
-  LABELS="$(printf '%s' "$ISSUE_DATA" | grep -o '"name":"[^"]*"' | sed 's/"name":"//;s/"$//' | tr '\n' ',')"
-  TITLE="$(printf '%s' "$ISSUE_DATA" | grep -o '"title":"[^"]*"' | head -1 | sed 's/"title":"//;s/"$//')"
+  LABELS="${POLL_RESULT%%|*}"
+  TITLE="${POLL_RESULT#*|}"
 
   if printf '%s' "$LABELS" | grep -q "demo::provisioned" && \
      printf '%s' "$TITLE"  | grep -q "^Demo ::"; then

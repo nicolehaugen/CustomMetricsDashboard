@@ -1,6 +1,6 @@
 ---
 name: refresh-demo-env
-description: "**WORKFLOW SKILL** — Reconfigure the CustomMetricsDashboard to point at the user's current octodemo/bootstrap demo environment. WHEN: 'refresh demo env', 'dashboard data is stale', 'update demo environment', 'point dashboard at my demo', 'new demo was provisioned', 'weekly demo refresh'. INVOKES: gh CLI for bootstrap issue discovery, scripts/use-demo.sh or scripts/create-demo.sh. FOR SINGLE OPERATIONS: run bash scripts/use-demo.sh directly if a demo::provisioned issue already exists."
+description: "**WORKFLOW SKILL** — Reconfigure CustomMetricsDashboard `.env` to point at the user's current octodemo/bootstrap demo environment, then report the manual restart + `/sync` steps. WHEN: 'refresh demo env', 'dashboard data is stale', 'update demo environment', 'point dashboard at my demo', 'new demo was provisioned', 'weekly demo refresh'. INVOKES: gh CLI for bootstrap issue discovery, scripts/use-demo.sh or scripts/create-demo.sh. FOR SINGLE OPERATIONS: run bash scripts/use-demo.sh directly if a demo::provisioned issue already exists."
 ---
 
 # Refresh Demo Environment
@@ -13,7 +13,9 @@ Reconfigure the CustomMetricsDashboard's `.env` to point at the user's current
 Demo environments in `octodemo/bootstrap` are ephemeral — they are torn down
 weekly by an expiry workflow. After each teardown the user must create a new
 one (via `octodemo/bootstrap` issue) and reconfigure the dashboard. This
-skill automates that entire workflow.
+skill automates the reconfiguration step: it updates `.env` with the new org
+and repo. The user must then manually restart the sync-server container and
+POST `/sync` to complete the refresh.
 
 The dashboard reads `GITHUB_ORG` and `GITHUB_REPO` from `.env` at container
 start. The scripts update those two values; the user must then manually restart
@@ -135,7 +137,7 @@ On `status: success`, report to the user:
 | `ERR_DASHBOARD_TOKEN_NO_REPO_ACCESS` | Token can't read the new demo repo (404/403) | Ensure the PAT owner is a member of `octodemo`; wait if the demo just started provisioning |
 | `ERR_NO_PROVISIONED_DEMO` | No open `demo::provisioned` issue for this user | Run `create-demo.sh` |
 | `ERR_PROVISION_TIMEOUT` | Bootstrap workflow didn't label the issue within 20min | The `issueUrl` field in the JSON has the issue URL; check the Actions run in `octodemo/bootstrap`. When ready, re-run: `bash scripts/use-demo.sh --issue <n>` |
-| `ERR_BAD_ISSUE_TITLE` | Issue title doesn't match expected format | Verify the bootstrap issue title follows the pattern `Demo for <repo-slug>` |
+| `ERR_BAD_ISSUE_TITLE` | Issue title doesn't match expected format | Verify the bootstrap issue title follows the pattern `Demo :: <repo-slug> :: <version> :: <actor>` |
 | `ERR_INVALID_ARGS` | `use-demo.sh` was called with an unknown flag or missing `--issue` value | Re-run with `bash scripts/use-demo.sh [--issue <number>]` |
 
 ## Important

@@ -60,10 +60,11 @@ custom-metrics-dashboard-grafana-1         Up
 
 ```bash
 # Trigger a full sync (fetches GitHub data and loads into PostgreSQL)
-curl -X POST http://localhost:3005/api/sync
+curl -X POST http://localhost:3005/sync
 
 # Watch for completion:
 # Returns: { "jobId": "..." } 
+# Note: the manual trigger endpoint is POST /sync (not /api/sync)
 # Poll: GET http://localhost:3005/api/sync/jobs/{jobId}
 # Syncs typically complete in 30–60 seconds depending on data volume
 ```
@@ -340,7 +341,7 @@ This launches:
 ### Manually Trigger a Sync
 
 ```bash
-curl -X POST http://localhost:3005/api/sync
+curl -X POST http://localhost:3005/sync
 ```
 
 Response:
@@ -373,11 +374,11 @@ Expected response when complete:
 
 ### Automated Syncs
 
-The sync server **does not include a scheduler**. For recurring syncs, use an external cron job or GitHub Actions workflow to call the `/api/sync` endpoint.
+The sync server **does not include a scheduler**. For recurring syncs, use an external cron job or GitHub Actions workflow to call the `/sync` endpoint.
 
 Example cron (run every 6 hours):
 ```bash
-0 */6 * * * curl -X POST http://localhost:3005/api/sync
+0 */6 * * * curl -X POST http://localhost:3005/sync
 ```
 
 ---
@@ -443,7 +444,7 @@ npm run test:e2e
    ```bash
    docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FROM sync_jobs;"
    ```
-   If returns `0`, trigger a sync: `curl -X POST http://localhost:3005/api/sync`
+   If returns `0`, trigger a sync: `curl -X POST http://localhost:3005/sync`
 
 3. **Check Copilot metrics were fetched:**
    ```bash

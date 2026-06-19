@@ -9,10 +9,11 @@
 #   --issue <n>     Use a specific bootstrap issue number instead of auto-discovery.
 #
 # After running this script, restart the stack and trigger a sync manually:
-#   docker compose up -d --build
+#   docker compose restart sync-server
 #   curl -X POST http://localhost:3005/sync
 #
 # Error codes (emitted in JSON on non-zero exit):
+#   ERR_INVALID_ARGS                    Unknown flag or --issue missing a value
 #   ERR_GH_AUTH                        gh CLI not authenticated or can't reach octodemo/bootstrap
 #   ERR_NO_TOKEN                        .env missing or GITHUB_TOKEN not set
 #   ERR_NO_PROVISIONED_DEMO             No demo::provisioned issue found for current user
@@ -130,40 +131,54 @@ log "gh user: $GH_USER"
 
 if [[ -n "$ISSUE_NUMBER" ]]; then
   log "Using specified issue #$ISSUE_NUMBER..."
-  ISSUE_JSON="$(gh api "/repos/$BOOTSTRAP_REPO/issues/$ISSUE_NUMBER" \
-    --jq '{number, title, html_url}' 2>/dev/null)" || true
-  if [[ -z "$ISSUE_JSON" ]]; then
+  ISSUE_TITLE="$(gh api "/repos/$BOOTSTRAP_REPO/issues/$ISSUE_NUMBER" --jq '.title' 2>/dev/null)" || true
+  ISSUE_URL="$(gh api "/repos/$BOOTSTRAP_REPO/issues/$ISSUE_NUMBER" --jq '.html_url' 2>/dev/null)" || true
+  ISSUE_NUM="$ISSUE_NUMBER"
+  if [[ -z "$ISSUE_TITLE" || "$ISSUE_TITLE" == "null" || -z "$ISSUE_URL" || "$ISSUE_URL" == "null" ]]; then
     emit_error "ERR_GH_AUTH" \
       "Could not read issue #$ISSUE_NUMBER from $BOOTSTRAP_REPO" \
       "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
   fi
 else
   log "Discovering provisioned demo for $GH_USER..."
-  ISSUE_JSON="$(gh api -X GET "/repos/$BOOTSTRAP_REPO/issues" \
+  ISSUE_TITLE="$(gh api -X GET "/repos/$BOOTSTRAP_REPO/issues" \
     -f "labels=demo::provisioned" \
     -f "state=open" \
     -f "creator=$GH_USER" \
     -f "per_page=1" \
     -f "sort=updated" \
     -f "direction=desc" \
-    --jq '.[0] | {number, title, html_url}' 2>/dev/null)" || true
+    --jq '.[0].title' 2>/dev/null)" || true
+  ISSUE_URL="$(gh api -X GET "/repos/$BOOTSTRAP_REPO/issues" \
+    -f "labels=demo::provisioned" \
+    -f "state=open" \
+    -f "creator=$GH_USER" \
+    -f "per_page=1" \
+    -f "sort=updated" \
+    -f "direction=desc" \
+    --jq '.[0].html_url' 2>/dev/null)" || true
+  ISSUE_NUM="$(gh api -X GET "/repos/$BOOTSTRAP_REPO/issues" \
+    -f "labels=demo::provisioned" \
+    -f "state=open" \
+    -f "creator=$GH_USER" \
+    -f "per_page=1" \
+    -f "sort=updated" \
+    -f "direction=desc" \
+    --jq '.[0].number' 2>/dev/null)" || true
 
-  if [[ -z "$ISSUE_JSON" ]]; then
+  if [[ -z "$ISSUE_TITLE" && -z "$ISSUE_URL" && -z "$ISSUE_NUM" ]]; then
     emit_error "ERR_GH_AUTH" \
       "Could not discover provisioned demo issues for $GH_USER" \
       "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
   fi
 
-  if [[ "$ISSUE_JSON" == "null" || -z "$ISSUE_JSON" ]]; then
+  if [[ -z "$ISSUE_TITLE" || "$ISSUE_TITLE" == "null" ]]; then
     emit_error "ERR_NO_PROVISIONED_DEMO" \
       "No open demo::provisioned issue found for $GH_USER in octodemo/bootstrap" \
       "Run: bash scripts/create-demo.sh"
   fi
 fi
 
-ISSUE_TITLE="$(printf '%s' "$ISSUE_JSON" | grep -o '"title":"[^"]*"' | sed 's/"title":"//;s/"$//')"
-ISSUE_URL="$(printf '%s' "$ISSUE_JSON" | grep -o '"html_url":"[^"]*"' | sed 's/"html_url":"//;s/"$//')"
-ISSUE_NUM="$(printf '%s' "$ISSUE_JSON" | grep -o '"number":[0-9]*' | grep -o '[0-9]*')"
 log "Issue #$ISSUE_NUM: $ISSUE_TITLE"
 
 # ─── Parse repo slug from issue title ────────────────────────────────────────
@@ -206,13 +221,14 @@ esac
 
 CURRENT_ORG="$(grep -E '^GITHUB_ORG=' "$ENV_FILE" | head -1 | cut -d= -f2- || echo "")"
 CURRENT_REPO="$(grep -E '^GITHUB_REPO=' "$ENV_FILE" | head -1 | cut -d= -f2- || echo "")"
+CURRENT_ORG_LC="${CURRENT_ORG,,}"
 
-if [[ "$CURRENT_ORG" == "$DEMO_ORG" && "$CURRENT_REPO" == "$NEW_REPO" ]]; then
+if [[ "$CURRENT_ORG_LC" == "$DEMO_ORG" && "$CURRENT_REPO" == "$NEW_REPO" ]]; then
   log ".env already points to $DEMO_ORG/$NEW_REPO — no change needed"
   emit_success "$NEW_REPO" "$ISSUE_URL"
 fi
 
-BACKUP="$ENV_FILE.bak.$(date +%s)"
+BACKUP="${TMPDIR:-/tmp}/env-use-demo-bak.$(date +%s)"
 cp "$ENV_FILE" "$BACKUP"
 log "Backed up .env -> $BACKUP"
 
