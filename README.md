@@ -94,7 +94,7 @@ Discovers your open `demo::provisioned` issue in `octodemo/bootstrap`, parses th
 repo slug from the issue title, rewrites `GITHUB_ORG` and `GITHUB_REPO` in `.env`,
 and prints the manual next step to restart the sync-server and trigger a sync:
 ```bash
-docker compose restart sync-server
+docker compose up -d sync-server
 curl -X POST http://localhost:3005/sync
 ```
 

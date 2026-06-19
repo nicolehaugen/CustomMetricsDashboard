@@ -84,7 +84,7 @@ go to stderr. On success the script prints the new org/repo. The user must then
 restart the stack and trigger a sync manually:
 
 ```bash
-docker compose restart sync-server
+docker compose up -d sync-server
 curl -X POST http://localhost:3005/sync
 ```
 
@@ -123,7 +123,7 @@ On `status: success`, report to the user:
 - `newOrg/newRepo` — the new target
 - Remind them to restart the sync-server and trigger a sync:
   ```bash
-  docker compose restart sync-server
+  docker compose up -d sync-server
   curl -X POST http://localhost:3005/sync
   ```
 
