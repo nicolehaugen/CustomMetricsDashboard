@@ -182,8 +182,8 @@ log "Parsed repo slug: $NEW_REPO"
 # ─── Verify dashboard token can read the new repo ────────────────────────────
 
 log "Verifying dashboard token against octodemo/$NEW_REPO..."
-HTTP_CODE="$(curl -sS -o /dev/null -w "%{http_code}" \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
+HTTP_CODE="$(printf 'header = "Authorization: Bearer %s"\n' "$GITHUB_TOKEN" | \
+  curl -sS -o /dev/null -w "%{http_code}" --config - \
   "https://api.github.com/repos/$DEMO_ORG/$NEW_REPO" 2>/dev/null || echo "000")"
 
 case "$HTTP_CODE" in
