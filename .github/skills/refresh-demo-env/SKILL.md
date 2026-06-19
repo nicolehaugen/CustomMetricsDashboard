@@ -79,7 +79,8 @@ bash scripts/use-demo.sh
 ```
 
 Captures and parses the final JSON line (last line of stdout). All log lines
-go to stderr.
+go to stderr. On success the script prints the new org/repo — the user then
+restarts the stack and triggers a sync manually.
 
 ## Step 3b — Create new demo (if needed)
 

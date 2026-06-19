@@ -28,8 +28,6 @@ BACKEND="nodejs"
 AZURE="No"
 VERSION="v4.10.0"
 TIMEOUT_MIN=20
-DRY_RUN=false
-SKIP_SYNC=false
 BOOTSTRAP_REPO="octodemo/bootstrap"
 DEDUPE_MARKER="created-by: refresh-demo-env"
 
@@ -39,12 +37,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --backend)     BACKEND="$2";                        shift 2 ;;
-    --azure)       AZURE="$2";                          shift 2 ;;
-    --version)     VERSION="$2";                        shift 2 ;;
-    --timeout-min) TIMEOUT_MIN="$2";                    shift 2 ;;
-    --dry-run)     DRY_RUN=true;                        shift ;;
-    --skip-sync)   SKIP_SYNC=true;                      shift ;;
+    --backend)     BACKEND="$2";     shift 2 ;;
+    --azure)       AZURE="$2";       shift 2 ;;
+    --version)     VERSION="$2";     shift 2 ;;
+    --timeout-min) TIMEOUT_MIN="$2"; shift 2 ;;
     *) echo "Unknown flag: $1" >&2; exit 1 ;;
   esac
 done
@@ -208,10 +204,4 @@ done
 
 log "Provisioning complete. Delegating to use-demo.sh --issue $ISSUE_NUMBER..."
 
-EXTRA_FLAGS=()
-$DRY_RUN   && EXTRA_FLAGS+=("--dry-run")
-$SKIP_SYNC && EXTRA_FLAGS+=("--skip-sync")
-
-exec bash "$SCRIPT_DIR/use-demo.sh" \
-  --issue "$ISSUE_NUMBER" \
-  "${EXTRA_FLAGS[@]}"
+exec bash "$SCRIPT_DIR/use-demo.sh" --issue "$ISSUE_NUMBER"
