@@ -60,10 +60,11 @@ custom-metrics-dashboard-grafana-1         Up
 
 ```bash
 # Trigger a full sync (fetches GitHub data and loads into PostgreSQL)
-curl -X POST http://localhost:3005/api/sync
+curl -X POST http://localhost:3005/sync
 
 # Watch for completion:
 # Returns: { "jobId": "..." } 
+# Note: the manual trigger endpoint is POST /sync (not /api/sync)
 # Poll: GET http://localhost:3005/api/sync/jobs/{jobId}
 # Syncs typically complete in 30–60 seconds depending on data volume
 ```
@@ -71,6 +72,64 @@ curl -X POST http://localhost:3005/api/sync
 ### 4. Open Grafana
 
 Navigate to **http://localhost:3006** (user: `admin` / password: `admin`)
+
+---
+
+## Ephemeral Demo Environments (`octodemo/bootstrap`)
+
+If you are using an [octodemo/bootstrap](https://github.com/octodemo/bootstrap)-provisioned
+demo environment, the dashboard's `GITHUB_ORG` and `GITHUB_REPO` values must be updated
+each time a new demo is created (bootstrap demos are torn down weekly).
+
+Two scripts automate this. Both require `bash` (Git for Windows or WSL on Windows)
+and the [`gh` CLI](https://cli.github.com/) authenticated against `github.com`.
+
+### Point the dashboard at your current provisioned demo
+
+```bash
+bash scripts/use-demo.sh
+```
+
+Discovers your open `demo::provisioned` issue in `octodemo/bootstrap`, parses the
+repo slug from the issue title, rewrites `GITHUB_ORG` and `GITHUB_REPO` in `.env`,
+and prints the manual next step to restart the sync-server and trigger a sync:
+```bash
+docker compose up -d sync-server
+curl -X POST http://localhost:3005/sync
+```
+
+Optional flags:
+- `--issue <n>` — use a specific bootstrap issue number instead of auto-discovery
+
+### Create a new demo + configure
+
+```bash
+bash scripts/create-demo.sh
+```
+
+Opens a new issue in `octodemo/bootstrap` using the OctoCat Supply Platform template,
+polls every 30 seconds until the `demo::provisioned` label appears (up to 20 minutes),
+then delegates to `use-demo.sh` automatically, which prints the manual restart/sync
+step shown above.
+
+### What changes (and what doesn't)
+
+| Value | Updated by scripts | Notes |
+|---|---|---|
+| `GITHUB_ORG` | ✅ Always set to `octodemo` | Constant across all bootstrap demos |
+| `GITHUB_REPO` | ✅ Parsed from bootstrap issue title | Changes each new demo |
+| `GITHUB_ENTERPRISE` | ❌ Never touched | Set manually once; constant across demos |
+| `GITHUB_TOKEN` | ❌ Never touched | Manage via `setup-env` skill |
+
+### Agent automation (Copilot skill)
+
+The **`refresh-demo-env`** skill (`.github/skills/refresh-demo-env/SKILL.md`) provides
+an agent-driven decision tree: it checks whether a sufficiently-recent provisioned demo
+already exists and calls `use-demo.sh` or `create-demo.sh` accordingly. Use it when you
+want Copilot to handle the refresh autonomously.
+
+> **Note:** `octodemo/bootstrap` is a private repository. Both scripts require that your
+> `gh` CLI account and your `GITHUB_TOKEN` (in `.env`) are members of the `octodemo` org.
 
 ---
 
@@ -282,7 +341,7 @@ This launches:
 ### Manually Trigger a Sync
 
 ```bash
-curl -X POST http://localhost:3005/api/sync
+curl -X POST http://localhost:3005/sync
 ```
 
 Response:
@@ -315,11 +374,11 @@ Expected response when complete:
 
 ### Automated Syncs
 
-The sync server **does not include a scheduler**. For recurring syncs, use an external cron job or GitHub Actions workflow to call the `/api/sync` endpoint.
+The sync server **does not include a scheduler**. For recurring syncs, use an external cron job or GitHub Actions workflow to call the `/sync` endpoint.
 
 Example cron (run every 6 hours):
 ```bash
-0 */6 * * * curl -X POST http://localhost:3005/api/sync
+0 */6 * * * curl -X POST http://localhost:3005/sync
 ```
 
 ---
@@ -385,7 +444,7 @@ npm run test:e2e
    ```bash
    docker exec custom-metrics-dashboard-postgres-1 psql -U postgres -d metrics -c "SELECT COUNT(*) FROM sync_jobs;"
    ```
-   If returns `0`, trigger a sync: `curl -X POST http://localhost:3005/api/sync`
+   If returns `0`, trigger a sync: `curl -X POST http://localhost:3005/sync`
 
 3. **Check Copilot metrics were fetched:**
    ```bash
