@@ -112,7 +112,7 @@ fi
 
 # ─── Discover provisioned issue ──────────────────────────────────────────────
 
-GH_USER="$(gh api /user --jq '.login' 2>/dev/null)"
+GH_USER="$(gh api /user --jq '.login' 2>/dev/null)" || true
 if [[ -z "$GH_USER" ]]; then
   emit_error "ERR_GH_AUTH" \
     "Could not determine gh CLI username" \
@@ -123,7 +123,12 @@ log "gh user: $GH_USER"
 if [[ -n "$ISSUE_NUMBER" ]]; then
   log "Using specified issue #$ISSUE_NUMBER..."
   ISSUE_JSON="$(gh api "/repos/$BOOTSTRAP_REPO/issues/$ISSUE_NUMBER" \
-    --jq '{number, title, html_url}')"
+    --jq '{number, title, html_url}' 2>/dev/null)" || true
+  if [[ -z "$ISSUE_JSON" ]]; then
+    emit_error "ERR_GH_AUTH" \
+      "Could not read issue #$ISSUE_NUMBER from $BOOTSTRAP_REPO" \
+      "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
+  fi
 else
   log "Discovering provisioned demo for $GH_USER..."
   ISSUE_JSON="$(gh api -X GET "/repos/$BOOTSTRAP_REPO/issues" \
@@ -133,7 +138,13 @@ else
     -f "per_page=1" \
     -f "sort=updated" \
     -f "direction=desc" \
-    --jq '.[0] | {number, title, html_url}')"
+    --jq '.[0] | {number, title, html_url}' 2>/dev/null)" || true
+
+  if [[ -z "$ISSUE_JSON" ]]; then
+    emit_error "ERR_GH_AUTH" \
+      "Could not discover provisioned demo issues for $GH_USER" \
+      "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
+  fi
 
   if [[ "$ISSUE_JSON" == "null" || -z "$ISSUE_JSON" ]]; then
     emit_error "ERR_NO_PROVISIONED_DEMO" \
