@@ -48,17 +48,29 @@ done
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
+json_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  printf '%s' "$s"
+}
+
 emit_error() {
   local code="$1" msg="$2" hint="${3:-}"
   printf '{"status":"error","code":"%s","message":"%s","hint":"%s"}\n' \
-    "$code" "$msg" "$hint"
+    "$(json_escape "$code")" \
+    "$(json_escape "$msg")" \
+    "$(json_escape "$hint")"
   exit 1
 }
 
 emit_success() {
   local new_repo="$1" issue_url="$2"
   printf '{"status":"success","action":"use","newOrg":"%s","newRepo":"%s","issueUrl":"%s"}\n' \
-    "$DEMO_ORG" "$new_repo" "$issue_url"
+    "$(json_escape "$DEMO_ORG")" \
+    "$(json_escape "$new_repo")" \
+    "$(json_escape "$issue_url")"
 }
 
 log() { echo "[use-demo] $*" >&2; }

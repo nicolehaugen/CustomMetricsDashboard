@@ -23,10 +23,21 @@ ISSUE_URL=""
 
 log() { echo "[create-demo] $*" >&2; }
 
+json_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  printf '%s' "$s"
+}
+
 emit_error() {
   local code="$1" msg="$2" hint="${3:-}"
   printf '{"status":"error","code":"%s","message":"%s","hint":"%s","issueUrl":"%s"}\n' \
-    "$code" "$msg" "$hint" "$ISSUE_URL"
+    "$(json_escape "$code")" \
+    "$(json_escape "$msg")" \
+    "$(json_escape "$hint")" \
+    "$(json_escape "$ISSUE_URL")"
   exit 1
 }
 
