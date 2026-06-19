@@ -198,6 +198,6 @@ grep -qE '^[[:space:]]*GITHUB_REPO=' "$TMPFILE" || echo "GITHUB_REPO=$NEW_REPO" 
 
 mv "$TMPFILE" "$ENV_FILE"
 log ".env updated: GITHUB_ORG=$DEMO_ORG, GITHUB_REPO=$NEW_REPO"
-log "Next step: docker compose up -d --build && curl -X POST http://localhost:3005/sync"
+log "Next step: docker compose restart sync-server && curl -X POST http://localhost:3005/sync"
 
 emit_success "$NEW_REPO" "$ISSUE_URL"
