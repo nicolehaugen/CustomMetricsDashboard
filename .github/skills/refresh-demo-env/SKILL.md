@@ -136,6 +136,7 @@ On `status: success`, report to the user:
 | `ERR_NO_PROVISIONED_DEMO` | No open `demo::provisioned` issue for this user | Run `create-demo.sh` |
 | `ERR_PROVISION_TIMEOUT` | Bootstrap workflow didn't label the issue within 20min | The `issueUrl` field in the JSON has the issue URL; check the Actions run in `octodemo/bootstrap`. When ready, re-run: `bash scripts/use-demo.sh --issue <n>` |
 | `ERR_BAD_ISSUE_TITLE` | Issue title doesn't match expected format | Verify the bootstrap issue title follows the pattern `Demo for <repo-slug>` |
+| `ERR_INVALID_ARGS` | `use-demo.sh` was called with an unknown flag or missing `--issue` value | Re-run with `bash scripts/use-demo.sh [--issue <number>]` |
 
 ## Important
 
