@@ -81,9 +81,19 @@ ISSUE_URL="$(printf '%s' "$ISSUE_BODY" | \
     -t "Demo Creation :: OctoCat Supply Platform :: v4.10.0" \
     -l "demo" \
     -l "template" \
-    -F -)"
+    -F - 2>/dev/null)" || true
+if [[ -z "$ISSUE_URL" ]]; then
+  emit_error "ERR_GH_AUTH" \
+    "Failed to create demo issue in $BOOTSTRAP_REPO" \
+    "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
+fi
 
-ISSUE_JSON="$(gh issue view "$ISSUE_URL" -R "$BOOTSTRAP_REPO" --json number,url)"
+ISSUE_JSON="$(gh issue view "$ISSUE_URL" -R "$BOOTSTRAP_REPO" --json number,url 2>/dev/null)" || true
+if [[ -z "$ISSUE_JSON" ]]; then
+  emit_error "ERR_GH_AUTH" \
+    "Failed to read newly created demo issue from $BOOTSTRAP_REPO" \
+    "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
+fi
 ISSUE_NUMBER="$(printf '%s' "$ISSUE_JSON" | grep -o '"number":[0-9]*' | grep -o '[0-9]*')"
 log "Created issue #$ISSUE_NUMBER: $ISSUE_URL"
 
@@ -99,7 +109,12 @@ while true; do
       "Re-run once ready: bash scripts/use-demo.sh --issue $ISSUE_NUMBER"
   fi
 
-  ISSUE_DATA="$(gh issue view "$ISSUE_NUMBER" -R "$BOOTSTRAP_REPO" --json labels,title)"
+  ISSUE_DATA="$(gh issue view "$ISSUE_NUMBER" -R "$BOOTSTRAP_REPO" --json labels,title 2>/dev/null)" || true
+  if [[ -z "$ISSUE_DATA" ]]; then
+    emit_error "ERR_GH_AUTH" \
+      "Failed to read issue #$ISSUE_NUMBER from $BOOTSTRAP_REPO" \
+      "Run: gh auth login and ensure you have access to $BOOTSTRAP_REPO"
+  fi
   LABELS="$(printf '%s' "$ISSUE_DATA" | grep -o '"name":"[^"]*"' | sed 's/"name":"//;s/"$//' | tr '\n' ',')"
   TITLE="$(printf '%s' "$ISSUE_DATA" | grep -o '"title":"[^"]*"' | head -1 | sed 's/"title":"//;s/"$//')"
 
