@@ -74,6 +74,63 @@ Navigate to **http://localhost:3006** (user: `admin` / password: `admin`)
 
 ---
 
+## Ephemeral Demo Environments (`octodemo/bootstrap`)
+
+If you are using an [octodemo/bootstrap](https://github.com/octodemo/bootstrap)-provisioned
+demo environment, the dashboard's `GITHUB_ORG` and `GITHUB_REPO` values must be updated
+each time a new demo is created (bootstrap demos are torn down weekly).
+
+Two scripts automate this. Both require `bash` (Git for Windows or WSL on Windows)
+and the [`gh` CLI](https://cli.github.com/) authenticated against `github.com`.
+
+### Point the dashboard at your current provisioned demo
+
+```bash
+bash scripts/use-demo.sh
+```
+
+Discovers your open `demo::provisioned` issue in `octodemo/bootstrap`, parses the
+repo slug from the issue title, updates `GITHUB_ORG` and `GITHUB_REPO` in `.env`,
+restarts the sync-server container, and triggers a full data sync.
+
+Optional flags:
+- `--dry-run` — show what would change without modifying `.env` or Docker
+- `--issue <n>` — use a specific bootstrap issue number instead of auto-discovery
+- `--skip-sync` — rewrite `.env` only; skip docker compose and sync
+
+### Create a new demo + configure
+
+```bash
+bash scripts/create-demo.sh
+```
+
+Opens a new issue in `octodemo/bootstrap` using the OctoCat Supply Platform template,
+polls every 30 seconds until the `demo::provisioned` label appears (up to 20 minutes),
+then delegates to `use-demo.sh` automatically.
+
+Optional flags: `--backend nodejs|python|java|php`, `--azure no|yes`, `--version v4.10.0`, `--timeout-min 20`
+
+### What changes (and what doesn't)
+
+| Value | Updated by scripts | Notes |
+|---|---|---|
+| `GITHUB_ORG` | ✅ Always set to `octodemo` | Constant across all bootstrap demos |
+| `GITHUB_REPO` | ✅ Parsed from bootstrap issue title | Changes each new demo |
+| `GITHUB_ENTERPRISE` | ❌ Never touched | Set manually once; constant across demos |
+| `GITHUB_TOKEN` | ❌ Never touched | Manage via `setup-env` skill |
+
+### Agent automation (Copilot skill)
+
+The **`refresh-demo-env`** skill (`.github/skills/refresh-demo-env/SKILL.md`) provides
+an agent-driven decision tree: it checks whether a sufficiently-recent provisioned demo
+already exists and calls `use-demo.sh` or `create-demo.sh` accordingly. Use it when you
+want Copilot to handle the refresh autonomously.
+
+> **Note:** `octodemo/bootstrap` is a private repository. Both scripts require that your
+> `gh` CLI account and your `GITHUB_TOKEN` (in `.env`) are members of the `octodemo` org.
+
+---
+
 ## Dashboards Overview
 
 Six dashboards are available, numbered sequentially for reference. Each reflects a different perspective on Copilot adoption and engineering success:
