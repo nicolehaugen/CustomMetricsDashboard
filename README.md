@@ -90,13 +90,16 @@ bash scripts/use-demo.sh
 ```
 
 Discovers your open `demo::provisioned` issue in `octodemo/bootstrap`, parses the
-repo slug from the issue title, updates `GITHUB_ORG` and `GITHUB_REPO` in `.env`,
-restarts the sync-server container, and triggers a full data sync.
+repo slug from the issue title, and updates `GITHUB_ORG` and `GITHUB_REPO` in `.env`.
+
+After running the script, restart the sync-server and trigger a sync manually:
+```bash
+docker compose restart sync-server
+curl -X POST http://localhost:3005/sync
+```
 
 Optional flags:
-- `--dry-run` — show what would change without modifying `.env` or Docker
 - `--issue <n>` — use a specific bootstrap issue number instead of auto-discovery
-- `--skip-sync` — rewrite `.env` only; skip docker compose and sync
 
 ### Create a new demo + configure
 
@@ -106,9 +109,8 @@ bash scripts/create-demo.sh
 
 Opens a new issue in `octodemo/bootstrap` using the OctoCat Supply Platform template,
 polls every 30 seconds until the `demo::provisioned` label appears (up to 20 minutes),
-then delegates to `use-demo.sh` automatically.
-
-Optional flags: `--backend nodejs|python|java|php`, `--azure no|yes`, `--version v4.10.0`, `--timeout-min 20`
+then delegates to `use-demo.sh` automatically. After the script completes, restart the
+sync-server and trigger a sync manually (see above).
 
 ### What changes (and what doesn't)
 
