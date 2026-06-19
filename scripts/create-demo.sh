@@ -64,17 +64,16 @@ No
 
 v4.10.0'
 
-ISSUE_JSON="$(printf '%s' "$ISSUE_BODY" | \
+ISSUE_URL="$(printf '%s' "$ISSUE_BODY" | \
   gh issue create \
     -R "$BOOTSTRAP_REPO" \
     -t "Demo Creation :: OctoCat Supply Platform :: v4.10.0" \
     -l "demo" \
     -l "template" \
-    -F - \
-    --json number,url)"
+    -F -)"
 
+ISSUE_JSON="$(gh issue view "$ISSUE_URL" -R "$BOOTSTRAP_REPO" --json number,url)"
 ISSUE_NUMBER="$(printf '%s' "$ISSUE_JSON" | grep -o '"number":[0-9]*' | grep -o '[0-9]*')"
-ISSUE_URL="$(printf '%s' "$ISSUE_JSON" | grep -o '"url":"[^"]*"' | sed 's/"url":"//;s/"$//')"
 log "Created issue #$ISSUE_NUMBER: $ISSUE_URL"
 
 # --- Poll for demo::provisioned label ----------------------------------------
