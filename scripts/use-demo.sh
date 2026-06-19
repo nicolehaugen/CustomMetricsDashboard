@@ -37,15 +37,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENV_FILE="$REPO_ROOT/.env"
 
-# ─── Arg parsing ─────────────────────────────────────────────────────────────
-
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --issue) ISSUE_NUMBER="$2"; shift 2 ;;
-    *) echo "Unknown flag: $1" >&2; exit 1 ;;
-  esac
-done
-
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
 json_escape() {
@@ -74,6 +65,23 @@ emit_success() {
 }
 
 log() { echo "[use-demo] $*" >&2; }
+
+# ─── Arg parsing ─────────────────────────────────────────────────────────────
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --issue)
+      if [[ -z "${2:-}" ]]; then
+        emit_error "ERR_INVALID_ARGS" "--issue requires a value" "Usage: use-demo.sh --issue <number>"
+      fi
+      ISSUE_NUMBER="$2"
+      shift 2
+      ;;
+    *)
+      emit_error "ERR_INVALID_ARGS" "Unknown flag: $1" "Usage: use-demo.sh [--issue <number>]"
+      ;;
+  esac
+done
 
 # ─── Pre-flight A: gh CLI auth + bootstrap repo access ───────────────────────
 
