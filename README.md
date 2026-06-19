@@ -90,9 +90,8 @@ bash scripts/use-demo.sh
 ```
 
 Discovers your open `demo::provisioned` issue in `octodemo/bootstrap`, parses the
-repo slug from the issue title, and updates `GITHUB_ORG` and `GITHUB_REPO` in `.env`.
-
-After running the script, restart the sync-server and trigger a sync manually:
+repo slug from the issue title, rewrites `GITHUB_ORG` and `GITHUB_REPO` in `.env`,
+and prints the manual next step to restart the sync-server and trigger a sync:
 ```bash
 docker compose restart sync-server
 curl -X POST http://localhost:3005/sync
@@ -109,8 +108,8 @@ bash scripts/create-demo.sh
 
 Opens a new issue in `octodemo/bootstrap` using the OctoCat Supply Platform template,
 polls every 30 seconds until the `demo::provisioned` label appears (up to 20 minutes),
-then delegates to `use-demo.sh` automatically. After the script completes, restart the
-sync-server and trigger a sync manually (see above).
+then delegates to `use-demo.sh` automatically, which prints the manual restart/sync
+step shown above.
 
 ### What changes (and what doesn't)
 
