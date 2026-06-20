@@ -1,6 +1,6 @@
 {
   "uid": "edu-copilot-adoption",
-  "title": "🤖 Copilot Adoption [v3]",
+  "title": "2 - 🤖 Copilot Adoption [v3]",
   "description": "Tracks GitHub Copilot seat provisioning, activation rates, and daily active user trends across the organization.",
   "schemaVersion": 36,
   "version": 1,
@@ -45,39 +45,18 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            {
-              "type": "regex",
-              "options": {
-                "pattern": ".*Live Data.*",
-                "result": {
-                  "color": "#73BF69",
-                  "index": 0
-                }
-              }
-            },
-            {
-              "type": "regex",
-              "options": {
-                "pattern": ".*Seed Data.*",
-                "result": {
-                  "color": "#FF9830",
-                  "index": 1
-                }
-              }
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-red",
+                "color": "blue",
                 "value": null
               }
             ]
           },
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "blue"
           }
         },
         "overrides": []
@@ -896,128 +875,6 @@
         "y": 82
       },
       "description": "Learning guide section for Copilot Seats Loaded."
-    },
-    {
-      "id": 307,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 83
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "---"
-      },
-      "description": "Section divider."
-    },
-    {
-      "id": 11,
-      "type": "stat",
-      "title": "Last Successful Sync",
-      "gridPos": {
-        "h": 4,
-        "w": 12,
-        "x": 0,
-        "y": 85
-      },
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "PostgreSQL"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "PostgreSQL"
-          },
-          "rawSql": "SELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'",
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background"
-      },
-      "description": "Source: Internal sync_jobs table (no GitHub API call) | Tables: `sync_jobs`"
-    },
-    {
-      "id": 208,
-      "type": "row",
-      "title": "Last Successful Sync - Learning Guide",
-      "collapsed": true,
-      "panels": [
-        {
-          "id": 258,
-          "type": "text",
-          "title": "",
-          "transparent": true,
-          "gridPos": {
-            "h": 18,
-            "w": 24,
-            "x": 0,
-            "y": 90
-          },
-          "options": {
-            "mode": "markdown",
-            "content": "### 📡 GitHub API Source\n\nInternal sync_jobs table (no GitHub API call)\n\n### 🗄️ Database Table(s)\n\n`sync_jobs`\n\n### 📐 How It's Calculated\n\nMAX(finished_at) from sync_jobs where status='success'. Shows when the last complete sync run finished.\n### ⚠️ Calculation Challenges\n\n- **'Successful' sync ≠ all data loaded** — a sync job completes with status='success' while individual fetchers (e.g., copilot seats) fail silently. Always check records_synced per resource.\n- **Timestamps in UTC** — finished_at is stored in UTC. Grafana displays in browser timezone; a sync at 00:00 UTC appears as yesterday in UTC-5 timezones.\n- **sync_jobs is append-only** — each sync adds a row and the table grows indefinitely. No automatic pruning.\n### 💡 What This Metric Doesn't Tell You\n\n- Whether all resources were successfully fetched (check records_synced column in the job record).\n- Failure reason if the last job has status other than 'success'.\n\n### 🔍 SQL Query\n\n```sql\nSELECT MAX(finished_at) AS \"Last Successful Sync\" FROM sync_jobs WHERE status = 'success'\n```"
-          }
-        }
-      ],
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 89
-      },
-      "description": "Learning guide section for Last Successful Sync."
-    },
-    {
-      "id": 308,
-      "type": "text",
-      "title": "",
-      "transparent": true,
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 90
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "---"
-      },
-      "description": "Section divider."
     }
   ],
   "tags": [

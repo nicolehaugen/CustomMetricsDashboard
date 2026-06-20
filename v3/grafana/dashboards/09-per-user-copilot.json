@@ -1780,8 +1780,8 @@
     {
       "id": 23,
       "type": "stat",
-      "title": "CLI Sessions (28d)",
-      "description": "Distinct `gh copilot` CLI sessions. Source: `totals_by_cli` (JSON object, not array) → `session_count` | Table: `copilot_user_daily`",
+      "title": "CLI Interactions (28d)",
+      "description": "User-initiated CLI interactions for `gh copilot`. Source: `totals_by_feature[feature='copilot_cli'].user_initiated_interaction_count` | Table: `copilot_user_daily`",
       "gridPos": {
         "x": 0,
         "y": 346,
@@ -1799,7 +1799,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->>'session_count')::bigint), 0) AS \"CLI Sessions (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "rawSql": "SELECT COALESCE(SUM((e->>'user_initiated_interaction_count')::bigint), 0) AS \"CLI Interactions (28d)\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'",
           "format": "table"
         }
       ],
@@ -1833,8 +1833,8 @@
     {
       "id": 24,
       "type": "stat",
-      "title": "CLI Requests (28d)",
-      "description": "Total CLI requests (user prompts + automated agentic follow-ups). Source: `totals_by_cli.request_count` | Table: `copilot_user_daily`",
+      "title": "CLI Code Generations (28d)",
+      "description": "Code generations from CLI activity. Source: `totals_by_feature[feature='copilot_cli'].code_generation_activity_count` | Table: `copilot_user_daily`",
       "gridPos": {
         "x": 8,
         "y": 346,
@@ -1852,7 +1852,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->>'request_count')::bigint), 0) AS \"CLI Requests (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "rawSql": "SELECT COALESCE(SUM((e->>'code_generation_activity_count')::bigint), 0) AS \"CLI Code Generations (28d)\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'",
           "format": "table"
         }
       ],
@@ -1886,8 +1886,8 @@
     {
       "id": 25,
       "type": "stat",
-      "title": "CLI Prompts (28d)",
-      "description": "User-initiated CLI prompts/commands only (excludes automated agentic follow-up calls). Source: `totals_by_cli.prompt_count` | Table: `copilot_user_daily`",
+      "title": "CLI Code Acceptances (28d)",
+      "description": "Accepted code suggestions from CLI activity. Source: `totals_by_feature[feature='copilot_cli'].code_acceptance_activity_count` | Table: `copilot_user_daily`",
       "gridPos": {
         "x": 16,
         "y": 346,
@@ -1905,7 +1905,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->>'prompt_count')::bigint), 0) AS \"CLI Prompts (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "rawSql": "SELECT COALESCE(SUM((e->>'code_acceptance_activity_count')::bigint), 0) AS \"CLI Code Acceptances (28d)\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'",
           "format": "table"
         }
       ],
@@ -1939,8 +1939,8 @@
     {
       "id": 331,
       "type": "stat",
-      "title": "CLI Output Tokens (28d)",
-      "description": "Total CLI output tokens over the selected time range.",
+      "title": "CLI Lines Added (28d)",
+      "description": "Lines of code added in files where CLI suggestions were accepted. Source: `totals_by_feature[feature='copilot_cli'].loc_added_sum` | Table: `copilot_user_daily`",
       "gridPos": {
         "x": 0,
         "y": 350,
@@ -1958,7 +1958,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->'token_usage'->>'output_tokens_sum')::bigint), 0) AS \"CLI Output Tokens (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "rawSql": "SELECT COALESCE(SUM((e->>'loc_added_sum')::bigint), 0) AS \"CLI Lines Added (28d)\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'",
           "format": "table"
         }
       ],
@@ -1992,8 +1992,8 @@
     {
       "id": 332,
       "type": "stat",
-      "title": "CLI Prompt Tokens (28d)",
-      "description": "Total CLI prompt tokens over the selected time range.",
+      "title": "CLI Lines Deleted (28d)",
+      "description": "Lines of code deleted in files where CLI suggestions were accepted. Source: `totals_by_feature[feature='copilot_cli'].loc_deleted_sum` | Table: `copilot_user_daily`",
       "gridPos": {
         "x": 8,
         "y": 350,
@@ -2011,7 +2011,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(SUM((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::bigint), 0) AS \"CLI Prompt Tokens (28d)\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "rawSql": "SELECT COALESCE(SUM((e->>'loc_deleted_sum')::bigint), 0) AS \"CLI Lines Deleted (28d)\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'",
           "format": "table"
         }
       ],
@@ -2045,8 +2045,8 @@
     {
       "id": 333,
       "type": "stat",
-      "title": "CLI Avg Tokens/Request",
-      "description": "Average total CLI tokens per request over the selected time range.",
+      "title": "CLI Acceptance Rate",
+      "description": "Share of CLI generations the user accepted: code_acceptance_activity_count / code_generation_activity_count. Source: `totals_by_feature[feature='copilot_cli']` | Table: `copilot_user_daily`",
       "gridPos": {
         "x": 16,
         "y": 350,
@@ -2064,13 +2064,13 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT COALESCE(ROUND(\n  (COALESCE(SUM((totals_by_cli->'token_usage'->>'output_tokens_sum')::numeric), 0)\n  + COALESCE(SUM((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::numeric), 0))\n  / NULLIF(COALESCE(SUM((totals_by_cli->>'request_count')::numeric), 0), 0),\n  1\n), 0) AS \"CLI Avg Tokens/Request\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL",
+          "rawSql": "SELECT COALESCE(ROUND(\n  100.0 * SUM((e->>'code_acceptance_activity_count')::numeric)\n  / NULLIF(SUM((e->>'code_generation_activity_count')::numeric), 0),\n  1\n), 0) AS \"CLI Acceptance Rate\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'",
           "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "percent",
           "decimals": 1,
           "thresholds": {
             "mode": "absolute",
@@ -2109,7 +2109,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /orgs/{org}/copilot/metrics/reports/users-28-day/latest` → `totals_by_cli`\n\n### Database Table(s)\n\n`copilot_user_daily` — one row per user per day.\n\n### Important: Daily Values, Not Rolling Totals\n\nDespite the report name (`users-28-day`), each NDJSON line returned by the API represents **a single calendar day's activity** for one user — not a 28-day rolling aggregate. The `28-day` in the endpoint name refers to the report's time window (it returns the last 28 days of data), not the aggregation period of each row.\n\n**Evidence:** Values fluctuate significantly day-to-day (e.g. a user may have 138 requests one day and 1,219 the next). If these were rolling 28-day totals, values would be far more stable. Additionally, the table contains exactly one row per user per active day.\n\nBecause each row is a **daily snapshot**, the `SUM()` across the selected time range correctly produces the total for that period — there is no double-counting.\n\n### How It's Calculated\n\n`totals_by_cli` is a JSON object on each daily row. These CLI cards sum daily values across the selected time range:\n\n- **CLI Sessions** — `session_count` — distinct `gh copilot` invocations, summed\n- **CLI Requests** — `request_count` — total API calls, including automated follow-ups\n- **CLI Prompts** — `prompt_count` — user-typed prompts only\n- **CLI Output Tokens** — `token_usage.output_tokens_sum` — total generated tokens\n- **CLI Prompt Tokens** — `token_usage.prompt_tokens_sum` — total prompt tokens sent\n- **CLI Avg Tokens/Request** — `(output_tokens_sum + prompt_tokens_sum) / request_count`\n\nToken counts can be large (hundreds of millions over 28 days for active CLI/agent-mode users) because each request sends full file context as prompt tokens.\n\nRows where `totals_by_cli IS NULL` (user had no CLI activity that day) are excluded.\n\n### SQL Query\n\n```sql\nSELECT\n  COALESCE(SUM((totals_by_cli->>'session_count')::bigint), 0) AS \"Sessions\",\n  COALESCE(SUM((totals_by_cli->>'request_count')::bigint), 0) AS \"Requests\",\n  COALESCE(SUM((totals_by_cli->>'prompt_count')::bigint), 0) AS \"Prompts\",\n  COALESCE(SUM((totals_by_cli->'token_usage'->>'output_tokens_sum')::bigint), 0) AS \"Output Tokens\",\n  COALESCE(SUM((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::bigint), 0) AS \"Prompt Tokens\",\n  COALESCE(ROUND(\n    (COALESCE(SUM((totals_by_cli->'token_usage'->>'output_tokens_sum')::numeric), 0)\n    + COALESCE(SUM((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::numeric), 0))\n    / NULLIF(COALESCE(SUM((totals_by_cli->>'request_count')::numeric), 0), 0),\n    1\n  ), 0) AS \"Avg Tokens/Request\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\n```"
+        "content": "### GitHub API Source [→ docs](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10)\n\n`GET /enterprises/{enterprise}/copilot/metrics/reports/users-28-day/latest` → `totals_by_feature` (JSONB array, one entry per surface)\n\n### Database Table(s)\n\n`copilot_user_daily` — one row per user per day. Each row stores a `totals_by_feature` JSONB array; one entry has `feature = 'copilot_cli'` for users who used the GitHub Copilot CLI that day.\n\n### Note: `totals_by_cli` is NOT populated by this report\n\nDespite a column named `totals_by_cli` existing on the table, the `users-28-day` report does **not** return that field per user. The CLI metrics shown here are extracted from the `copilot_cli` entry inside `totals_by_feature`. The fields available are:\n\n| Field | Meaning |\n|---|---|\n| `user_initiated_interaction_count` | Count of user-initiated CLI interactions |\n| `code_generation_activity_count` | Number of code suggestions the CLI generated |\n| `code_acceptance_activity_count` | Number of those suggestions the user accepted |\n| `loc_added_sum` | Lines of code added in files where CLI suggestions were accepted |\n| `loc_deleted_sum` | Lines of code deleted in files where CLI suggestions were accepted |\n\nFields like `session_count`, `request_count`, `prompt_count`, and `token_usage` are **not** part of this report and therefore cannot be displayed here.\n\n### Important: Daily Values, Not Rolling Totals\n\nDespite the report name (`users-28-day`), each NDJSON line represents **one calendar day's activity** for one user. The 28-day window refers to the lookback range of the report, not the aggregation period of each row. Summing across the time range correctly produces totals for that period — there is no double counting.\n\n### How It's Calculated\n\nEach stat unnests `totals_by_feature` and filters to `feature = 'copilot_cli'`, then sums the matching field across the selected time range:\n\n- **CLI Interactions** — `user_initiated_interaction_count`\n- **CLI Code Generations** — `code_generation_activity_count`\n- **CLI Code Acceptances** — `code_acceptance_activity_count`\n- **CLI Lines Added** — `loc_added_sum`\n- **CLI Lines Deleted** — `loc_deleted_sum`\n- **CLI Acceptance Rate** — `100 * SUM(code_acceptance_activity_count) / SUM(code_generation_activity_count)`\n\n### SQL Query\n\n```sql\nSELECT\n  COALESCE(SUM((e->>'user_initiated_interaction_count')::bigint), 0) AS \"Interactions\",\n  COALESCE(SUM((e->>'code_generation_activity_count')::bigint), 0)   AS \"Code Generations\",\n  COALESCE(SUM((e->>'code_acceptance_activity_count')::bigint), 0)   AS \"Code Acceptances\",\n  COALESCE(SUM((e->>'loc_added_sum')::bigint), 0)                    AS \"Lines Added\",\n  COALESCE(SUM((e->>'loc_deleted_sum')::bigint), 0)                  AS \"Lines Deleted\",\n  COALESCE(ROUND(\n    100.0 * SUM((e->>'code_acceptance_activity_count')::numeric)\n    / NULLIF(SUM((e->>'code_generation_activity_count')::numeric), 0),\n    1\n  ), 0) AS \"Acceptance Rate (%)\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'\n```"
       },
       "description": "How CLI usage metrics are sourced and aggregated for the selected time range."
     },
@@ -2117,7 +2117,7 @@
       "id": 334,
       "type": "timeseries",
       "title": "Daily CLI Usage Trend",
-      "description": "Daily trend of CLI sessions, requests, prompts, and token usage for the selected user. Source: `totals_by_cli` from `copilot_user_daily`.",
+      "description": "Daily trend of CLI interactions, generations, acceptances, and code churn for the selected user. Source: `totals_by_feature[feature='copilot_cli']` from `copilot_user_daily`.",
       "gridPos": {
         "x": 0,
         "y": 354,
@@ -2135,7 +2135,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->>'session_count')::bigint, 0) AS \"Sessions\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(SUM((e->>'user_initiated_interaction_count')::bigint), 0) AS \"Interactions\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'\nGROUP BY day\nORDER BY day",
           "format": "time_series"
         },
         {
@@ -2144,7 +2144,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->>'request_count')::bigint, 0) AS \"Requests\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(SUM((e->>'code_generation_activity_count')::bigint), 0) AS \"Code Generations\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'\nGROUP BY day\nORDER BY day",
           "format": "time_series"
         },
         {
@@ -2153,7 +2153,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->>'prompt_count')::bigint, 0) AS \"Prompts\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(SUM((e->>'code_acceptance_activity_count')::bigint), 0) AS \"Code Acceptances\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'\nGROUP BY day\nORDER BY day",
           "format": "time_series"
         },
         {
@@ -2162,7 +2162,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->'token_usage'->>'output_tokens_sum')::bigint, 0) AS \"Output Tokens\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(SUM((e->>'loc_added_sum')::bigint), 0) AS \"Lines Added\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'\nGROUP BY day\nORDER BY day",
           "format": "time_series"
         },
         {
@@ -2171,7 +2171,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "PostgreSQL"
           },
-          "rawSql": "SELECT\n  day AS time,\n  COALESCE((totals_by_cli->'token_usage'->>'prompt_tokens_sum')::bigint, 0) AS \"Prompt Tokens\"\nFROM copilot_user_daily\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND totals_by_cli IS NOT NULL\nORDER BY day",
+          "rawSql": "SELECT\n  day AS time,\n  COALESCE(SUM((e->>'loc_deleted_sum')::bigint), 0) AS \"Lines Deleted\"\nFROM copilot_user_daily, LATERAL jsonb_array_elements(totals_by_feature) e\nWHERE user_login = '${user_login}'\n  AND day BETWEEN $__timeFrom()::date AND $__timeTo()::date\n  AND e->>'feature' = 'copilot_cli'\nGROUP BY day\nORDER BY day",
           "format": "time_series"
         }
       ],
@@ -2189,7 +2189,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Sessions"
+              "options": "Interactions"
             },
             "properties": [
               {
@@ -2204,7 +2204,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Requests"
+              "options": "Code Generations"
             },
             "properties": [
               {
@@ -2219,7 +2219,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Prompts"
+              "options": "Code Acceptances"
             },
             "properties": [
               {
@@ -2234,7 +2234,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Output Tokens"
+              "options": "Lines Added"
             },
             "properties": [
               {
@@ -2263,7 +2263,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Prompt Tokens"
+              "options": "Lines Deleted"
             },
             "properties": [
               {
